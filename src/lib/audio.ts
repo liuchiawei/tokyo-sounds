@@ -31,6 +31,10 @@ export class AudioManager {
                 src: [url],
                 preload: true,
                 onload: () => {
+                    const trackDuration = howl.duration();
+                    if (trackDuration > this.duration) {
+                        this.duration = trackDuration;
+                    }
                     const track: AudioTrack = {
                         id: crypto.randomUUID(),
                         name,
@@ -41,6 +45,9 @@ export class AudioManager {
                         pitch: 0,
                         pan: 0
                     }
+
+                    howl.volume(track.volume);
+                    howl.stereo(track.pan);
                     this.tracks.set(track.id, track);
                     resolve(track);
                 },
@@ -81,6 +88,11 @@ export class AudioManager {
 
     setCurrentTime(time: number) {
         this.currentTime = time;
+        this.tracks.forEach(track => {
+            if (track.howl) {
+                track.howl.seek(time);
+            }
+        });
     }
 
     getCurrentTime(): number {
@@ -123,19 +135,23 @@ export class AudioManager {
     }
 
     getVolume(): number {
-        return this.tracks.get('')?.volume || 0;
+        const firstTrack = this.tracks.values().next().value;
+        return firstTrack?.volume || 0;
     }
 
     getReverb(): number {
-        return this.tracks.get('')?.reverb || 0;
+        const firstTrack = this.tracks.values().next().value;
+        return firstTrack?.reverb || 0;
     }
     
     getPitch(): number {
-        return this.tracks.get('')?.pitch || 0;
+        const firstTrack = this.tracks.values().next().value;
+        return firstTrack?.pitch || 0;
     }
 
     getPan(): number {
-        return this.tracks.get('')?.pan || 0;
+        const firstTrack = this.tracks.values().next().value;
+        return firstTrack?.pan || 0;
     }
 
     isCurrentlyPlaying(): boolean {

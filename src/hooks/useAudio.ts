@@ -12,6 +12,7 @@ export function useAudio() {
 
     useEffect(() => {
         const tracks = audManagerRef.current.getTracks();
+        setTracks(tracks);
         return () => {
             audManagerRef.current?.stop();
         }
@@ -53,7 +54,9 @@ export function useAudio() {
 
         const interval = setInterval(() => {
             const time = audManagerRef.current.getCurrentTime() || 0;
+            const dur = audManagerRef.current.getDuration() || 0;
             setCurrentTime(time);
+            setDuration(dur);
         }, 100);
 
         return () => clearInterval(interval);
