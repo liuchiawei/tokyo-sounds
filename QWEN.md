@@ -56,7 +56,7 @@ tokyo-sounds/
 
 ## Development Plan (Checklist)
 
-- [x] **Task 1**: Set up R3F dependencies (three, @react-three/fiber, @react-three/drei) - ✅ COMPLETED
+- [x] **Task 1**: Set up R3F dependencies - ✅ COMPLETED
 - [x] **Task 2**: Replace placeholder canvas component with basic R3F implementation - ✅ COMPLETED
 - [ ] **Task 3**: Create state management for scenes and audio using Zustand
 - [ ] **Task 4**: Implement scene data structure and loading
