@@ -1,10 +1,13 @@
 import Canvas from "@/components/layout/canvas";
 import AudioPlayer from "@/components/layout/audio-player";
+
 export default function Home() {
   return (
-    <main className="w-full h-full flex flex-col md:flex-row justify-center items-center">
+    <main className="w-full h-screen relative overflow-hidden">
       <Canvas />
-      <AudioPlayer />
+      <div className="absolute top-4 right-4 z-10">
+        <AudioPlayer />
+      </div>
     </main>
   );
 }
