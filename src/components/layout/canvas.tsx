@@ -32,7 +32,7 @@ export default function Canvas() {
       <R3FCanvas
         shadows
         dpr={[1, 2]} // Adjust pixel ratio for performance/quality
-        camera={{ fov: 15 }} // Stage will set position, but we can set FOV
+        camera={{ fov: 15, position: [10, 2, 1] }} // Set initial camera position for a higher angle
       >
         <Suspense fallback={<Loader />}>
           {/* Stage component centers and scales the model, adds shadows and lighting */}
