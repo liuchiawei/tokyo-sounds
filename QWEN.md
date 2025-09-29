@@ -7,23 +7,32 @@
 3. **Professional approach** - Clean, maintainable, well-documented code
 4. **One task at a time** - Complete one task before moving to the next
 5. **Wait for approval** - Stop after each task until instructed to continue
+6. **Use pnpm as the package manager** for all dependency installations
+7. **Integration of actual 3D models (GLB files)** - Replace primitive-based landmarks with real 3D assets
+8. **Code documentation in Japanese** - Add Japanese comments for team understanding
+   - 例: // シーン管理のための Zustand ストア - Zustand store for scene management
 
 ## Project Structure Reference
 
 ```
 tokyo-sounds/
-├── .gitignore
-├── components.json
-├── eslint.config.mjs
-├── next.config.ts
-├── package-lock.json
-├── package.json
-├── pnpm-lock.yaml
-├── pnpm-workspace.yaml
-├── postcss.config.mjs
 ├── public/
 │   ├── file.svg
 │   ├── globe.svg
+│   ├── models/           # 3D model files (GLB/GLTF)
+│   │   ├── skytree.glb
+│   │   ├── tokyo-tower.glb
+│   │   ├── shibuya-crossing.glb
+│   │   └── tokyo-station.glb
+│   ├── ui/               # UI assets (thumbnails, etc.)
+│   │   ├── thumbs/
+│   │   │   ├── skytree.png
+│   │   │   ├── tower.png
+│   │   │   └── crossing.png
+│   ├── audio/            # Audio files for the experience
+│   │   ├── city_day_loop.mp3
+│   │   ├── skytree_announcer.mp3
+│   │   └── shibuya_bustle.mp3
 │   ├── next.svg
 │   ├── vercel.svg
 │   └── window.svg
@@ -49,15 +58,23 @@ tokyo-sounds/
 │   │       └── tooltip.tsx
 │   ├── hooks/
 │   │   └── use-mobile.ts
-│   └── lib/
-│       └── utils.ts
-└── tsconfig.json
+│   ├── lib/
+│   │   └── utils.ts
+│   ├── stores/           # Zustand stores for state management
+│   │   └── use-scene-store.ts
+│   ├── types/            # TypeScript type definitions
+│   │   ├── scene.ts
+│   │   └── building.ts
+│   └── assets/           # Additional assets (data schemas, etc.)
+│       ├── scenes.json
+│       ├── buildings.json
+│       └── sounds.json
 ```
 
 ## Development Plan (Checklist)
 
-- [x] **Task 1**: Set up R3F dependencies - ✅ COMPLETED
-- [x] **Task 2**: Replace placeholder canvas component with basic R3F implementation - ✅ COMPLETED
+- [ ] **Task 1**: Set up R3F dependencies with GLB model loading - PENDING
+- [ ] **Task 2**: Replace placeholder canvas component with actual 3D models (GLB files) - PENDING
 - [ ] **Task 3**: Create state management for scenes and audio using Zustand
 - [ ] **Task 4**: Implement scene data structure and loading
 - [ ] **Task 5**: Add audio integration with Howler.js
@@ -69,5 +86,5 @@ tokyo-sounds/
 
 ## Current Status
 
-- Ready to begin Task 3: State management
-- Awaiting instruction to proceed with next task
+- Ready to begin Task 1: R3F setup with GLB model loading
+- Awaiting actual 3D models and instruction to proceed with implementation

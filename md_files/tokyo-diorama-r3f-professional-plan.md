@@ -296,20 +296,21 @@ type BuildingInfoState = {
 
 **Deliverables**: repo, Next 15 app, lint/prettier, Tailwind, pnpm, baseline dev script.
 
-### Phase 1 — Core 3D Engine
+### Phase 1 — Core 3D Engine with GLB Models
 
 - Setup `<Canvas>` (client) with `frameloop="demand"`, `linear`, `flat`, `dpr={[1,1]}`.
 - Orthographic **isometric** camera (`IsoCamera`).
 - Minimal light.
-- Placeholder ground + one test building.  
-  **Done when**: Canvas renders consistently and `invalidate()` is called by interactions only.
+- Integration of actual GLB models for Tokyo landmarks (Skytree, Tokyo Tower, etc.).  
+  **Done when**: Canvas renders consistently with actual 3D models and `invalidate()` is called by interactions only.
 
-### Phase 2 — Asset Pipeline
+### Phase 2 — Asset Pipeline & Optimization
 
 - Decide GLB export rules (scale, axes, tri count caps).
 - Create `gltfjsx` command to convert GLB → typed components.
-- Load two hero buildings (Skytree, 109).  
-  **Done when**: Both load with correct materials; textures use nearest filtering.
+- Optimize loading of two hero buildings (Skytree, Tokyo Tower) with proper materials and textures.
+- Implement fallbacks for model loading errors.  
+  **Done when**: Both models load with correct materials; textures use nearest filtering; error handling is in place.
 
 ### Phase 3 — Interaction
 
