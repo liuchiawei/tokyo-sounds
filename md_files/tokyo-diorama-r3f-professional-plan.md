@@ -1,41 +1,41 @@
-# Tokyo Diorama (R3F) — Professional Delivery Plan (Full MD)
+# 東京ジオラマ (R3F) — プロフェッショナル配信プラン (完全版)
 
-> **Purpose**: A complete, step‑by‑step blueprint to build an isometric, audio‑rich Tokyo diorama website using React Three Fiber (R3F). This plan is designed for a small team (5–8) and guarantees a working result by moving in clearly scoped phases with acceptance criteria, test plans, and risk controls.
-
----
-
-## Table of Contents
-
-1. [Project Vision & Non‑Goals](#project-vision--non-goals)
-2. [Baseline & Tech Stack](#baseline--tech-stack)
-3. [Architecture Overview](#architecture-overview)
-4. [Data & Asset Schemas](#data--asset-schemas)
-5. [UX Flows & UI Components](#ux-flows--ui-components)
-   - [Popup Modals (Spec)](#popup-modals-spec)
-6. [Phased Roadmap (with Deliverables)](#phased-roadmap-with-deliverables)
-7. [Work Breakdown Structure (WBS)](#work-breakdown-structure-wbs)
-8. [Testing Strategy](#testing-strategy)
-9. [Performance Budget & Optimizations](#performance-budget--optimizations)
-10. [Accessibility & Internationalization](#accessibility--internationalization)
-11. [DevOps, Environments & Deployment](#devops-environments--deployment)
-12. [Risk Register & Mitigations](#risk-register--mitigations)
-13. [Acceptance Criteria (Go/No‑Go)](#acceptance-criteria-gonogo)
-14. [Appendices (Commands, References)](#appendices-commands-references)
+> **目的**: React Three Fiber (R3F) を使用して、アイソメトリックで音響豊富な東京ジオラマウェブサイトを構築するための完全なステップバイステップの青写真。このプランは小規模チーム（5-8人）向けに設計されており、受け入れ基準、テストプラン、リスク管理を備えた明確にスコープされたフェーズで進行することで、動作する結果を保証します。
 
 ---
 
-## Project Vision & Non‑Goals
+## 目次
 
-**Vision**: A smooth, isometric **Tokyo soundscape** that lets users pick iconic scenes (Skytree, Tokyo Tower, Shibuya Crossing, etc.), explore a pixel‑styled diorama, and hear layered ambience & SFX, with minimal UI friction and mobile support.
+1. [プロジェクトビジョンと非目標](#プロジェクトビジョンと非目標)
+2. [ベースラインとテックスタック](#ベースラインとテックスタック)
+3. [アーキテクチャ概要](#アーキテクチャ概要)
+4. [データとアセットスキーマ](#データとアセットスキーマ)
+5. [UXフローとUIコンポーネント](#uxフローとuiコンポーネント)
+   - [ポップアップモーダル（仕様）](#ポップアップモーダル仕様)
+6. [段階的ロードマップ（成果物付き）](#段階的ロードマップ成果物付き)
+7. [作業分解構造（WBS）](#作業分解構造wbs)
+8. [テスト戦略](#テスト戦略)
+9. [パフォーマンス予算と最適化](#パフォーマンス予算と最適化)
+10. [アクセシビリティと国際化](#アクセシビリティと国際化)
+11. [DevOps、環境とデプロイメント](#devops環境とデプロイメント)
+12. [リスク登録と軽減策](#リスク登録と軽減策)
+13. [受け入れ基準（Go/No-Go）](#受け入れ基準gonogo)
+14. [付録（コマンド、参考文献）](#付録コマンド参考文献)
 
-**Non‑Goals** (to keep scope realistic):
+---
 
-- Full photorealistic PBR rendering.
-- Procedural city generation.
-- MMO‑scale crowds or physics simulation.
-- Offline PWA audio caching for all scenes (can be a later improvement).
+## プロジェクトビジョンと非目標
 
-**Success Metrics**:
+**ビジョン**: ユーザーが象徴的なシーン（スカイツリー、東京タワー、渋谷スクランブル交差点など）を選択し、ピクセルスタイルのジオラマを探索し、レイヤードされたアンビエンスとSFXを聞くことができる、スムーズなアイソメトリックな**東京サウンドスケープ**。最小限のUI摩擦とモバイルサポートを提供します。
+
+**非目標**（スコープを現実的に保つため）:
+
+- 完全なフォトリアリスティックPBRレンダリング
+- プロシージャル都市生成
+- MMOスケールの群衆や物理シミュレーション
+- 全シーンのオフラインPWA音声キャッシュ（後で改善可能）
+
+**成功指標**:
 
 - First contentful render < **1.5s** on desktop, < **3s** on mid‑range mobile.
 - TTI (interactive) < **3s** desktop / < **5s** mobile.

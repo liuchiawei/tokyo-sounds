@@ -1,52 +1,52 @@
-# React Three Fiber (R3F) — A Full-System Deep Dive
+# React Three Fiber (R3F) — フルシステム詳細解説
 
-> **Goal** — Give you a complete working mental model of R3F: how it renders, how JSX maps to Three.js, life cycle + events, hooks, performance, color/WebGPU, TypeScript, and advanced usage. Keep this open while you build.
+> **目標** — R3Fの完全な動作メンタルモデルを提供します：レンダリング方法、JSXからThree.jsへのマッピング、ライフサイクルとイベント、フック、パフォーマンス、カラー/WebGPU、TypeScript、高度な使用方法。構築中はこれを開いたままにしてください。
 
 ---
 
-## Table of Contents
-1. [What R3F Is](#what-r3f-is)
-2. [How It Works (Under the Hood)](#how-it-works-under-the-hood)
-3. [JSX → Three.js: Objects, Args, Attach, Primitive, Extend](#jsx--threejs-objects-args-attach-primitive-extend)
-4. [Canvas: The Runtime Shell](#canvas-the-runtime-shell)
-   - [Key Props](#key-props)
-   - [Defaults (what Canvas creates for you)](#defaults-what-canvas-creates-for-you)
-   - [WebGPU Mode](#webgpu-mode)
-   - [Custom Roots & Tree‑shaking](#custom-roots--tree-shaking)
-   - [Error & Fallback Strategies](#error--fallback-strategies)
-5. [Events & Interaction](#events--interaction)
-   - [Event Types & Payload](#event-types--payload)
-   - [Propagation & Occlusion in 3D](#propagation--occlusion-in-3d)
-   - [Pointer Capture](#pointer-capture)
-   - [Custom Event Manager, eventSource & eventPrefix](#custom-event-manager-eventsource--eventprefix)
-   - [Forcing Raycasts without Interaction](#forcing-raycasts-without-interaction)
-6. [Hooks (State, Frame Loop, Loading, Graph)](#hooks-state-frame-loop-loading-graph)
+## 目次
+1. [R3Fとは何か](#r3fとは何か)
+2. [動作原理（内部構造）](#動作原理内部構造)
+3. [JSX → Three.js: オブジェクト、Args、Attach、Primitive、Extend](#jsx--threejs-オブジェクトargsattachprimitiveextend)
+4. [Canvas: ランタイムシェル](#canvas-ランタイムシェル)
+   - [主要プロパティ](#主要プロパティ)
+   - [デフォルト（Canvasが作成するもの）](#デフォルトcanvasが作成するもの)
+   - [WebGPUモード](#webgpuモード)
+   - [カスタムルートとTree-shaking](#カスタムルートとtree-shaking)
+   - [エラーとフォールバック戦略](#エラーとフォールバック戦略)
+5. [イベントとインタラクション](#イベントとインタラクション)
+   - [イベントタイプとペイロード](#イベントタイプとペイロード)
+   - [3Dでの伝播と遮蔽](#3dでの伝播と遮蔽)
+   - [ポインターキャプチャ](#ポインターキャプチャ)
+   - [カスタムイベントマネージャー、eventSourceとeventPrefix](#カスタムイベントマネージャーeventsourceとeventprefix)
+   - [インタラクションなしでのレイキャスト強制](#インタラクションなしでのレイキャスト強制)
+6. [フック（状態、フレームループ、読み込み、グラフ）](#フック状態フレームループ読み込みグラフ)
    - [`useThree()`](#usethree)
    - [`useFrame(cb, priority?)`](#useframecb-priority)
-   - [`useLoader()` + caching & GLTF niceties](#useloader--caching--gltf-niceties)
+   - [`useLoader()` + キャッシュとGLTFの利点](#useloader--キャッシュとgltfの利点)
    - [`useGraph()`](#usegraph)
-7. [Performance Playbook](#performance-playbook)
-   - [On‑Demand Rendering & `invalidate()`](#on-demand-rendering--invalidate)
-   - [Reuse, Instancing, LOD, Progressive Loading](#reuse-instancing-lod-progressive-loading)
-   - [Avoiding React State Bottlenecks in Loops](#avoiding-react-state-bottlenecks-in-loops)
-   - [Adaptive Quality & Concurrency](#adaptive-quality--concurrency)
-8. [Color Management & Tone Mapping](#color-management--tone-mapping)
-9. [TypeScript & Catalog Types](#typescript--catalog-types)
-10. [Ecosystem You’ll Actually Use](#ecosystem-youll-actually-use)
-11. [Common Pitfalls & Debugging](#common-pitfalls--debugging)
-12. [Mini Recipes](#mini-recipes)
+7. [パフォーマンスプレイブック](#パフォーマンスプレイブック)
+   - [オンデマンドレンダリングと`invalidate()`](#オンデマンドレンダリングとinvalidate)
+   - [再利用、インスタンシング、LOD、プログレッシブ読み込み](#再利用インスタンシングlodプログレッシブ読み込み)
+   - [ループでのReact状態ボトルネック回避](#ループでのreact状態ボトルネック回避)
+   - [適応品質と並行性](#適応品質と並行性)
+8. [カラーマネジメントとトーンマッピング](#カラーマネジメントとトーンマッピング)
+9. [TypeScriptとカタログタイプ](#typescriptとカタログタイプ)
+10. [実際に使用するエコシステム](#実際に使用するエコシステム)
+11. [よくある落とし穴とデバッグ](#よくある落とし穴とデバッグ)
+12. [ミニレシピ](#ミニレシピ)
 
 ---
 
-## 1) What R3F Is
-- **R3F is a React renderer for Three.js**. You write declarative JSX; R3F maps it to real Three objects, syncs props efficiently, and lets components participate in React’s ecosystem (Suspense, transitions, state, etc.).
-- **No feature loss**: everything you can do in Three.js, you can do in R3F; the library just expresses Three in JSX.
-- **Version pairing**: `@react-three/fiber@8` ↔ React 18; `@react-three/fiber@9` ↔ React 19.
+## 1) R3Fとは何か
+- **R3FはThree.jsのReactレンダラーです**。宣言的JSXを記述し、R3Fがそれを実際のThreeオブジェクトにマッピングし、プロパティを効率的に同期し、コンポーネントがReactのエコシステム（Suspense、トランジション、状態など）に参加できるようにします。
+- **機能損失なし**: Three.jsでできることはすべてR3Fでできます。ライブラリは単にThreeをJSXで表現しているだけです。
+- **バージョンペアリング**: `@react-three/fiber@8` ↔ React 18; `@react-three/fiber@9` ↔ React 19。
 
-## 2) How It Works (Under the Hood)
-- R3F plugs into React’s reconciler like `react-dom`, but targets **Three’s scene graph** instead of the DOM.
-- On mount/update/unmount, it **constructs/updates/disposes** Three objects. Changes propagate **outside React** in a shared render loop, so there isn’t a “DOM diff” cost per frame.
-- The **state store** (exposed via `useThree`) tracks renderer (`gl`), scene, camera, pointer, raycaster, size/viewport, XR interface, and utility setters (e.g. `setDpr`, `invalidate`, `setFrameloop`).
+## 2) 動作原理（内部構造）
+- R3Fは`react-dom`のようにReactのレコンシラーに接続しますが、DOMの代わりに**Threeのシーングラフ**をターゲットにします。
+- マウント/更新/アンマウント時に、Threeオブジェクトを**構築/更新/破棄**します。変更は共有レンダーループで**Reactの外部**に伝播するため、フレームごとの「DOM差分」コストはありません。
+- **状態ストア**（`useThree`で公開）は、レンダラー（`gl`）、シーン、カメラ、ポインター、レイキャスター、サイズ/ビューポート、XRインターフェース、ユーティリティセッター（例：`setDpr`、`invalidate`、`setFrameloop`）を追跡します。
 
 ## 3) JSX → Three.js: Objects, Args, Attach, Primitive, Extend
 
