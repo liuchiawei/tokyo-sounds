@@ -17,6 +17,7 @@
 ```
 tokyo-sounds/
 ├── public/
+│   ├── 3dtest.glb        # 3D model for initial testing
 │   ├── file.svg
 │   ├── globe.svg
 │   ├── models/           # 3D model files (GLB/GLTF)
@@ -73,8 +74,8 @@ tokyo-sounds/
 
 ## Development Plan (Checklist)
 
-- [ ] **Task 1**: Set up R3F dependencies with GLB model loading - PENDING
-- [ ] **Task 2**: Replace placeholder canvas component with actual 3D models (GLB files) - PENDING
+- [x] **Task 1**: Set up R3F dependencies with GLB model loading - COMPLETED
+- [x] **Task 2**: Replace placeholder canvas component with actual 3D models (GLB files) - COMPLETED
 - [ ] **Task 3**: Create state management for scenes and audio using Zustand
 - [ ] **Task 4**: Implement scene data structure and loading
 - [ ] **Task 5**: Add audio integration with Howler.js
