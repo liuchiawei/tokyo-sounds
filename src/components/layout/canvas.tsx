@@ -2,24 +2,32 @@
 
 // React Three Fiber and Drei components for 3D rendering and helpers
 import { Canvas as R3FCanvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Stage, Environment } from "@react-three/drei";
+import { OrbitControls, Environment } from "@react-three/drei";
 import { Suspense } from "react";
 import { EffectComposer, Bloom, N8AO } from "@react-three/postprocessing";
+import { ModelWithEffects } from "@/components/ModelWrapper"; // カスタムモデルコンポーネントをインポート - Import custom model component
+import { ErrorBoundary } from "react-error-boundary"; // エラーバウンダリー - Error boundary for handling errors
 
-// GLBモデルをロードして表示するコンポーネント - Component to load and display GLB model
-const Model = () => {
-  // useGLTFフックでGLBモデルを読み込む - Load GLB model using useGLTF hook
-  const { scene } = useGLTF("/3dtest.glb");
-  // The <Stage> component will automatically scale and center the model
-  return <primitive object={scene} dispose={null} />;
-};
-
-// モデルロード用のシンプルなプレースホルダー - Simple placeholder for model loading
+// 3Dキャンバスのローディング表示 - 3D canvas loading display
 const Loader = () => (
-  <mesh>
-    <boxGeometry args={[1, 1, 1]} />
-    <meshStandardMaterial color="hotpink" />
-  </mesh>
+  <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-sky-900 to-gray-900">
+    <div className="text-center text-white">
+      <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-3"></div>
+      <p className="text-lg">3Dモデルを読み込み中...</p>
+      <p className="text-sm opacity-75">しばらくお待ちください</p>
+    </div>
+  </div>
+);
+
+// エラー表示 - Error display component
+const ErrorDisplay = ({ error }: { error: Error }) => (
+  <div className="w-full h-full flex justify-center items-center bg-gradient-to-b from-gray-800 to-gray-900 text-red-400">
+    <div className="text-center">
+      <p className="text-xl font-bold mb-2">エラーが発生しました</p>
+      <p className="text-base mb-4">{error.message}</p>
+      <p className="text-sm opacity-80">ページを再読み込みしてください</p>
+    </div>
+  </div>
 );
 
 // メインキャンバスコンポーネント - Main canvas component
@@ -32,49 +40,13 @@ export default function Canvas() {
       <R3FCanvas
         shadows
         dpr={[1, 2]} // Adjust pixel ratio for performance/quality
-        camera={{ fov: 15, position: [10, 2, 1] }} // Set initial camera position for a higher angle
+        camera={{ fov: 15, position: [100, 50, 90] }} //  x, y , z カメラを近づけてズームイン - Zoom in by bringing camera closer
       >
-        <Suspense fallback={<Loader />}>
-          {/* Stage component centers and scales the model, adds shadows and lighting */}
-          <Stage
-            environment={null}
-            intensity={1}
-            contactShadow={false}
-            shadowBias={-0.0015}
-          >
-            <Model />
-          </Stage>
-        </Suspense>
-
-        {/* OrbitControls for camera interaction */}
-        <OrbitControls
-          makeDefault // Ensures this is the default controller
-          autoRotate // Gently rotate the scene
-          autoRotateSpeed={0.5}
-          enableZoom={true}
-          enablePan={true}
-          minPolarAngle={Math.PI / 4} // Limit vertical rotation
-          maxPolarAngle={Math.PI / 2}
-        />
-
-        {/* Environment for realistic lighting and reflections */}
-        <Environment preset="city" background blur={0.7} />
-
-        {/* Post-processing effects for a more cinematic look */}
-        <EffectComposer multisample={0}>
-          <N8AO
-            quality="medium" // "low", "medium", "high", "ultra"
-            aoRadius={0.5}
-            intensity={2}
-            color="black"
-          />
-          <Bloom
-            intensity={0.25} // Reduced intensity for a subtle, professional glow
-            luminanceThreshold={0.6} // Higher threshold to only affect brighter areas
-            luminanceSmoothing={0.9}
-            height={300}
-          />
-        </EffectComposer>
+        <ErrorBoundary FallbackComponent={ErrorDisplay}>
+          <Suspense fallback={<Loader />}>
+            <ModelWithEffects />
+          </Suspense>
+        </ErrorBoundary>
       </R3FCanvas>
     </div>
   );
