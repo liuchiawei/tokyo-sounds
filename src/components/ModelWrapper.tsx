@@ -57,7 +57,7 @@ export const ModelWithEffects: React.FC = () => {
         bias={-0.0015}
         normalBias={-0.0015}
         size={10}
-        adjustCamera={0.5} // 小さなマージンでズームイン - Small margin for zoomed-in view
+        adjustCamera={1} // 小さなマージンでズームイン - Small margin for zoomed-in view
         offset={0.0015}
         normalOffset={0.0015}
         normalScale={1}

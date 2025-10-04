@@ -27,10 +27,14 @@
 ## Task 2.1: GLB Model Loading Implementation Plan - ✅ COMPLETED
 
 ### Summary
+
 - Used gltfjsx to generate a Model.tsx component from the 3dtest.glb file
 - Created proper TypeScript definitions for GLB nodes and materials in model.d.ts
 - Integrated useGLTF with Suspense for proper loading states
 - Verified SSR safety with dynamic imports
+
+- # Remove the --transform flag to keep all objects
+  npx gltfjsx /public/3dtest.glb --output src/components/Model.tsx --typescript
 
 ---
 
