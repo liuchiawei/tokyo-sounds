@@ -89,3 +89,6 @@ tokyo-sounds/
 
 - Ready to begin Task 1: R3F setup with GLB model loading
 - Awaiting actual 3D models and instruction to proceed with implementation
+
+- Step 1:
+  ( npx gltfjsx /public/3dtest.glb --output src/components/Model.tsx --typescript ) to transfer from 3D to JSX

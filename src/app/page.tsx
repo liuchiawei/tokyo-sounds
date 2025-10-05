@@ -1,9 +1,9 @@
-import Canvas from "@/components/layout/canvas";
+import ThreeDCanvas from "@/components/layout/3D-canvas";
 import AudioPlayer from "@/components/layout/audio-player";
 export default function Home() {
   return (
     <main className="w-full h-full flex flex-col md:flex-row justify-center items-center">
-      <Canvas />
+      <ThreeDCanvas />
       <AudioPlayer />
     </main>
   );
