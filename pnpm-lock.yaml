@@ -29,6 +29,9 @@ importers:
       '@react-three/postprocessing':
         specifier: ^3.0.4
         version: 3.0.4(@react-three/fiber@9.3.0(@types/react@19.1.13)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.180.0))(@types/three@0.180.0)(react@19.1.0)(three@0.180.0)
+      camera-controls:
+        specifier: ^3.1.0
+        version: 3.1.0(three@0.180.0)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
