@@ -5,15 +5,18 @@ import { Button } from "./button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./sheet";
 import { Landmark, MapPin, Layers, ChevronRight, Navigation } from "lucide-react";
 
+// ランドマーク選択コンポーネント - Landmark selection component
 export default function LandmarkSelector() {
   const { currentScene, currentLandmark, allScenes, moveCameraToLandmark, setCurrentScene } = useSceneStore();
   const [isOpen, setIsOpen] = useState(false);
 
+  // ランドマーク選択時の処理 - Handle landmark selection
   const handleLandmarkSelect = (landmark: CameraPosition) => {
     moveCameraToLandmark(landmark);
-    setIsOpen(false); // Close the sheet after selection
+    setIsOpen(false); // 選択後にシートを閉じる - Close the sheet after selection
   };
 
+  // シーン選択時の処理 - Handle scene selection
   const handleSceneSelect = (scene: Scene) => {
     setCurrentScene(scene);
   };
@@ -27,7 +30,7 @@ export default function LandmarkSelector() {
           className="fixed bottom-4 left-4 z-10 flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow"
         >
           <MapPin className="h-4 w-4" />
-          <span>Tokyo Landmarks</span>
+          <span>東京のランドマーク</span> {/* Tokyo Landmarks */}
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-[320px] sm:w-[400px] bg-gradient-to-b from-gray-900 to-gray-800 text-white p-0">
@@ -35,15 +38,15 @@ export default function LandmarkSelector() {
           <SheetHeader className="p-6 pb-4 border-b border-gray-700">
             <div className="flex items-center gap-2">
               <Navigation className="h-5 w-5 text-blue-400" />
-              <SheetTitle className="text-white text-lg">Tokyo Explorer</SheetTitle>
+              <SheetTitle className="text-white text-lg">東京エクスプローラー</SheetTitle> {/* Tokyo Explorer */}
             </div>
-            <p className="text-sm text-gray-400 mt-1">Select a scene and landmark to explore</p>
+            <p className="text-sm text-gray-400 mt-1">東京の象徴的なランドマークを発見</p> {/* Discover Tokyo's iconic landmarks */}
           </SheetHeader>
           
           <div className="p-4 border-b border-gray-700">
             <h3 className="text-xs uppercase font-semibold text-gray-400 mb-3 flex items-center gap-1">
               <Layers className="h-3 w-3" />
-              Scene Categories
+              東京の地区 {/* Tokyo Districts */}
             </h3>
             <div className="grid grid-cols-2 gap-2">
               {allScenes.map((scene, index) => (
@@ -67,10 +70,10 @@ export default function LandmarkSelector() {
           <div className="flex-1 overflow-y-auto p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-gray-200">
-                Landmarks in <span className="text-blue-400">{currentScene?.name}</span>
+                <span className="text-blue-400">{currentScene?.name}</span>
               </h3>
-              <span className="text-xs text-gray-500">
-                {currentScene?.cameraPositions.length} locations
+              <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded-full">
+                {currentScene?.cameraPositions.length} ビュー {/* views */}
               </span>
             </div>
             
@@ -109,7 +112,7 @@ export default function LandmarkSelector() {
                     <div className="mt-3 pt-3 border-t border-gray-700/50 flex items-center text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        {landmark.position.map(n => Math.round(n)).join(', ')}
+                        ビューポイント座標 {/* Viewpoint Coordinates */}
                       </span>
                     </div>
                   </div>
@@ -119,7 +122,7 @@ export default function LandmarkSelector() {
           </div>
           
           <div className="p-4 border-t border-gray-700 text-center">
-            <p className="text-xs text-gray-500">Tokyo Sounds Experience</p>
+            <p className="text-xs text-gray-500">東京サウンド体験</p> {/* Tokyo Sounds Experience */}
           </div>
         </div>
       </SheetContent>
