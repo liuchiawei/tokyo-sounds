@@ -3,7 +3,14 @@
 // React Three Fiber と Drei コンポーネント - React Three Fiber and Drei components for 3D rendering and helpers
 import { Canvas } from "@react-three/fiber";
 import { Stage, Environment, useGLTF } from "@react-three/drei";
-import { Suspense, useEffect, useRef, useMemo } from "react";
+import {
+  Suspense,
+  useEffect,
+  useRef,
+  useMemo,
+  createContext,
+  useContext,
+} from "react";
 import { EffectComposer, Bloom, N8AO } from "@react-three/postprocessing";
 import { Model } from "../Model"; // GLBモデルコンポーネントをインポート - Import the auto-generated Model component
 import { useErrorBoundary } from "use-error-boundary";
@@ -15,6 +22,12 @@ import CameraControls from "camera-controls";
 
 // Install the THREE reference for camera-controls
 CameraControls.install({ THREE: require("three") });
+
+// Zustandストアのインポート - Import Zustand store
+import { useSceneStore } from "../../stores/use-scene-store";
+
+// LandmarkSelectorコンポーネントのインポート - Import LandmarkSelector component
+import LandmarkSelector from "../ui/landmark-selector";
 
 // モデルロード用のシンプルなプレースホルダー - Simple placeholder for model loading
 const Loader = () => (
@@ -54,12 +67,14 @@ function CameraControlsWrapper() {
     const controls = new CameraControls(camera, gl.domElement);
 
     // Distance configuration - 距離設定（カメラがオブジェクトに近づく/遠ざかる距離制限）
-    controls.minDistance = 10; // Minimum distance of camera (minimum proximity to objects, adjusted for large city model)
-    controls.maxDistance = 4000; // Maximum distance of camera (maximum distance from objects, increased for large city model)
+    controls.minDistance = 10; // Minimum distance of camera (minimum proximity to objects, adjusted to prevent going inside model)
+    controls.maxDistance = 4000; // Maximum distance of camera (maximum distance from objects, increased for large city model and better zoom out)
 
     // Smoothness configuration - 滑らかさの設定（カメラ移動の慣性効果）
-    controls.smoothTime = 0.5; // Smoothness of inertia effect when moving freely (自由移動時の慣性効果の滑らかさ)
-    controls.draggingSmoothTime = 0.2; // Smoothness during dragging (ドラッグ時の滑らかさ)
+    controls.dampingFactor = 0.05; // Smoothing for rotation, zoom, and truck/pedestal movements (回転・ズーム・平行移動のスムージング)
+    controls.draggingDampingFactor = 0.075; // Smoothing specifically for drag interactions (ドラッグ操作のスムージング)
+    controls.smoothTime = 0.3; // Smoothness of inertia effect when moving freely (自由移動時の慣性効果の滑らかさ)
+    controls.draggingSmoothTime = 0.15; // Smoothness during dragging (ドラッグ時の滑らかさ)
 
     // Rotation limits configuration - 回転制限の設定（カメラが回転できる角度の制限）
     controls.minPolarAngle = Math.PI / 6; // Minimum vertical rotation angle (to prevent going under ground) - 垂直回転の最小角度（地面以下に潜らないように）
@@ -77,17 +92,24 @@ function CameraControlsWrapper() {
     controls.enableAutoRotation = true; // Enable auto-rotation (自動回転を有効化)
     controls.autoRotationSpeed = 0.5; // Auto-rotation speed (自動回転速度)
 
-    // Rotation sensitivity configuration - 回転感度設定（マウスやタッチ操作の感度調整）
+    // Rotation and zoom sensitivity configuration - 回転とズーム感度設定（マウスやタッチ操作の感度調整）
     controls.azimuthRotateSpeed = 1.0; // Horizontal rotation speed (horizontal rotation sensitivity) - 水平回転速度（左右回転の感度）
     controls.polarRotateSpeed = 1.0; // Vertical rotation speed (vertical rotation sensitivity) - 垂直回転速度（上下回転の感度）
     controls.dollySpeed = 1.0; // Zoom speed (zoom sensitivity) - ズーム速度（ズーム操作の感度）
 
+    // Additional zoom settings for balanced zoom experience
+    controls.dollyToCursor = true; // Zoom toward cursor position (カーソル位置に向かってズーム)
+    controls.infinityDolly = false; // Don't allow zoom to infinity (無限遠までズームしない)
+
+    // Make controls globally accessible for programmatic movement
+    (window as any).cameraControls = controls;
     controlsRef.current = controls;
 
     // Cleanup function - クリーンアップ関数（コンポーネントアンマウント時のリソース解放）
     return () => {
       if (controlsRef.current) {
         controlsRef.current.dispose(); // Release camera control resources (カメラコントロールのリソースを解放)
+        (window as any).cameraControls = null;
       }
     };
   }, [camera, gl]);
@@ -229,6 +251,7 @@ export default function ThreeDCanvas() {
             />
           </EffectComposer>
         </Canvas>
+        <LandmarkSelector />
       </div>
     </ErrorBoundary>
   );
