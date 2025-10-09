@@ -51,8 +51,6 @@ const WebGLFallback = () => (
   </div>
 );
 
-
-
 // ModelBounds: モデルの境界を計算してカメラを自動調整するコンポーネント - Component to calculate model bounds and auto-adjust camera
 function ModelBounds() {
   const { camera } = useThree();
@@ -69,7 +67,8 @@ function ModelBounds() {
 
     // Calculate appropriate distance based on the size of the model
     const maxDim = Math.max(size.x, size.y, size.z);
-    const fov = camera.fov * (Math.PI / 180); // Convert to radians
+    // PerspectiveCameraかどうかをチェック - Check if it's a PerspectiveCamera
+    const fov = "fov" in camera ? camera.fov * (Math.PI / 180) : Math.PI / 4; // デフォルト45度 - Default 45 degrees
     const desiredDistance = maxDim / (2 * Math.tan(fov / 2));
     const distance = desiredDistance * 1.5; // Add some padding
 
