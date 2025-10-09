@@ -1,6 +1,6 @@
 // シーン管理のための Zustand ストア - Zustand store for scene management
 import { create } from 'zustand';
-import { Scene, SceneState, CameraPosition } from '../types/scene';
+import { Scene, SceneState } from '../types/scene';
 
 // 初期シーンデータ - Initial scene data
 const initialScenes: Scene[] = [
@@ -151,7 +151,7 @@ const initialScenes: Scene[] = [
   }
 ];
 
-export const useSceneStore = create<SceneState>((set, get) => ({
+export const useSceneStore = create<SceneState>((set) => ({
   currentScene: initialScenes[0],
   currentLandmark: initialScenes[0].cameraPositions[0],
   allScenes: initialScenes,
@@ -172,7 +172,7 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     
     // Get the global camera controls instance
     // グローバルなカメラコントロールインスタンスを取得
-    const cameraControls = (window as any).cameraControls as any;
+    const cameraControls = window.cameraControls;
     
     if (cameraControls) {
       // Extract position and target from landmark
@@ -200,7 +200,7 @@ export const useSceneStore = create<SceneState>((set, get) => ({
       // 今のところ、初期データを使用します
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network request - ネットワークリクエストをシミュレート
       set({ isLoading: false });
-    } catch (error) {
+    } catch {
       set({ isLoading: false, error: 'シーンの読み込みに失敗しました' }); // Failed to load scenes
     }
   }

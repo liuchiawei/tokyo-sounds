@@ -12,6 +12,9 @@ import React from "react";
 import { useGLTF } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 
+// Define the GLTFAction type
+type GLTFAction = THREE.AnimationAction;
+
 type GLTFResult = GLTF & {
   nodes: {
     CAR_03_1_World_ap_0: THREE.Mesh;
@@ -127,8 +130,10 @@ type GLTFResult = GLTF & {
   animations: GLTFAction[];
 };
 
-export function Model(props: JSX.IntrinsicElements["group"]) {
-  const { nodes, materials } = useGLTF("/3dtest.glb") as GLTFResult;
+export function Model(props: React.JSX.IntrinsicElements["group"]) {
+  const gltf = useGLTF("/3dtest.glb");
+  const nodes = gltf.nodes as GLTFResult['nodes'];
+  const materials = gltf.materials as GLTFResult['materials'];
   return (
     <group {...props} dispose={null}>
       <group position={[-369.069, -90.704, -920.159]}>
