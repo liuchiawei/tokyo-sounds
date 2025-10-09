@@ -50,8 +50,8 @@ export default function CameraControlsWrapper() {
     controls.touches.two = CameraControls.ACTION.TOUCH_DOLLY_TRUCK; // Two fingers: Zoom and pan - 2本指：ズームと平行移動
 
     // Auto-rotation configuration - 自動回転設定
-    controls.enableAutoRotation = true; // Enable auto-rotation (自動回転を有効化)
-    controls.autoRotationSpeed = 0.5; // Auto-rotation speed (自動回転速度)
+    // controls.enableAutoRotation = true; // Enable auto-rotation (自動回転を有効化)
+    // controls.autoRotationSpeed = 0.5; // Auto-rotation speed (自動回転速度)
 
     // Rotation and zoom sensitivity configuration - 回転とズーム感度設定（マウスやタッチ操作の感度調整）
     controls.azimuthRotateSpeed = 1.0; // Horizontal rotation speed (horizontal rotation sensitivity) - 水平回転速度（左右回転の感度）
