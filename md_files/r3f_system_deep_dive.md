@@ -1,6 +1,6 @@
-# React Three Fiber (R3F) — フルシステム詳細解説
+# React Three Fiber (R3F) — フルシステム深掘り解説
 
-> **目標** — R3Fの完全な動作メンタルモデルを提供します：レンダリング方法、JSXからThree.jsへのマッピング、ライフサイクルとイベント、フック、パフォーマンス、カラー/WebGPU、TypeScript、高度な使用方法。構築中はこれを開いたままにしてください。
+> **目標** — R3Fの完全な動作するメンタルモデルを提供します：レンダリング方法、JSXがThree.jsにマッピングされる方法、ライフサイクル + イベント、フック、パフォーマンス、カラー/WebGPU、TypeScript、高度な使用方法。構築中はこれを開いておいてください。
 
 ---
 
@@ -16,14 +16,14 @@
    - [エラーとフォールバック戦略](#エラーとフォールバック戦略)
 5. [イベントとインタラクション](#イベントとインタラクション)
    - [イベントタイプとペイロード](#イベントタイプとペイロード)
-   - [3Dでの伝播と遮蔽](#3dでの伝播と遮蔽)
+   - [3Dでの伝播とオクルージョン](#3dでの伝播とオクルージョン)
    - [ポインターキャプチャ](#ポインターキャプチャ)
-   - [カスタムイベントマネージャー、eventSourceとeventPrefix](#カスタムイベントマネージャーeventsourceとeventprefix)
+   - [カスタムイベントマネージャー、eventSource & eventPrefix](#カスタムイベントマネージャーeventsource--eventprefix)
    - [インタラクションなしでのレイキャスト強制](#インタラクションなしでのレイキャスト強制)
 6. [フック（状態、フレームループ、読み込み、グラフ）](#フック状態フレームループ読み込みグラフ)
    - [`useThree()`](#usethree)
    - [`useFrame(cb, priority?)`](#useframecb-priority)
-   - [`useLoader()` + キャッシュとGLTFの利点](#useloader--キャッシュとgltfの利点)
+   - [`useLoader()` + キャッシュとGLTFの利便性](#useloader--キャッシュとgltfの利便性)
    - [`useGraph()`](#usegraph)
 7. [パフォーマンスプレイブック](#パフォーマンスプレイブック)
    - [オンデマンドレンダリングと`invalidate()`](#オンデマンドレンダリングとinvalidate)
@@ -39,44 +39,44 @@
 ---
 
 ## 1) R3Fとは何か
-- **R3FはThree.jsのReactレンダラーです**。宣言的JSXを記述し、R3Fがそれを実際のThreeオブジェクトにマッピングし、プロパティを効率的に同期し、コンポーネントがReactのエコシステム（Suspense、トランジション、状態など）に参加できるようにします。
+- **R3FはThree.js用のReactレンダラーです**。宣言的JSXを記述し、R3Fがそれを実際のThreeオブジェクトにマッピングし、プロパティを効率的に同期し、コンポーネントがReactのエコシステム（Suspense、トランジション、状態など）に参加できるようにします。
 - **機能損失なし**: Three.jsでできることはすべてR3Fでできます。ライブラリは単にThreeをJSXで表現しているだけです。
 - **バージョンペアリング**: `@react-three/fiber@8` ↔ React 18; `@react-three/fiber@9` ↔ React 19。
 
 ## 2) 動作原理（内部構造）
 - R3Fは`react-dom`のようにReactのレコンシラーに接続しますが、DOMの代わりに**Threeのシーングラフ**をターゲットにします。
-- マウント/更新/アンマウント時に、Threeオブジェクトを**構築/更新/破棄**します。変更は共有レンダーループで**Reactの外部**に伝播するため、フレームごとの「DOM差分」コストはありません。
+- マウント/更新/アンマウント時に、Threeオブジェクトを**構築/更新/破棄**します。変更は共有レンダーループで**Reactの外部**に伝播するため、フレームごとの「DOM diff」コストはありません。
 - **状態ストア**（`useThree`で公開）は、レンダラー（`gl`）、シーン、カメラ、ポインター、レイキャスター、サイズ/ビューポート、XRインターフェース、ユーティリティセッター（例：`setDpr`、`invalidate`、`setFrameloop`）を追跡します。
 
-## 3) JSX → Three.js: Objects, Args, Attach, Primitive, Extend
+## 3) JSX → Three.js: オブジェクト、Args、Attach、Primitive、Extend
 
-### Declaring objects
-Prefer declarative props over `new`-ing objects inline. R3F turns JSX into Three instances and keeps them in sync.
+### オブジェクトの宣言
+インラインで`new`するよりも宣言的プロパティを優先します。R3FはJSXをThreeインスタンスに変換し、同期を保ちます。
 
-### Constructor arguments with `args`
-Any Three class constructor parameters go into an **array**: `args={[...]}`. Changing `args` replaces the instance (because the underlying Three object must be reconstructed).
+### `args`でのコンストラクター引数
+Threeクラスのコンストラクターパラメータは**配列**に入れます：`args={[...]}`。`args`を変更するとインスタンスが置き換わります（基盤のThreeオブジェクトが再構築される必要があるため）。
 
 ```tsx
 <boxGeometry args={[1, 1, 1]} />
 ```
 
-### Shorthand setters & dash‑case deep props
-If a property has `.set(...)`, you can pass the corresponding tuple or string:
+### 短縮セッターとダッシュケースの深いプロパティ
+プロパティに`.set(...)`がある場合、対応するタプルまたは文字列を渡せます：
 
 ```tsx
 <mesh position={[1, 2, 3]} rotation={[Math.PI/2, 0, 0]}>
   <meshStandardMaterial color="hotpink" />
 </mesh>
 ```
-For nested properties, use **dash‑case**:
+ネストしたプロパティには**ダッシュケース**を使用：
 
 ```tsx
 <directionalLight shadow-mapSize={[1024,1024]} />
 <mesh rotation-x={Math.PI/2} />
 ```
 
-### Attaching non‑scene objects (`attach`)
-Materials, geometries, attributes, etc. **attach** to a parent. R3F auto‑attaches materials to `material` and geometries to `geometry`, but you can attach arbitrarily deep:
+### 非シーンオブジェクトのアタッチ（`attach`）
+マテリアル、ジオメトリ、属性などは親に**アタッチ**されます。R3Fはマテリアルを`material`に、ジオメトリを`geometry`に自動アタッチしますが、任意の深さでアタッチできます：
 
 ```tsx
 <mesh>
@@ -86,23 +86,23 @@ Materials, geometries, attributes, etc. **attach** to a parent. R3F auto‑attac
 </mesh>
 ```
 
-### Bringing existing Three objects: `<primitive object={...} />`
-Use `<primitive>` to insert an existing `Object3D` into the graph. Don’t add the **same** object in multiple places (clone if needed). R3F won’t auto‑dispose primitives; you own their lifecycle.
+### 既存のThreeオブジェクトの持ち込み：`<primitive object={...} />`
+既存の`Object3D`をグラフに挿入するには`<primitive>`を使用します。**同じ**オブジェクトを複数の場所に追加しないでください（必要に応じてクローン）。R3Fはプリミティブを自動破棄しません；ライフサイクルはあなたが管理します。
 
-### Extending the JSX catalog (`extend`)
-Register external Three classes (e.g. controls from `three-stdlib`) so you can declare them as JSX elements. With TypeScript, augment `ThreeElements` (see §9).
+### JSXカタログの拡張（`extend`）
+外部のThreeクラス（例：`three-stdlib`からのコントロール）を登録して、JSX要素として宣言できるようにします。TypeScriptでは、`ThreeElements`を拡張します（§9参照）。
 
-### Disposal
-Unmounting triggers `object.dispose()` (if present) for you. If you manage shared/global assets manually, disable auto‑disposal on a subtree with `dispose={null}`.
+### 破棄
+アンマウント時に`object.dispose()`（存在する場合）が自動的に呼び出されます。共有/グローバルアセットを手動で管理する場合は、`dispose={null}`でサブツリーの自動破棄を無効にします。
 
 
-## 4) Canvas: The Runtime Shell
-The `<Canvas/>` component bootstraps the renderer, scene, camera, event layer, and the render loop. It’s the usual entry point.
+## 4) Canvas: ランタイムシェル
+`<Canvas/>`コンポーネントは、レンダラー、シーン、カメラ、イベントレイヤー、レンダーループをブートストラップします。通常のエントリーポイントです。
 
-### Key Props
-- **`gl`** — Configure or replace the renderer. Accepts an object of constructor props, a factory `(props) => new WebGLRenderer(props)`, or an **async** factory for WebGPU (see below).
-- **`camera` / `scene`** — Pass props to the default camera/scene or provide your own instances.
-- **`shadows`** — `true` (PCFSoft) or `'basic' | 'percentage' | 'soft' | 'variance'`.
+### 主要プロパティ
+- **`gl`** — レンダラーを設定または置換。コンストラクタープロパティのオブジェクト、ファクトリー`(props) => new WebGLRenderer(props)`、またはWebGPU用の**非同期**ファクトリーを受け入れます（下記参照）。
+- **`camera` / `scene`** — デフォルトカメラ/シーンにプロパティを渡すか、独自のインスタンスを提供。
+- **`shadows`** — `true`（PCFSoft）または`'basic' | 'percentage' | 'soft' | 'variance'`。
 - **`raycaster`** — Configure default raycaster.
 - **`frameloop`** — `'always' | 'demand' | 'never'` for render cadence control.
 - **`resize`** — Options passed to the internal resize observer.
@@ -309,9 +309,9 @@ extend({ CustomElement })
 
 ---
 
-### Final Notes
-- Keep **Canvas** lean and declarative.
-- Prefer **demand** frameloop for static scenes + call **invalidate()** when something changes outside React.
-- Reuse everything you can (materials, geometries, textures, loader results).
-- Rely on **drei**/**xr** for production‑ready helpers; build only what you must.
+### 最終ノート
+- **Canvas**をリーンで宣言的に保つ。
+- 静的シーンには**demand**フレームループを優先し、Reactの外部で何かが変更された時に**invalidate()**を呼び出す。
+- 可能な限りすべてを再利用する（マテリアル、ジオメトリ、テクスチャ、ローダー結果）。
+- 本番対応のヘルパーには**drei**/**xr**に依存し、必要なもののみを構築する。
 

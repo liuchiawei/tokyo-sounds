@@ -1,13 +1,13 @@
-# 東京ジオラマ (R3F) — プロフェッショナル配信プラン (完全版)
+# 東京ジオラマ (R3F) — プロフェッショナル配信計画書 (完全版)
 
-> **目的**: React Three Fiber (R3F) を使用して、アイソメトリックで音響豊富な東京ジオラマウェブサイトを構築するための完全なステップバイステップの青写真。このプランは小規模チーム（5-8人）向けに設計されており、受け入れ基準、テストプラン、リスク管理を備えた明確にスコープされたフェーズで進行することで、動作する結果を保証します。
+> **目的**: React Three Fiber (R3F) を使用して、等角投影の音響豊富な東京ジオラマウェブサイトを構築するための完全なステップバイステップの青写真。この計画は小規模チーム（5-8人）向けに設計され、受け入れ基準、テスト計画、リスク管理を伴う明確にスコープされたフェーズで進めることで、動作する結果を保証します。
 
 ---
 
 ## 目次
 
 1. [プロジェクトビジョンと非目標](#プロジェクトビジョンと非目標)
-2. [ベースラインとテックスタック](#ベースラインとテックスタック)
+2. [ベースラインと技術スタック](#ベースラインと技術スタック)
 3. [アーキテクチャ概要](#アーキテクチャ概要)
 4. [データとアセットスキーマ](#データとアセットスキーマ)
 5. [UXフローとUIコンポーネント](#uxフローとuiコンポーネント)
@@ -26,51 +26,51 @@
 
 ## プロジェクトビジョンと非目標
 
-**ビジョン**: ユーザーが象徴的なシーン（スカイツリー、東京タワー、渋谷スクランブル交差点など）を選択し、ピクセルスタイルのジオラマを探索し、レイヤードされたアンビエンスとSFXを聞くことができる、スムーズなアイソメトリックな**東京サウンドスケープ**。最小限のUI摩擦とモバイルサポートを提供します。
+**ビジョン**: ユーザーが象徴的なシーン（スカイツリー、東京タワー、渋谷スクランブル交差点など）を選択し、ピクセルスタイルのジオラマを探索し、レイヤードされたアンビエンスとSFXを聞くことができる、スムーズな等角投影の**東京サウンドスケープ**。最小限のUI摩擦とモバイルサポートを提供します。
 
 **非目標**（スコープを現実的に保つため）:
 
 - 完全なフォトリアリスティックPBRレンダリング
 - プロシージャル都市生成
-- MMOスケールの群衆や物理シミュレーション
+- MMO規模の群衆や物理シミュレーション
 - 全シーンのオフラインPWA音声キャッシュ（後で改善可能）
 
 **成功指標**:
 
-- First contentful render < **1.5s** on desktop, < **3s** on mid‑range mobile.
-- TTI (interactive) < **3s** desktop / < **5s** mobile.
-- 60 FPS desktop target; ≥ 30 FPS mobile.
-- Scene switch < **1.5s** perceived (loading + audio crossfade).
+- デスクトップでの初回コンテンツレンダリング < **1.5秒**、中程度のモバイルで < **3秒**
+- TTI（インタラクティブ）< **3秒** デスクトップ / < **5秒** モバイル
+- 60 FPS デスクトップ目標; ≥ 30 FPS モバイル
+- シーン切り替え < **1.5秒** 体感（読み込み + 音声クロスフェード）
 
 ---
 
-## Baseline & Tech Stack
+## ベースラインと技術スタック
 
-**Core**
+**コア**
 
 - React 19 + Next.js 15 (App Router / Turbopack)
 - `@react-three/fiber` (R3F), `three`
-- `@react-three/drei` helpers
-- Zustand (global state)
-- Tailwind v4 (+ shadcn/ui components if desired)
+- `@react-three/drei` ヘルパー
+- Zustand (グローバル状態)
+- Tailwind v4 (+ shadcn/ui コンポーネント、必要に応じて)
 
-**Why this stack**
+**このスタックを選ぶ理由**
 
-- React 19 concurrency + server features (Next 15) for fast delivery.
-- R3F gives declarative 3D + robust event system.
-- Drei reduces boilerplate (cameras, loaders, audio, environment).
-- Zustand is tiny and perfect for scene & UI state.
+- React 19の並行性 + サーバー機能（Next 15）で高速配信
+- R3Fは宣言的3D + 堅牢なイベントシステムを提供
+- Dreiはボイラープレートを削減（カメラ、ローダー、音声、環境）
+- Zustandは軽量でシーンとUI状態に最適
 
-**Node & Package Manager**
+**Node & パッケージマネージャー**
 
 - Node ≥ 18
-- `pnpm` recommended
+- `pnpm` 推奨
 
-> **Note:** We keep R3F rendering in a client component while the side‑panel UI can leverage server components if needed for content.
+> **注意**: R3Fレンダリングはクライアントコンポーネントに保持し、サイドパネルUIは必要に応じてコンテンツ用にサーバーコンポーネントを活用できます。
 
 ---
 
-## Architecture Overview
+## アーキテクチャ概要
 
 ```
 tokyo-sounds/
@@ -117,19 +117,19 @@ tokyo-sounds/
 
 ```
 
-**Rendering model**
+**レンダリングモデル**
 
-- `<Canvas frameloop="demand" dpr={[1,1]} linear flat>` for pixel‑accurate look.
-- Orthographic camera with isometric rotation.
-- Minimal lighting (ambient/hemi only) or entirely baked light.
-- Instancing for repeated props.
-- Audio graph with master/ambience/FX gains.
+- ピクセル正確な外観のための `<Canvas frameloop="demand" dpr={[1,1]} linear flat>`
+- 等角投影回転の正射投影カメラ
+- 最小限のライティング（環境光/半球光のみ）または完全にベイクされたライト
+- 繰り返しプロップ用のインスタンシング
+- マスター/アンビエンス/FXゲインを持つ音声グラフ
 
 ---
 
-## Data & Asset Schemas
+## データとアセットスキーマ
 
-**`scenes.json`** (one entry per scene tile in UI):
+**`scenes.json`** (UIのシーンティルごとに1エントリ):
 
 ```json
 [
@@ -155,7 +155,7 @@ tokyo-sounds/
 ]
 ```
 
-**`buildings.json`** (info card + modal content):
+**`buildings.json`** (情報カード + モーダルコンテンツ):
 
 ```json
 [
@@ -173,7 +173,7 @@ tokyo-sounds/
 ]
 ```
 
-**`sounds.json`** (bus routing):
+**`sounds.json`** (バスルーティング):
 
 ```json
 {
@@ -199,61 +199,61 @@ tokyo-sounds/
 }
 ```
 
-**Textures (pixel look)**
+**テクスチャ（ピクセル風）**
 
-- PNG, nearest filtering, no mipmaps, atlas where possible.
-- Dimensions power‑of‑two preferred (512/1024).
-
----
-
-## UX Flows & UI Components
-
-### Primary flows
-
-1. **Landing** → shows diorama + side panel.
-2. **User clicks a Scene Tile** → **Scene Preview Modal** opens (see below).
-3. **User confirms “Load Scene”** → swap models & audio pack; close modal.
-4. **User clicks building** → highlight + **Building Info Modal**.
-5. **User presses “Start Experience”** → resume AudioContext and unmute buses.
-6. Volume slider adjusts master gain in real time.
-
-### Core components
-
-- **SidePanel**: holds ScenePicker, Volume, StartCTA, and persistent **InfoCard** area.
-- **ScenePicker**: grid of scene tiles (lazy‑load thumbnails).
-- **Volume**: slider 0–100 (maps to [0–1] gain).
-- **StartCTA**: prominent button; disabled once started.
-- **InfoCard**: shows selection summary; “Learn More” opens **Building Info Modal**.
-- **Modals** (see spec below).
+- PNG、最近傍フィルタリング、ミップマップなし、可能な限りアトラス化
+- 寸法は2の累乗を推奨（512/1024）
 
 ---
 
-## Popup Modals (Spec)
+## UXフローとUIコンポーネント
+
+### 主要フロー
+
+1. **ランディング** → ジオラマ + サイドパネルを表示
+2. **ユーザーがシーンティルをクリック** → **シーンプレビューモーダル**が開く（下記参照）
+3. **ユーザーが「シーンを読み込み」を確認** → モデルと音声パックを交換；モーダルを閉じる
+4. **ユーザーが建物をクリック** → ハイライト + **建物情報モーダル**
+5. **ユーザーが「体験を開始」を押す** → AudioContextを再開し、バスをミュート解除
+6. 音量スライダーがマスターゲインをリアルタイムで調整
+
+### コアコンポーネント
+
+- **SidePanel**: ScenePicker、Volume、StartCTA、永続的な**InfoCard**エリアを保持
+- **ScenePicker**: シーンティルのグリッド（サムネイルの遅延読み込み）
+- **Volume**: 0-100のスライダー（[0-1]ゲインにマッピング）
+- **StartCTA**: 目立つボタン；開始後は無効化
+- **InfoCard**: 選択サマリーを表示；「詳細を見る」で**建物情報モーダル**を開く
+- **Modals**（下記仕様参照）
+
+---
+
+## ポップアップモーダル（仕様）
 
 ### 1) `ScenePreviewModal`
 
-**When**: user clicks a scene tile.  
-**Purpose**: reduce misclicks and provide context before heavy loads.
+**タイミング**: ユーザーがシーンティルをクリック  
+**目的**: 誤クリックを減らし、重い読み込み前にコンテキストを提供
 
-**Content**:
+**コンテンツ**:
 
-- Title + short description.
-- Thumbnail or tiny preview (optional mini‑Canvas).
-- Controls:
-  - Primary: **Load Scene** (triggers scene switch & audio crossfade).
-  - Secondary: **Cancel**.
-- Optional toggle: “Start Experience (audio) immediately after load”.
+- タイトル + 短い説明
+- サムネイルまたは小さなプレビュー（オプションのミニCanvas）
+- コントロール:
+  - プライマリ: **シーンを読み込み**（シーン切り替えと音声クロスフェードをトリガー）
+  - セカンダリ: **キャンセル**
+- オプションのトグル: 「読み込み後すぐに体験（音声）を開始」
 
-**Behavior**:
+**動作**:
 
-- **Open** on tile click.
-- **Confirm** → call `setScene(sceneId)` and close; if toggle on, call `resumeAudio()` after the scene is ready.
-- **Focus management**: trap focus; return focus to triggering tile on close.
-- **Keyboard**: `Enter` = confirm, `Esc` = close.
-- **ARIA**: `role="dialog"`, labelled by modal title, `aria-modal="true"`.
-- **Mobile**: full‑screen sheet with large buttons.
+- ティルクリックで**開く**
+- **確認** → `setScene(sceneId)`を呼び出して閉じる；トグルがオンの場合、シーンが準備できた後に`resumeAudio()`を呼び出す
+- **フォーカス管理**: フォーカスをトラップ；閉じる時にトリガーしたティルにフォーカスを戻す
+- **キーボード**: `Enter` = 確認、`Esc` = 閉じる
+- **ARIA**: `role="dialog"`、モーダルタイトルでラベル付け、`aria-modal="true"`
+- **モバイル**: 大きなボタンを持つフルスクリーンシート
 
-**State**:
+**状態**:
 
 ```ts
 type ScenePreviewState = {
@@ -265,16 +265,16 @@ type ScenePreviewState = {
 
 ### 2) `BuildingInfoModal`
 
-**When**: user clicks a building in the diorama or presses “Learn More”.  
-**Content**:
+**タイミング**: ユーザーがジオラマ内の建物をクリックまたは「詳細を見る」を押す  
+**コンテンツ**:
 
-- Title, image (or static render), facts list, description, external link.
-- Controls: **Close**, **Open Link** (opens new tab).  
-  **Behavior**:
-- **Open** with selected building’s data; close on overlay/ESC.
-- **Focus management** + **ARIA** identical to the preview modal.
-- **Mobile**: scrollable sheet.  
-  **State**:
+- タイトル、画像（または静的レンダー）、事実リスト、説明、外部リンク
+- コントロール: **閉じる**、**リンクを開く**（新しいタブで開く）  
+  **動作**:
+- 選択された建物のデータで**開く**；オーバーレイ/ESCで閉じる
+- **フォーカス管理** + **ARIA**はプレビューモーダルと同一
+- **モバイル**: スクロール可能なシート  
+  **状態**:
 
 ```ts
 type BuildingInfoState = {
@@ -283,228 +283,228 @@ type BuildingInfoState = {
 };
 ```
 
-**Implementation**:
+**実装**:
 
-- Use a headless modal (e.g., shadcn/ui Dialog or Headless UI) with Tailwind for styling.
-- Do **not** render modals inside the Canvas; keep them in React DOM.
-
----
-
-## Phased Roadmap (with Deliverables)
-
-### Phase 0 — Foundations (✓ you said this is done)
-
-**Deliverables**: repo, Next 15 app, lint/prettier, Tailwind, pnpm, baseline dev script.
-
-### Phase 1 — Core 3D Engine
-
-- Setup `<Canvas>` (client) with `frameloop="demand"`, `linear`, `flat`, `dpr={[1,1]}`.
-- Orthographic **isometric** camera (`IsoCamera`).
-- Minimal light.
-- Placeholder ground + one test building.  
-  **Done when**: Canvas renders consistently and `invalidate()` is called by interactions only.
-
-### Phase 2 — Asset Pipeline
-
-- Decide GLB export rules (scale, axes, tri count caps).
-- Create `gltfjsx` command to convert GLB → typed components.
-- Load two hero buildings (Skytree, 109).  
-  **Done when**: Both load with correct materials; textures use nearest filtering.
-
-### Phase 3 — Interaction
-
-- Pointer hover/selection with `e.stopPropagation()` controlling occlusion.
-- `onPointerMissed` to clear selection.  
-  **Done when**: Hover highlight & clicking opens `BuildingInfoModal` with real data.
-
-### Phase 4 — UI System
-
-- Side panel with ScenePicker, Volume, StartCTA.
-- Implement **`ScenePreviewModal`** flow.  
-  **Done when**: Clicking a scene opens modal; confirming loads scene & updates audio pack.
-
-### Phase 5 — Dynamic Diorama
-
-- Weather (clear/rain), time‑of‑day (day/night) via texture/material swap.
-- Instanced props (trees/lamps).
-- Optional: animated traffic on splines.  
-  **Done when**: Scene toggles work without FPS drops; instancing confirmed.
-
-### Phase 6 — Audio Experience
-
-- Audio buses (master/ambience/fx).
-- Packs per scene and **crossfade** on scene change.
-- CTA to resume AudioContext.  
-  **Done when**: No audio plays before CTA; volume slider affects master in real time.
-
-### Phase 7 — Optimization
-
-- Mesh/material reuse.
-- Texture atlases.
-- Conditional `frameloop="always"` only when animating.  
-  **Done when**: Perf budget is met (see below).
-
-### Phase 8 — Polish & Release
-
-- Loading screen with progress.
-- Camera tween on scene switch (focus point).
-- QA (mobile/desktop), deploy to Vercel, final content pass.  
-  **Done when**: All acceptance criteria pass.
+- スタイリングにTailwindを使用したヘッドレスモーダル（例：shadcn/ui DialogまたはHeadless UI）を使用
+- モーダルをCanvas内にレンダリング**しない**；React DOMに保持する
 
 ---
 
-## Work Breakdown Structure (WBS)
+## 段階的ロードマップ（成果物付き）
 
-**1. Project Setup (0.5 wk)**  
-1.1 Repo, CI (lint, build)  
-1.2 Tailwind & shadcn/ui install  
-1.3 Routing skeleton
+### フェーズ0 — 基盤（✓ 完了済み）
 
-**2. 3D Core (1 wk)**  
+**成果物**: リポジトリ、Next 15アプリ、lint/prettier、Tailwind、pnpm、ベースラインデブスクリプト
+
+### フェーズ1 — コア3Dエンジン
+
+- `frameloop="demand"`、`linear`、`flat`、`dpr={[1,1]}`で`<Canvas>`（クライアント）をセットアップ
+- 正射投影**等角投影**カメラ（`IsoCamera`）
+- 最小限のライト
+- プレースホルダー地面 + 1つのテスト建物  
+  **完了条件**: Canvasが一貫してレンダリングされ、`invalidate()`がインタラクションでのみ呼び出される
+
+### フェーズ2 — アセットパイプライン
+
+- GLBエクスポートルールを決定（スケール、軸、トライアングル数上限）
+- GLB → 型付きコンポーネントに変換する`gltfjsx`コマンドを作成
+- 2つのヒーロー建物（スカイツリー、109）を読み込み  
+  **完了条件**: 両方が正しいマテリアルで読み込まれ、テクスチャが最近傍フィルタリングを使用
+
+### フェーズ3 — インタラクション
+
+- オクルージョンを制御する`e.stopPropagation()`でのポインターホバー/選択
+- 選択をクリアする`onPointerMissed`  
+  **完了条件**: ホバーハイライトとクリックで実際のデータで`BuildingInfoModal`が開く
+
+### フェーズ4 — UIシステム
+
+- ScenePicker、Volume、StartCTAを持つサイドパネル
+- **`ScenePreviewModal`**フローを実装  
+  **完了条件**: シーンをクリックするとモーダルが開き、確認するとシーンが読み込まれ、音声パックが更新される
+
+### フェーズ5 — 動的ジオラマ
+
+- テクスチャ/マテリアル交換による天気（晴れ/雨）、時間帯（昼/夜）
+- インスタンス化プロップ（木/ランプ）
+- オプション: スプライン上のアニメーション交通  
+  **完了条件**: シーントグルがFPS低下なしで動作し、インスタンシングが確認される
+
+### フェーズ6 — 音声体験
+
+- 音声バス（マスター/アンビエンス/fx）
+- シーンごとのパックとシーン変更時の**クロスフェード**
+- AudioContextを再開するCTA  
+  **完了条件**: CTA前に音声が再生されず、音量スライダーがマスターをリアルタイムで影響する
+
+### フェーズ7 — 最適化
+
+- メッシュ/マテリアル再利用
+- テクスチャアトラス
+- アニメーション時のみ条件付き`frameloop="always"`  
+  **完了条件**: パフォーマンス予算が満たされる（下記参照）
+
+### フェーズ8 — ポリッシュとリリース
+
+- 進捗付きローディングスクリーン
+- シーン切り替え時のカメラトゥイーン（フォーカスポイント）
+- QA（モバイル/デスクトップ）、Vercelにデプロイ、最終コンテンツパス  
+  **完了条件**: すべての受け入れ基準が満たされる
+
+---
+
+## 作業分解構造（WBS）
+
+**1. プロジェクトセットアップ（0.5週）**  
+1.1 リポジトリ、CI（lint、build）  
+1.2 Tailwind & shadcn/ui インストール  
+1.3 ルーティングスケルトン
+
+**2. 3Dコア（1週）**  
 2.1 CanvasRoot & IsoCamera  
-2.2 Ground plane + grid  
-2.3 Lighting pass
+2.2 地面プレーン + グリッド  
+2.3 ライティングパス
 
-**3. Assets (1 wk)**  
-3.1 GLB export templates, naming, units  
-3.2 `gltfjsx` script & docs  
-3.3 Import two landmark models
+**3. アセット（1週）**  
+3.1 GLBエクスポートテンプレート、命名、単位  
+3.2 `gltfjsx`スクリプト & ドキュメント  
+3.3 2つのランドマークモデルをインポート
 
-**4. Interaction (0.5 wk)**  
-4.1 Hover highlight, selection state  
-4.2 BuildingInfoModal (content from `buildings.json`)
+**4. インタラクション（0.5週）**  
+4.1 ホバーハイライト、選択状態  
+4.2 BuildingInfoModal（`buildings.json`からのコンテンツ）
 
-**5. UI System (1 wk)**  
-5.1 SidePanel layout  
-5.2 ScenePicker grid + tiles  
-5.3 ScenePreviewModal (confirm load)
+**5. UIシステム（1週）**  
+5.1 SidePanelレイアウト  
+5.2 ScenePickerグリッド + ティル  
+5.3 ScenePreviewModal（読み込み確認）
 
-**6. Audio (0.5–1 wk)**  
-6.1 Buses & gain nodes  
-6.2 Packs per scene + crossfade  
-6.3 StartCTA (user gesture)
+**6. 音声（0.5–1週）**  
+6.1 バス & ゲインノード  
+6.2 シーンごとのパック + クロスフェード  
+6.3 StartCTA（ユーザージェスチャー）
 
-**7. Dynamic Diorama (1 wk)**  
-7.1 Weather/time toggles  
-7.2 Instanced props  
-7.3 Optional traffic
+**7. 動的ジオラマ（1週）**  
+7.1 天気/時間トグル  
+7.2 インスタンス化プロップ  
+7.3 オプション交通
 
-**8. Performance & QA (0.5–1 wk)**  
-8.1 Texture atlas + material merge  
-8.2 Frameloop strategy + profiling  
-8.3 Device QA & fixes
+**8. パフォーマンス & QA（0.5–1週）**  
+8.1 テクスチャアトラス + マテリアルマージ  
+8.2 フレームループ戦略 + プロファイリング  
+8.3 デバイスQA & 修正
 
-**9. Polish & Deploy (0.5 wk)**  
-9.1 Loading screen  
-9.2 Camera tweens  
-9.3 Vercel deploy
+**9. ポリッシュ & デプロイ（0.5週）**  
+9.1 ローディングスクリーン  
+9.2 カメラトゥイーン  
+9.3 Vercelデプロイ
 
-_Total: ~6–7 weeks part‑time, ~3–4 weeks full‑time._
-
----
-
-## Testing Strategy
-
-**Unit/Logic**
-
-- Zustand store: actions (`setScene`, `selectBuilding`, `setVolume`, modal open/close).
-- Helpers (audio crossfade durations, instance placement).
-
-**Component**
-
-- ScenePicker → opens ScenePreviewModal on click; confirm triggers `setScene`.
-- StartCTA → resumes audio only on click.
-- BuildingInfoModal → opens with correct building info; closes on Esc/overlay.
-
-**E2E (Playwright)**
-
-- Load → first paint < budget.
-- Scene switch with modal → loads models; audio crossfade occurs.
-- Mobile viewport → modals convert to full‑screen sheets; focus trap works.
-- Keyboard a11y → `Enter` confirm, `Esc` closes.
-
-**Visual Regression**
-
-- Pixel style requires strict images: set deterministic camera and compare screenshots.
+_合計: パートタイム約6–7週、フルタイム約3–4週_
 
 ---
 
-## Performance Budget & Optimizations
+## テスト戦略
 
-**Budgets**
+**ユニット/ロジック**
 
-- Models: ≤ **50k tris** per scene (ideally 15–30k).
-- Textures: ≤ **10 MB** total loaded per scene.
-- Audio: ≤ **3 MB** per pack (looped, compressed).
+- Zustandストア: アクション（`setScene`、`selectBuilding`、`setVolume`、モーダル開閉）
+- ヘルパー（音声クロスフェード時間、インスタンス配置）
 
-**Levers**
+**コンポーネント**
 
-- `frameloop="demand"`; call `invalidate()` on state changes or anim loops.
-- **InstancedMesh** for trees/lamps.
-- Nearest filtering; no mipmaps to save memory (pixel aesthetic).
-- Single directional/ambient light or full baked textures.
-- Merge draw calls where possible (shared materials).
-- Defer non‑critical models with Suspense chunking.
+- ScenePicker → クリックでScenePreviewModalを開く；確認で`setScene`をトリガー
+- StartCTA → クリック時のみ音声を再開
+- BuildingInfoModal → 正しい建物情報で開く；Esc/オーバーレイで閉じる
 
----
+**E2E（Playwright）**
 
-## Accessibility & Internationalization
+- 読み込み → 初回ペイント < 予算
+- モーダル付きシーン切り替え → モデルを読み込み；音声クロスフェードが発生
+- モバイルビューポート → モーダルがフルスクリーンシートに変換；フォーカストラップが動作
+- キーボードa11y → `Enter`で確認、`Esc`で閉じる
 
-- **Modals**: focus trap, labelled title, keyboard support, `aria-modal`.
-- Buttons: visible focus rings (Tailwind), large tap targets.
-- Volume slider: keyboard arrows + screen reader labels.
-- Language strings: extract UI text to `locales/ja.json` and `locales/en.json` for future i18n.
+**ビジュアルリグレッション**
+
+- ピクセルスタイルには厳密な画像が必要：決定論的カメラを設定し、スクリーンショットを比較
 
 ---
 
-## DevOps, Environments & Deployment
+## パフォーマンス予算と最適化
 
-- **Envs**: dev (local), preview (PR deploys), prod (main).
-- **Preview URLs** for stakeholders after each milestone.
-- **Deployment**: Vercel with static asset serving (models, textures, audio in `/public`).
-- **CI**: ESLint + typecheck + Playwright smoke.
+**予算**
+
+- モデル: シーンあたり ≤ **50k tris**（理想的には15–30k）
+- テクスチャ: シーンあたり合計 ≤ **10 MB**読み込み
+- 音声: パックあたり ≤ **3 MB**（ループ、圧縮）
+
+**レバー**
+
+- `frameloop="demand"`；状態変更またはアニメーションループで`invalidate()`を呼び出し
+- 木/ランプ用の**InstancedMesh**
+- 最近傍フィルタリング；メモリ節約のためミップマップなし（ピクセル美学）
+- 単一の指向性/環境光または完全にベイクされたテクスチャ
+- 可能な限り描画コールをマージ（共有マテリアル）
+- Suspenseチャンキングで非クリティカルモデルを遅延
 
 ---
 
-## Risk Register & Mitigations
+## アクセシビリティと国際化
 
-| Risk                       |   Impact | Likelihood | Mitigation                                      |
+- **モーダル**: フォーカストラップ、ラベル付きタイトル、キーボードサポート、`aria-modal`
+- ボタン: 見えるフォーカスリング（Tailwind）、大きなタップターゲット
+- 音量スライダー: キーボード矢印 + スクリーンリーダーラベル
+- 言語文字列: UIテキストを`locales/ja.json`と`locales/en.json`に抽出して将来のi18nに対応
+
+---
+
+## DevOps、環境とデプロイメント
+
+- **環境**: dev（ローカル）、preview（PRデプロイ）、prod（main）
+- **プレビューURL**を各マイルストーン後にステークホルダーに提供
+- **デプロイメント**: 静的アセット配信付きVercel（`/public`内のモデル、テクスチャ、音声）
+- **CI**: ESLint + 型チェック + Playwrightスモーク
+
+---
+
+## リスク登録と軽減策
+
+| リスク                       |   影響 | 可能性 | 軽減策                                      |
 | -------------------------- | -------: | :--------: | ----------------------------------------------- |
-| Models too heavy           | FPS drop |    Med     | Enforce tri budget & review GLB per PR          |
-| Audio autoplay blocked     | No sound |    High    | Gate via StartCTA; resume AudioContext on click |
-| Mobile memory limits       |  Crashes |    Low     | Lazy‑load packs; cap concurrent audio sources   |
-| Picking errors (occlusion) |  UX bugs |    Med     | Use `stopPropagation`; large ground catch‑mesh  |
-| Team unfamiliar with R3F   |   Delays |    Med     | Keep Canvas minimal, use Drei, add code docs    |
+| モデルが重すぎる           | FPS低下 |    中     | トライ予算を強制し、PRごとにGLBをレビュー          |
+| 音声自動再生がブロック     | 音なし |    高    | StartCTAでゲート；クリックでAudioContextを再開 |
+| モバイルメモリ制限         |  クラッシュ |    低     | パックを遅延読み込み；同時音声ソースを制限   |
+| ピッキングエラー（オクルージョン） |  UXバグ |    中     | `stopPropagation`を使用；大きな地面キャッチメッシュ  |
+| チームがR3Fに不慣れ       |   遅延 |    中     | Canvasを最小限に保ち、Dreiを使用、コードドキュメントを追加    |
 
 ---
 
-## Acceptance Criteria (Go/No‑Go)
+## 受け入れ基準（Go/No-Go）
 
-- ✅ Scenes can be selected via **ScenePreviewModal**; confirm loads within budget.
-- ✅ Clicking buildings opens **BuildingInfoModal** with correct info & deep link.
-- ✅ StartCTA required for any audio; volume slider works.
-- ✅ Desktop 60 fps / Mobile 30 fps on mid‑range hardware.
-- ✅ All E2E tests pass; a11y checks on modals and sliders pass.
+- ✅ シーンが**ScenePreviewModal**経由で選択可能；確認で予算内で読み込み
+- ✅ 建物をクリックすると正しい情報とディープリンクで**BuildingInfoModal**が開く
+- ✅ 音声にはStartCTAが必要；音量スライダーが動作
+- ✅ 中程度のハードウェアでデスクトップ60fps / モバイル30fps
+- ✅ すべてのE2Eテストがパス；モーダルとスライダーのa11yチェックがパス
 
 ---
 
-## Appendices (Commands, References)
+## 付録（コマンド、参考文献）
 
-### Install (pnpm)
+### インストール（pnpm）
 
 ```bash
 pnpm add three @react-three/fiber @react-three/drei zustand
 pnpm add -D @types/three
 ```
 
-### Script: GLTF → JSX (dev aid)
+### スクリプト: GLTF → JSX（開発支援）
 
 ```bash
-# Generate component from GLB
+# GLBからコンポーネントを生成
 npx gltfjsx ./public/models/skytree.glb --transform --types
 ```
 
-### State shape (Zustand)
+### 状態形状（Zustand）
 
 ```ts
 type SceneId = "skytree" | "tower" | "crossing" | string;
@@ -525,13 +525,13 @@ type AppState = {
 };
 ```
 
-### Modal triggers (events → actions)
+### モーダルトリガー（イベント → アクション）
 
-- Scene tile click → `openScenePreview(sceneId)`
-- Confirm in modal → `setScene(sceneId)` → `closeScenePreview()`
-- Building click → `openBuildingInfo(buildingId)`
-- “Learn More” → external link (new tab)
+- シーンティルクリック → `openScenePreview(sceneId)`
+- モーダルで確認 → `setScene(sceneId)` → `closeScenePreview()`
+- 建物クリック → `openBuildingInfo(buildingId)`
+- 「詳細を見る」 → 外部リンク（新しいタブ）
 
 ---
 
-**This plan is intentionally “code‑light” and “process‑heavy.”** If you want, the next step is to generate a **starter repository** with empty files and TODO comments for each component above, plus a modal wired to a fake scene so your team can click through everything on Day 1.
+**この計画は意図的に「コード軽量」で「プロセス重視」です。** 必要に応じて、上記の各コンポーネント用の空ファイルとTODOコメントを持つ**スターターリポジトリ**を生成し、偽のシーンに接続されたモーダルを追加して、チームが1日目にすべてをクリックして確認できるようにする次のステップがあります。
