@@ -1,22 +1,23 @@
 /*
  * 高度なカメラ操作のためのコンポーネント - Component for advanced camera controls
  * このコンポーネントはカメラの操作性を制御します - This component controls camera manipulation
+ 
  */
 
-import { useEffect, useRef } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import { useEffect, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 
 // camera-controls ライブラリのインポート - Import camera-controls library
-import CameraControls from 'camera-controls';
+import CameraControls from "camera-controls";
 
 // Install the THREE reference for camera-controls
-CameraControls.install({ THREE: require('three') });
+CameraControls.install({ THREE: require("three") });
 
 // CameraControlsWrapper: 高度なカメラ操作のためのコンポーネント - Component for advanced camera controls
 // このコンポーネントはカメラの操作性を制御します - This component controls camera manipulation
 export default function CameraControlsWrapper() {
-  const { camera, gl } = useThree();
+  const { camera, gl, scene } = useThree();
   const controlsRef = useRef<CameraControls | null>(null);
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function CameraControlsWrapper() {
 
     // Initialize camera controls - カメラコントロールの初期化
     const controls = new CameraControls(camera, gl.domElement);
+    controlsRef.current = controls;
 
     // Distance configuration - 距離設定（カメラがオブジェクトに近づく/遠ざかる距離制限）
     controls.minDistance = 2; // Minimum distance of camera (minimum proximity to objects, reduced to allow closer inspection of model details)
@@ -60,18 +62,60 @@ export default function CameraControlsWrapper() {
     controls.dollyToCursor = true; // Zoom toward cursor position (カーソル位置に向かってズーム)
     controls.infinityDolly = false; // Don't allow zoom to infinity (無限遠までズームしない)
 
+    // --- CLICK-TO-MOVE LOGIC START ---
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const handleDoubleClick = (event: MouseEvent) => {
+      // Calculate normalized device coordinates
+      const rect = gl.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Raycast
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(scene.children, true);
+
+      if (intersects.length > 0 && controlsRef.current) {
+        const clickedPoint = intersects[0].point;
+        const currentPosition = new THREE.Vector3();
+        controlsRef.current.getPosition(currentPosition);
+
+        // Calculate a new position halfway between the camera and the clicked point
+        const newPosition = new THREE.Vector3().lerpVectors(
+          currentPosition,
+          clickedPoint,
+          0.5
+        );
+
+        // Move camera
+        controlsRef.current.setLookAt(
+          newPosition.x,
+          newPosition.y,
+          newPosition.z,
+          clickedPoint.x,
+          clickedPoint.y,
+          clickedPoint.z,
+          true // Enable smooth transition
+        );
+      }
+    };
+
+    gl.domElement.addEventListener("dblclick", handleDoubleClick);
+    // --- CLICK-TO-MOVE LOGIC END ---
+
     // Make controls globally accessible for programmatic movement
     (window as any).cameraControls = controls;
-    controlsRef.current = controls;
 
     // Cleanup function - クリーンアップ関数（コンポーネントアンマウント時のリソース解放）
     return () => {
+      gl.domElement.removeEventListener("dblclick", handleDoubleClick);
       if (controlsRef.current) {
         controlsRef.current.dispose(); // Release camera control resources (カメラコントロールのリソースを解放)
         (window as any).cameraControls = null;
       }
     };
-  }, [camera, gl]);
+  }, [camera, gl, scene]);
 
   // Update controls on each frame - フレームごとにコントロールを更新（滑らかなアニメーションのため）
   useFrame((_, delta) => {

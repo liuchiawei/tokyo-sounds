@@ -11,7 +11,7 @@
 7. **Integration of actual 3D models (GLB files)** - Replace primitive-based landmarks with real 3D assets
 8. **Code documentation in Japanese** - Add Japanese comments for team understanding
    - 例: // シーン管理のための Zustand ストア - Zustand store for scene management
-9. **Deep Research Before Implementation** - For each and every task, conduct thorough research to be 100% certain about implementation before proceeding
+9. **Deep Research Before Implementation** - For each and every task, conduct thorough research to be 100% certain about implementation from the internet and the whole project before proceeding
 
 ## Project Structure Reference
 
@@ -76,26 +76,19 @@ tokyo-sounds/
 
 - [x] **Task 1**: Set up R3F dependencies with GLB model loading - COMPLETED
 - [x] **Task 2**: Replace placeholder canvas component with actual 3D models (GLB files) - COMPLETED
-- [ ] **Task 3**: Implement CameraControls for advanced camera manipulation
-- [ ] **Task 4**: Implement ScrollControls for scroll-based camera movement
-- [ ] **Task 5**: Implement PresentationControls for guided tours
-- [ ] **Task 6**: Implement KeyboardControls for alternative navigation
+- [x] **Task 3**: Implement CameraControls for advanced camera manipulation
 - [ ] **Task 7**: Develop click/drag-to-go feature for camera movement
 - [ ] **Task 8**: Create interactive hotspots for guided tours
 - [ ] **Task 9**: Implement camera presets for each landmark
 - [ ] **Task 10**: Add smooth transitions between camera positions
 - [ ] **Task 11**: Develop adaptive controls based on distance
-- [ ] **Task 12**: Add mouse parallax effect for depth perception
-- [ ] **Task 13**: Create dynamic Field of View system
 - [ ] **Task 14**: Implement collision detection for camera
 - [ ] **Task 15**: Develop focus system for object interaction
-- [ ] **Task 16**: Create cinematic camera paths for tours
+- [ ] **Task 16**: Create cinematic camera paths
 - [ ] **Task 17**: Set up multi-camera system with different perspectives
 - [ ] **Task 18**: Add depth of field effects
 - [ ] **Task 19**: Implement time-of-day camera settings
-- [ ] **Task 20**: Research haptic feedback integration
 - [ ] **Task 21**: Optimize for mobile devices
-- [ ] **Task 22**: Add accessibility features
 - [ ] **Task 23**: Implement performance optimizations (LOD, frustum culling)
 - [ ] **Task 24**: Create state management for scenes and audio using Zustand
 - [ ] **Task 25**: Implement scene data structure and loading
