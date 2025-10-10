@@ -8,9 +8,12 @@ Title: Cartoon Lowpoly Small City Free Pack
 */
 
 import * as THREE from "three";
-import React from "react";
+import React, { useState } from "react";
 import { useGLTF } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
+import { useFrame, useThree } from "@react-three/fiber";
+import { ClickableMesh } from "./ClickableMesh";
+import { useSceneStore } from "../stores/use-scene-store";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -124,11 +127,42 @@ type GLTFResult = GLTF & {
     ["World_ap.17"]: THREE.MeshStandardMaterial;
     ["World_ap.19"]: THREE.MeshStandardMaterial;
   };
-  animations: GLTFAction[];
+  animations: any[];
 };
 
-export function Model(props: JSX.IntrinsicElements["group"]) {
-  const { nodes, materials } = useGLTF("/3dtest.glb") as GLTFResult;
+export function Model(props: any) {
+  const { nodes, materials } = useGLTF("/3dtest.glb") as any;
+  const { showTitle, getBuildingById } = useSceneStore();
+
+  // 建物のクリックハンドラー - Building click handler
+  const handleBuildingClick = (buildingId: string, position: [number, number, number]) => {
+    console.log('=== Building Click Handler Called ===');
+    console.log('Building ID:', buildingId);
+    console.log('Position:', position);
+    console.log('getBuildingById function:', !!getBuildingById);
+    
+    const building = getBuildingById(buildingId);
+    console.log('Building found:', building);
+    
+    if (building) {
+      console.log('Building name:', building.name);
+      // 建物の上にタイトルを表示
+      const titlePosition: [number, number, number] = [position[0], position[1] + 50, position[2]];
+      console.log('Showing title at position:', titlePosition);
+      console.log('showTitle function:', !!showTitle);
+      
+      try {
+        showTitle(titlePosition, building.name);
+        console.log('showTitle called successfully');
+      } catch (error) {
+        console.error('Error calling showTitle:', error);
+      }
+    } else {
+      console.log('Building not found for ID:', buildingId);
+    }
+    console.log('=== Building Click Handler End ===');
+  };
+
   return (
     <group {...props} dispose={null}>
       <group position={[-369.069, -90.704, -920.159]}>
@@ -368,11 +402,18 @@ export function Model(props: JSX.IntrinsicElements["group"]) {
             rotation={[-1.382, -1.399, -0.042]}
           />
         </group>
-        <mesh
+        <ClickableMesh
           geometry={nodes.House_World_ap_0.geometry}
           material={materials.World_ap}
           position={[0, 104.499, 143.579]}
           rotation={[Math.PI / 2, 0, 0]}
+          onClick={() => {
+            console.log('=== Tokyo Tower ClickableMesh onClick triggered ===');
+            console.log('Building ID: tokyo-tower');
+            console.log('Position: [0, 104.499, 143.579]');
+            handleBuildingClick("tokyo-tower", [0, 104.499, 143.579]);
+          }}
+          name="東京タワー"
         />
       </group>
       <group position={[84.723, -88.642, 8.453]}>
@@ -455,23 +496,29 @@ export function Model(props: JSX.IntrinsicElements["group"]) {
             rotation={[0, 0.815, 0]}
           />
         </group>
-        <mesh
+        <ClickableMesh
           geometry={nodes.Bench_1_World_ap_0.geometry}
           material={materials.World_ap}
           position={[138.129, -19.652, 19.72]}
           rotation={[Math.PI / 2, 0, -Math.PI / 2]}
+          onClick={() => handleBuildingClick("roppongi-park", [138.129, -19.652, 19.72])}
+          name="六本木公園"
         />
-        <mesh
+        <ClickableMesh
           geometry={nodes.House_2_World_ap_0.geometry}
           material={materials.World_ap}
           position={[131.582, -47.962, 121.885]}
           rotation={[0, -Math.PI / 2, 0]}
+          onClick={() => handleBuildingClick("roppongi-hills", [131.582, -47.962, 121.885])}
+          name="六本木ヒルズ"
         />
-        <mesh
+        <ClickableMesh
           geometry={nodes.Bench_World_ap_0.geometry}
           material={materials.World_ap}
           position={[138.129, -19.652, -109.696]}
           rotation={[Math.PI / 2, 0, -Math.PI / 2]}
+          onClick={() => handleBuildingClick("roppongi-park", [138.129, -19.652, -109.696])}
+          name="六本木公園"
         />
       </group>
       <group position={[77.486, -88.642, -941.285]}>
@@ -573,17 +620,21 @@ export function Model(props: JSX.IntrinsicElements["group"]) {
           material={materials.World_ap}
           position={[111.523, 20.053, 188.913]}
         />
-        <mesh
+        <ClickableMesh
           geometry={nodes.Bench_2_World_ap_0.geometry}
           material={materials.World_ap}
           position={[-186.916, -19.652, -230.343]}
           rotation={[Math.PI / 2, 0, 0]}
+          onClick={() => handleBuildingClick("shinjuku-park", [-186.916, -19.652, -230.343])}
+          name="新宿公園"
         />
-        <mesh
+        <ClickableMesh
           geometry={nodes.Behch_World_ap_0.geometry}
           material={materials.World_ap}
           position={[-186.916, -19.652, -152.012]}
           rotation={[Math.PI / 2, 0, 0]}
+          onClick={() => handleBuildingClick("shinjuku-park", [-186.916, -19.652, -152.012])}
+          name="新宿公園"
         />
         <mesh
           geometry={nodes.House_3_World_ap_0.geometry}
@@ -721,11 +772,13 @@ export function Model(props: JSX.IntrinsicElements["group"]) {
             rotation={[-0.171, -0.162, 1.31]}
           />
         </group>
-        <mesh
+        <ClickableMesh
           geometry={nodes.Shop_World_ap_0.geometry}
           material={materials.World_ap}
           position={[-65.336, -36.633, -123.335]}
           rotation={[Math.PI / 2, 0, 0]}
+          onClick={() => handleBuildingClick("shinjuku-station", [-65.336, -36.633, -123.335])}
+          name="新宿駅ビル"
         />
         <mesh
           geometry={nodes.Trash_World_ap_0.geometry}
@@ -744,9 +797,12 @@ export function Model(props: JSX.IntrinsicElements["group"]) {
         position={[-549.038, -127.662, -453.774]}
         rotation={[Math.PI / 2, 0, -Math.PI]}
       >
-        <mesh
+        <ClickableMesh
           geometry={nodes.ROAD_World_ap_0.geometry}
           material={materials.World_ap}
+          position={[0, 0, 0]}
+          onClick={() => handleBuildingClick("shibuya-crossing-area", [0, 0, 0])}
+          name="渋谷スクランブル交差点"
         />
         <mesh
           geometry={nodes.traffic_light_2_2_World_ap_0.geometry}

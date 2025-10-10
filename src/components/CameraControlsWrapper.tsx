@@ -12,7 +12,7 @@ import * as THREE from "three";
 import CameraControls from "camera-controls";
 
 // Install the THREE reference for camera-controls
-CameraControls.install({ THREE: require("three") });
+CameraControls.install({ THREE });
 
 // CameraControlsWrapper: 高度なカメラ操作のためのコンポーネント - Component for advanced camera controls
 // このコンポーネントはカメラの操作性を制御します - This component controls camera manipulation
@@ -32,8 +32,6 @@ export default function CameraControlsWrapper() {
     controls.maxDistance = 4000; // Maximum distance of camera (maximum distance from objects, increased for large city model and better zoom out)
 
     // Smoothness configuration - 滑らかさの設定（カメラ移動の慣性効果）
-    controls.dampingFactor = 0.05; // Smoothing for rotation, zoom, and truck/pedestal movements (回転・ズーム・平行移動のスムージング)
-    controls.draggingDampingFactor = 0.075; // Smoothing specifically for drag interactions (ドラッグ操作のスムージング)
     controls.smoothTime = 0.3; // Smoothness of inertia effect when moving freely (自由移動時の慣性効果の滑らかさ)
     controls.draggingSmoothTime = 0.15; // Smoothness during dragging (ドラッグ時の滑らかさ)
 

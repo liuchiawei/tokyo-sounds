@@ -26,6 +26,9 @@ import CameraControlsWrapper from "../CameraControlsWrapper";
 // LandmarkSelectorコンポーネントのインポート - Import LandmarkSelector component
 import LandmarkSelector from "../ui/landmark-selector";
 
+// 3Dタイトルコンポーネントのインポート - Import 3D Title component
+import { Title3D } from "../3D-title";
+
 // モデルロード用のシンプルなプレースホルダー - Simple placeholder for model loading
 const Loader = () => (
   <mesh>
@@ -69,7 +72,7 @@ function ModelBounds() {
 
     // Calculate appropriate distance based on the size of the model
     const maxDim = Math.max(size.x, size.y, size.z);
-    const fov = camera.fov * (Math.PI / 180); // Convert to radians
+    const fov = (camera as any).fov ? (camera as any).fov * (Math.PI / 180) : Math.PI / 4; // Convert to radians or default
     const desiredDistance = maxDim / (2 * Math.tan(fov / 2));
     const distance = desiredDistance * 1.5; // Add some padding
 
@@ -106,6 +109,12 @@ function ModelBounds() {
 // メインキャンVASコンポーネント - Main canvas component
 export default function ThreeDCanvas() {
   const { ErrorBoundary, didCatch, error } = useErrorBoundary();
+  
+  // タイトル表示状態を取得 - Get title display state
+  const { title, hideTitle } = useSceneStore();
+  
+  // デバッグ用のログ
+  console.log('3D Canvas title state:', title);
 
   // 3Dキャンバスエラー時のフォールバック - Error fallback for 3D canvas
   const CanvasErrorFallback = () => (
@@ -178,6 +187,16 @@ export default function ThreeDCanvas() {
               height={300} // ブルーム効果の高さ - Bloom effect height
             />
           </EffectComposer>
+
+          {/* 3Dタイトル表示 - 3D Title Display */}
+          {title.isVisible && title.position && title.title && (
+            <Title3D
+              position={title.position}
+              title={title.title}
+              isVisible={title.isVisible}
+              onClose={hideTitle}
+            />
+          )}
         </Canvas>
         <LandmarkSelector />
       </div>

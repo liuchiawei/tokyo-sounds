@@ -3,17 +3,25 @@ import { useSceneStore } from "../../stores/use-scene-store";
 import { CameraPosition, Scene } from "../../types/scene";
 import { Button } from "./button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./sheet";
-import { Landmark, MapPin, Layers, ChevronRight, Navigation } from "lucide-react";
+import { Landmark, MapPin, Layers, ChevronRight, Navigation, Info } from "lucide-react";
 
 // ランドマーク選択コンポーネント - Landmark selection component
 export default function LandmarkSelector() {
-  const { currentScene, currentLandmark, allScenes, moveCameraToLandmark, setCurrentScene } = useSceneStore();
+  const { currentScene, currentLandmark, allScenes, moveCameraToLandmark, setCurrentScene, openModal } = useSceneStore();
   const [isOpen, setIsOpen] = useState(false);
 
   // ランドマーク選択時の処理 - Handle landmark selection
   const handleLandmarkSelect = (landmark: CameraPosition) => {
     moveCameraToLandmark(landmark);
     setIsOpen(false); // 選択後にシートを閉じる - Close the sheet after selection
+  };
+
+  // ランドマークの詳細表示 - Show landmark details
+  const handleLandmarkInfo = (landmark: CameraPosition, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (landmark.modalContent) {
+      openModal(landmark.modalContent);
+    }
   };
 
   // シーン選択時の処理 - Handle scene selection
@@ -107,7 +115,19 @@ export default function LandmarkSelector() {
                           {landmark.description}
                         </p>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-gray-300 flex-shrink-0 ml-1" />
+                      <div className="flex items-center gap-1">
+                        {landmark.modalContent && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-blue-400"
+                            onClick={(e) => handleLandmarkInfo(landmark, e)}
+                          >
+                            <Info className="h-3 w-3" />
+                          </Button>
+                        )}
+                        <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-gray-300 flex-shrink-0" />
+                      </div>
                     </div>
                     <div className="mt-3 pt-3 border-t border-gray-700/50 flex items-center text-xs text-gray-500">
                       <span className="flex items-center gap-1">

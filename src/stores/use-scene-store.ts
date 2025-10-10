@@ -1,6 +1,6 @@
 // シーン管理のための Zustand ストア - Zustand store for scene management
 import { create } from 'zustand';
-import { Scene, SceneState, CameraPosition } from '../types/scene';
+import { Scene, SceneState, CameraPosition, Building } from '../types/scene';
 
 // 初期シーンデータ - Initial scene data
 const initialScenes: Scene[] = [
@@ -15,14 +15,24 @@ const initialScenes: Scene[] = [
         target: [0, 0, 0],
         fov: 45,
         name: '東京の展望', // Tokyo Metropolitan View
-        description: '東京のスカイラインと都市のレイアウトの広範な概要' // A sweeping overview of Tokyo's skyline and urban layout
+        description: '東京のスカイラインと都市のレイアウトの広範な概要', // A sweeping overview of Tokyo's skyline and urban layout
+        modalContent: {
+          title: '東京の展望',
+          description: '東京のスカイラインと都市のレイアウトの広範な概要',
+          details: '東京は世界最大の都市圏の一つで、約1400万人の人口を擁する日本の首都です。このビューからは、東京の多様な地区と建築物の配置を一望できます。'
+        }
       },
       {
         position: [0, 100, 0],
         target: [500, 0, 0], // Looking toward the eastern part of the model (positive X) - モデルの東側（正のX）を向いています
         fov: 50,
         name: '東京東部の展望', // Eastern Tokyo Perspective
-        description: '東京の東部都市地区を紹介するビュー' // View showcasing Tokyo's eastern urban district
+        description: '東京の東部都市地区を紹介するビュー', // View showcasing Tokyo's eastern urban district
+        modalContent: {
+          title: '東京東部の展望',
+          description: '東京の東部都市地区を紹介するビュー',
+          details: '東京の東部は、江戸時代から続く歴史的な地区と現代的な高層ビルが混在するエリアです。浅草、上野、両国などの伝統的な地区が含まれます。'
+        }
       },
       {
         position: [0, 100, 0],
@@ -44,7 +54,12 @@ const initialScenes: Scene[] = [
         target: [-540, -110, -440], // Looking slightly up and ahead at street level - ストリートレベルで少し上を向いて前方を見ています
         fov: 60,
         name: '渋谷スクランブル交差点 ストリートビュー', // Shibuya Crossing Street View
-        description: '忠犬ハチ公像のある象徴的なスクランブル交差点の地上レベルビュー' // Ground-level view of the iconic scramble crossing with Hachiko statue
+        description: '忠犬ハチ公像のある象徴的なスクランブル交差点の地上レベルビュー', // Ground-level view of the iconic scramble crossing with Hachiko statue
+        modalContent: {
+          title: '渋谷スクランブル交差点',
+          description: '世界一混雑する歩道交差点',
+          details: '渋谷スクランブル交差点は、1回の信号で約3000人が横断する世界一混雑する歩道交差点です。忠犬ハチ公像は待ち合わせの定番スポットとして知られています。'
+        }
       },
       {
         position: [-400, 800, -500], // From a nearby building/roof top - 近くの建物/屋上から
@@ -151,12 +166,101 @@ const initialScenes: Scene[] = [
   }
 ];
 
+// 建物データ - Building data
+const buildings: Building[] = [
+  {
+    id: 'tokyo-tower',
+    name: '東京タワー',
+    description: '東京の象徴的な通信塔',
+    type: 'landmark',
+    modalContent: {
+      title: '東京タワー',
+      description: '東京の象徴的な赤白の通信塔',
+      details: '1958年に完成した東京タワーは、高さ333メートルの電波塔です。東京のランドマークとして親しまれ、展望台からは東京の美しい景色を一望できます。',
+      history: '1958年12月23日に完成。設計は内藤多仲。当初はテレビ・ラジオの電波塔として建設されました。',
+      features: ['展望台', '電波塔', '夜景スポット', '東京のシンボル']
+    }
+  },
+  {
+    id: 'roppongi-hills',
+    name: '六本木ヒルズ',
+    description: '六本木の高層複合施設',
+    type: 'commercial',
+    modalContent: {
+      title: '六本木ヒルズ',
+      description: '六本木の高層複合施設',
+      details: '六本木ヒルズは、オフィス、住宅、商業施設、文化施設が一体となった複合都市です。森タワーを中心に、美術館や映画館、レストランなどが集まっています。',
+      history: '2003年に開業。森ビルが開発した六本木地区の再開発プロジェクトの中心施設です。',
+      features: ['森タワー', '森美術館', '六本木ヒルズアリーナ', '展望台', 'ショッピングモール']
+    }
+  },
+  {
+    id: 'shinjuku-station',
+    name: '新宿駅ビル',
+    description: '世界一乗降客数の多い駅',
+    type: 'station',
+    modalContent: {
+      title: '新宿駅',
+      description: '世界一乗降客数の多い駅',
+      details: '新宿駅は1日の乗降客数が約350万人を超える世界一混雑する駅です。JR東日本、小田急、京王、都営地下鉄、東京メトロの5つの鉄道会社が乗り入れています。',
+      history: '1885年に甲武鉄道の新宿駅として開業。その後、複数の路線が乗り入れ、現在の巨大なターミナル駅となりました。',
+      features: ['世界一の乗降客数', '5つの鉄道会社', '地下街', '商業施設', 'バスターミナル']
+    }
+  },
+  {
+    id: 'shibuya-crossing-area',
+    name: '渋谷スクランブル交差点',
+    description: '世界一混雑する歩道交差点',
+    type: 'landmark',
+    modalContent: {
+      title: '渋谷スクランブル交差点',
+      description: '世界一混雑する歩道交差点',
+      details: '渋谷スクランブル交差点は、1回の信号で約3000人が横断する世界一混雑する歩道交差点です。忠犬ハチ公像は待ち合わせの定番スポットとして知られています。',
+      history: '1973年に現在の形に整備されました。忠犬ハチ公像は1934年に建立され、戦争中に一時撤去されましたが、1948年に再建されました。',
+      features: ['世界一の歩行者数', '忠犬ハチ公像', '待ち合わせスポット', '夜景スポット', 'ショッピングエリア']
+    }
+  },
+  {
+    id: 'roppongi-park',
+    name: '六本木公園',
+    description: '六本木の緑豊かな公園',
+    type: 'park',
+    modalContent: {
+      title: '六本木公園',
+      description: '六本木の緑豊かな公園',
+      details: '六本木公園は、都市部にありながら豊かな緑に囲まれた憩いの空間です。ベンチや遊具があり、地域住民の憩いの場として親しまれています。',
+      history: '六本木地区の再開発に伴い整備された都市公園です。',
+      features: ['緑豊かな環境', 'ベンチ', '遊具', '憩いの空間', '都市のオアシス']
+    }
+  },
+  {
+    id: 'shinjuku-park',
+    name: '新宿公園',
+    description: '新宿の都市公園',
+    type: 'park',
+    modalContent: {
+      title: '新宿公園',
+      description: '新宿の都市公園',
+      details: '新宿の商業地区に位置する都市公園です。高層ビルに囲まれた中で、緑豊かな空間を提供しています。',
+      history: '新宿地区の都市計画に基づいて整備された公園です。',
+      features: ['都市の緑地', 'ベンチ', '憩いの空間', '商業地区のオアシス']
+    }
+  }
+];
+
 export const useSceneStore = create<SceneState>((set, get) => ({
   currentScene: initialScenes[0],
   currentLandmark: initialScenes[0].cameraPositions[0],
   allScenes: initialScenes,
   isLoading: false,
   error: null,
+  
+  // タイトル表示状態 - Title display state
+  title: {
+    isVisible: false,
+    position: null,
+    title: null,
+  },
   
   // 現在のシーンを設定 - Set current scene
   setCurrentScene: (scene) => set({ currentScene: scene }),
@@ -203,5 +307,37 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     } catch (error) {
       set({ isLoading: false, error: 'シーンの読み込みに失敗しました' }); // Failed to load scenes
     }
-  }
+  },
+  
+  // タイトルを表示 - Show title
+  showTitle: (position, title) => {
+    console.log('showTitle called:', { position, title });
+    set({ 
+      title: { 
+        isVisible: true, 
+        position, 
+        title 
+      } 
+    });
+  },
+  
+  // タイトルを非表示 - Hide title
+  hideTitle: () => set({ 
+    title: { 
+      isVisible: false, 
+      position: null, 
+      title: null 
+    } 
+  }),
+  
+  // 建物データを取得 - Get building data
+  getBuildingById: (id: string) => buildings.find(building => building.id === id),
+  
+  // 全建物データを取得 - Get all building data
+  getAllBuildings: () => buildings
 }));
+
+// デバッグ用にグローバルに公開 - Expose globally for debugging
+if (typeof window !== 'undefined') {
+  (window as any).__ZUSTAND_STORE__ = useSceneStore;
+}
