@@ -33,6 +33,7 @@
     "tailwind-merge": "^3.3.1",
     "three": "^0.180.0",
     "three-stdlib": "^2.36.0",
+    "tone": "^15.1.22",
     "use-error-boundary": "^2.0.6",
     "zustand": "^5.0.8"
   },
