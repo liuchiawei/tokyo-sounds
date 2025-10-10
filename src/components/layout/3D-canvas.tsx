@@ -3,10 +3,7 @@
 // React Three Fiber と Drei コンポーネント - React Three Fiber and Drei components for 3D rendering and helpers
 import { Canvas } from "@react-three/fiber";
 import { Stage, Environment, useGLTF } from "@react-three/drei";
-import {
-  Suspense,
-  useEffect,
-} from "react";
+import { Suspense, useEffect } from "react";
 import { EffectComposer, Bloom, N8AO } from "@react-three/postprocessing";
 import { Physics } from "@react-three/rapier";
 import { Model } from "../Model"; // GLBモデルコンポーネントをインポート - Import the auto-generated Model component
@@ -63,13 +60,13 @@ function ModelBounds() {
 
     // Calculate appropriate distance based on the size of the model
     const maxDim = Math.max(size.x, size.y, size.z);
-    
+
     // Check if camera is a PerspectiveCamera (which has fov) rather than OrthographicCamera
     let fov = Math.PI / 4; // Default to 45 degrees if not a PerspectiveCamera
-    if ('fov' in camera) {
+    if ("fov" in camera) {
       fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180); // Convert to radians
     }
-    
+
     const desiredDistance = maxDim / (2 * Math.tan(fov / 2));
     const distance = desiredDistance * 1.5; // Add some padding
 
