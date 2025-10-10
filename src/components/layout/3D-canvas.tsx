@@ -3,22 +3,15 @@
 // React Three Fiber と Drei コンポーネント - React Three Fiber and Drei components for 3D rendering and helpers
 import { Canvas } from "@react-three/fiber";
 import { Stage, Environment, useGLTF } from "@react-three/drei";
-import {
-  Suspense,
-  useEffect,
-  useRef,
-  useMemo,
-  createContext,
-  useContext,
-} from "react";
+import { Suspense, useEffect } from "react";
 import { EffectComposer, Bloom, N8AO } from "@react-three/postprocessing";
+import { Physics } from "@react-three/rapier";
 import { Model } from "../Model"; // GLBモデルコンポーネントをインポート - Import the auto-generated Model component
 import { useErrorBoundary } from "use-error-boundary";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Zustandストアのインポート - Import Zustand store
-import { useSceneStore } from "../../stores/use-scene-store";
 
 // CameraControlsWrapperコンポーネントのインポート - Import CameraControlsWrapper component
 import CameraControlsWrapper from "../CameraControlsWrapper";
@@ -51,8 +44,6 @@ const WebGLFallback = () => (
   </div>
 );
 
-
-
 // ModelBounds: モデルの境界を計算してカメラを自動調整するコンポーネント - Component to calculate model bounds and auto-adjust camera
 function ModelBounds() {
   const { camera } = useThree();
@@ -69,7 +60,13 @@ function ModelBounds() {
 
     // Calculate appropriate distance based on the size of the model
     const maxDim = Math.max(size.x, size.y, size.z);
-    const fov = camera.fov * (Math.PI / 180); // Convert to radians
+
+    // Check if camera is a PerspectiveCamera (which has fov) rather than OrthographicCamera
+    let fov = Math.PI / 4; // Default to 45 degrees if not a PerspectiveCamera
+    if ("fov" in camera) {
+      fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180); // Convert to radians
+    }
+
     const desiredDistance = maxDim / (2 * Math.tan(fov / 2));
     const distance = desiredDistance * 1.5; // Add some padding
 
@@ -84,8 +81,8 @@ function ModelBounds() {
     camera.lookAt(center);
 
     // Update CameraControls if available
-    if (typeof window !== "undefined" && (window as any).cameraControls) {
-      const controls = (window as any).cameraControls;
+    if (typeof window !== "undefined" && window.cameraControls) {
+      const controls = window.cameraControls;
       if (controls && typeof controls.setLookAt === "function") {
         controls.setLookAt(
           cameraPosition.x,
@@ -143,18 +140,20 @@ export default function ThreeDCanvas() {
           fallback={<WebGLFallback />} // WebGL非対応時のフォールバック - Fallback for unsupported WebGL
         >
           <Suspense fallback={<Loader />}>
-            {/* Stage コンポーネントはモデルの中央寄せ・スケーリングと照明を担当 - Stage component centers and scales the model, adds shadows and lighting */}
-            <Stage
-              environment={null}
-              intensity={1} // 照明の強度 - Light intensity
-              castShadow={false} // 影のキャスト無効化 - Disable shadow casting
-              shadows={false} // 影の無効化 - Disable shadows
-              adjustCamera={2.5} // カメラの調整 - Adjusts camera to better fit the model in view
-            >
-              <Model /> {/* GLBモデルの表示 - Display the GLB model */}
-              <ModelBounds />{" "}
-              {/* モデル全体を表示するためのカメラ調整 - Camera adjustment to view entire model */}
-            </Stage>
+            <Physics debug>
+              {/* Stage コンポーネントはモデルの中央寄せ・スケーリングと照明を担当 - Stage component centers and scales the model, adds shadows and lighting */}
+              <Stage
+                environment={null}
+                intensity={1} // 照明の強度 - Light intensity
+                castShadow={false} // 影のキャスト無効化 - Disable shadow casting
+                shadows={false} // 影の無効化 - Disable shadows
+                adjustCamera={2.5} // カメラの調整 - Adjusts camera to better fit the model in view
+              >
+                <Model /> {/* GLBモデルの表示 - Display the GLB model */}
+                <ModelBounds />{" "}
+                {/* モデル全体を表示するためのカメラ調整 - Camera adjustment to view entire model */}
+              </Stage>
+            </Physics>
           </Suspense>
 
           {/* CameraControls: カメラ操作のための高度なコントロール - Advanced camera controls for camera interaction */}
