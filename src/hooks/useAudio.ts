@@ -13,6 +13,8 @@ import {
     SpatialBindingMode,
 } from '@/lib/audio';
 
+type ParamValue = number | boolean | string | null;
+
 export const AudioSessionContext = createContext<AudioSession | null>(null);
 
 /**
@@ -35,6 +37,7 @@ export function useAudioSession(initialSpec?: GraphSpec, opts?: SessionOptions) 
     const [error, setError] = useState<Error | null>(null);
     const initRef = useRef(false);
 
+    // TODO: hook ignores initialSpec/opts changes because the effect is locked behind initRef. Figure out a way to update the session when these change.
     useEffect(() => {
         if (initRef.current) return;
         initRef.current = true;
@@ -50,6 +53,7 @@ export function useAudioSession(initialSpec?: GraphSpec, opts?: SessionOptions) 
             });
 
         return () => {
+            // TODO: dispose the current session instance; this closure only sees the initial null value.
             if (session) {
                 session.dispose();
             }
@@ -65,9 +69,10 @@ export function useAudioSession(initialSpec?: GraphSpec, opts?: SessionOptions) 
  * @param param - the param to get the value of
  * @returns the value of the param
  */
+// TODO: generalize the value type so boolean/enum params don't have to masquerade as numbers.
 export function useParam(nodeId: string, param: string): [number, (value: number, opts?: { record?: boolean }) => void] {
     const session = useAudioSessionContext();
-    const [value, setValue] = useState<number>(0);
+    const [value, setValue] = useState(0);
     const pendingUpdateRef = useRef<number | null>(null);
     const rafRef = useRef<number | null>(null);
 
@@ -209,6 +214,7 @@ export function useSpatial(
             console.log('[useAudio/useSpatial] Using provided listener');
         } else {
             listener = new THREE.AudioListener();
+            // TODO: expose a way to attach this listener to the scene/camera; right now the detached listener never affects rendering.           
             console.log('[useAudio/useSpatial] Created new listener');
         }
 
@@ -228,7 +234,7 @@ export function useSpatial(
         } catch (err) {
             console.error('[useAudio/useSpatial] Failed to bind spatial audio:', err);
         }
-    }, [session, nodeId, object3DRef, listenerRef, opts, ...deps]);
+    }, [session, nodeId, object3DRef, listenerRef, opts, ...deps]); // TODO: memoize opts/deps or relax effect triggers to avoid thrashing spatial bindings.
 }
 
 /**

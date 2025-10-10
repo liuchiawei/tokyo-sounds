@@ -227,6 +227,7 @@ interface ChangeRecord {
     data: any;
     inverse: any;
 }
+// TODO: include change type (and related metadata) in change records so undo/redo can function.
 
 // rng baby. might switch to a different rng later idk
 function mulberry32(seed: number): () => number {
@@ -490,6 +491,7 @@ async function buildRuntimeGraph(spec: GraphSpec, context: BaseAudioContext): Pr
     const assetMap = new Map<string, Tone.ToneAudioBuffer>();
 
     for (const asset of spec.assets) {
+        // TODO: reuse decoded buffers when instantiating players instead of downloading each src twice.
         try {
             const buffer = new Tone.ToneAudioBuffer(asset.src);
             await buffer.loaded;
@@ -616,6 +618,8 @@ function scheduleAutomations(registry: Map<string, RuntimeNode>, spec: GraphSpec
             for (const point of auto.curve.points) {
                 paramObj.setValueAtTime(point.v, now + point.t);
             }
+        } else {
+            // TODO: support expRamp/lfoRef automation modes so scheduling matches serialized data.
         }
     }
 }
@@ -792,6 +796,7 @@ class AudioSessionImpl implements AudioSession {
         return canonicalize(this.spec);
     }
 
+    // TODO: make this hash synchronous/awaited so callers don't see empty strings or stale cache flags.
     hash(): string {
         if (!this.dirty && this.cachedHash) {
             return this.cachedHash;
@@ -934,6 +939,7 @@ class AudioSessionImpl implements AudioSession {
 
         let instance: any;
         if (def.type === 'Player') {
+            // TODO: load the referenced asset/buffer here so new players aren't silent placeholders.
             instance = new Tone.Player();
         } else if (def.type === 'Filter') {
             instance = new Tone.Filter();
@@ -1052,6 +1058,7 @@ class AudioSessionImpl implements AudioSession {
         for (const asset of spec.assets) {
             try {
                 const response = await fetch(asset.src);
+                // TODO: bail out early if !response.ok to avoid decoding empty/HTML responses.
                 const arrayBuffer = await response.arrayBuffer();
                 const audioBuffer = await this.context.decodeAudioData(arrayBuffer.slice(0));
                 preloadedBuffers.set(asset.id, audioBuffer);
@@ -1564,6 +1571,7 @@ class AudioSessionImpl implements AudioSession {
     }
 
     private applyChange(change: any): void {
+        // TODO: call lightweight mutations here instead of the public add/remove helpers to avoid polluting history stacks.
         if (change.type === 'param') {
             this.updateParam(change.nodeId, change.param, change.value, { record: false });
         } else if (change.type === 'automation') {
@@ -1619,6 +1627,7 @@ export async function createAudioSession(spec?: GraphSpec, opts: SessionOptions 
     }
 
     const ctx = Tone.getContext().rawContext;
+    // TODO: respect opts.autoStart (and handle denied Tone.start) to give callers more control.
 
     const normalized = spec ? canonicalize(spec) : createEmptySpec();
     validateSpec(normalized);
