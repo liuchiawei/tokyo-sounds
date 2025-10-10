@@ -47,8 +47,6 @@ export default function CameraControlsWrapper() {
     controls.touches.one = CameraControls.ACTION.TOUCH_ROTATE; // One finger drag: Rotate camera - 1本指ドラッグ：カメラ回転
     controls.touches.two = CameraControls.ACTION.TOUCH_DOLLY_TRUCK; // Two fingers: Zoom and pan - 2本指：ズームと平行移動
 
-
-
     // Rotation and zoom sensitivity configuration - 回転とズーム感度設定（マウスやタッチ操作の感度調整）
     controls.azimuthRotateSpeed = 1.0; // Horizontal rotation speed (horizontal rotation sensitivity) - 水平回転速度（左右回転の感度）
     controls.polarRotateSpeed = 1.0; // Vertical rotation speed (vertical rotation sensitivity) - 垂直回転速度（上下回転の感度）
