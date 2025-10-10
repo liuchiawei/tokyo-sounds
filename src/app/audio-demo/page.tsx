@@ -15,61 +15,63 @@ import { AudioSessionContext, useParam, useCommit, useSpatial, useSpatialMode, u
 import { createAudioSession, GraphSpec } from '@/lib/audio';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 
-// Initial audio graph spec
-const initialSpec: GraphSpec = {
-  version: '1.0.0',
-  schema: 'graph@1',
-  tempo: 120,
-  seed: Date.now(),
-  sampleRate: 48000,
-  assets: [
-    {
-      id: 'sample1',
-      kind: 'sample',
-      src: '/audio/example1.flac', // Supports: .ogg, .mp3, .wav, .flac, .m4a
-      loop: true,
+function createInitialSpec(audioSrc: string): GraphSpec {
+  return {
+    version: '1.0.0',
+    schema: 'graph@1',
+    tempo: 120,
+    seed: Date.now(),
+    sampleRate: 48000,
+    assets: [
+      {
+        id: 'sample1',
+        kind: 'sample',
+        src: audioSrc,
+        loop: true,
+      },
+    ],
+    nodes: [
+      {
+        id: 'player1',
+        type: 'Player',
+        assetId: 'sample1',
+        params: { playbackRate: 1, loop: true, reverse: false },
+      },
+      {
+        id: 'filter1',
+        type: 'Filter',
+        params: { frequency: 1000, Q: 1, type: 'lowpass' },
+      },
+      {
+        id: 'reverb1',
+        type: 'Reverb',
+        params: { decay: 2, wet: 0.3 },
+      },
+      {
+        id: 'gain1',
+        type: 'Gain',
+        params: { gain: 0.8 },
+      },
+    ],
+    connections: [
+      { from: { id: 'player1' }, to: { id: 'filter1' } },
+      { from: { id: 'filter1' }, to: { id: 'reverb1' } },
+      { from: { id: 'reverb1' }, to: { id: 'gain1' } },
+    ],
+    automations: [],
+    buses: [],
+    sends: [],
+    mix: { masterGain: 0.9 },
+    meta: {
+      title: 'Audio Demo',
+      author: 'Demo User',
+      tags: ['demo', 'spatial'],
+      createdAt: new Date().toISOString(),
     },
-  ],
-  nodes: [
-    {
-      id: 'player1',
-      type: 'Player',
-      assetId: 'sample1',
-      params: { playbackRate: 1, loop: true, reverse: false },
-    },
-    {
-      id: 'filter1',
-      type: 'Filter',
-      params: { frequency: 1000, Q: 1, type: 'lowpass' },
-    },
-    {
-      id: 'reverb1',
-      type: 'Reverb',
-      params: { decay: 2, wet: 0.3 },
-    },
-    {
-      id: 'gain1',
-      type: 'Gain',
-      params: { gain: 0.8 },
-    },
-  ],
-  connections: [
-    { from: { id: 'player1' }, to: { id: 'filter1' } },
-    { from: { id: 'filter1' }, to: { id: 'reverb1' } },
-    { from: { id: 'reverb1' }, to: { id: 'gain1' } },
-  ],
-  automations: [],
-  buses: [],
-  sends: [],
-  mix: { masterGain: 0.9 },
-  meta: {
-    title: 'Audio Demo',
-    author: 'Demo User',
-    tags: ['demo', 'spatial'],
-    createdAt: new Date().toISOString(),
-  },
-};
+  };
+}
 
 // Audio controls component
 function AudioControls({ sharedContext }: { sharedContext: AudioContext | null }) {
@@ -447,6 +449,28 @@ export default function AudioDemo() {
   const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sharedContext, setSharedContext] = useState<AudioContext | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('audio/')) {
+        alert('Please select an audio file');
+        return;
+      }
+      
+      // Revoke previous object URL to prevent memory leaks
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+      
+      const url = URL.createObjectURL(file);
+      setUploadedFile(file);
+      setAudioUrl(url);
+      console.log('Audio file selected:', file.name, 'Type:', file.type);
+    }
+  };
 
   const initAudio = async () => {
     if (loading || ready) return;
@@ -459,11 +483,16 @@ export default function AudioDemo() {
       const audioContext = new AudioContext();
       setSharedContext(audioContext);
 
+      // Use uploaded file URL or default audio file
+      const audioSrc = audioUrl || '/audio/example1.flac';
+      const spec = createInitialSpec(audioSrc);
+
       // Create audio session using the shared context
-      const audioSession = await createAudioSession(initialSpec, { context: audioContext });
+      const audioSession = await createAudioSession(spec, { context: audioContext });
       setSession(audioSession);
       setReady(true);
       console.log('✓ Audio session initialized with shared context');
+      console.log('✓ Using audio source:', audioSrc);
 
       // The player will auto-start when the spatial binding connects
       // No need to manually start it here
@@ -479,21 +508,59 @@ export default function AudioDemo() {
     }
   };
 
+  // Cleanup object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
+
   return (
     <div className="flex h-screen w-screen bg-gray-100 dark:bg-gray-950">
       {!started ? (
         <div className="flex items-center justify-center w-full">
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-6 max-w-lg px-6">
             <h1 className="text-4xl font-bold">Audio System Demo</h1>
-            <p className="text-gray-600 dark:text-gray-400 max-w-md">
+            <p className="text-gray-600 dark:text-gray-400">
               Demonstrating Tone.js → Web Audio API → Three.js PositionalAudio pipeline
             </p>
-            <Button onClick={initAudio} size="lg" className="mt-4">
-              Start Audio Demo
-            </Button>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-4">
-              Note: Place an audio file at <code className="bg-gray-200 dark:bg-gray-800 px-1 rounded">public/audio/example1.flac</code>
-            </p>
+            
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="audio-upload" className="block text-sm font-medium text-left">
+                  Upload Audio File (Optional)
+                </label>
+                <Input
+                  id="audio-upload"
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleFileChange}
+                  className="w-full"
+                />
+                {uploadedFile && (
+                  <p className="text-xs text-green-600 dark:text-green-400 text-left">
+                    ✓ Selected: {uploadedFile.name}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-left">
+                  Supports: MP3, WAV, FLAC, OGG, M4A
+                </p>
+              </div>
+
+              <Separator />
+
+              <Button onClick={initAudio} size="lg" className="w-full">
+                Start Audio Demo
+              </Button>
+
+              {!uploadedFile && (
+                <p className="text-xs text-gray-500 dark:text-gray-500">
+                  No file selected? Will use <code className="bg-gray-200 dark:bg-gray-800 px-1 rounded">public/audio/example1.flac</code>
+                </p>
+              )}
+            </div>
           </div>
         </div>
       ) : (
