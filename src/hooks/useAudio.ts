@@ -35,6 +35,7 @@ export function useAudioSession(initialSpec?: GraphSpec, opts?: SessionOptions) 
     const [session, setSession] = useState<AudioSession | null>(null);
     const [ready, setReady] = useState(false);
     const [error, setError] = useState<Error | null>(null);
+    const sessionRef = useRef<AudioSession | null>(null);
     const initRef = useRef(false);
 
     // TODO: hook ignores initialSpec/opts changes because the effect is locked behind initRef. Figure out a way to update the session when these change.
@@ -46,16 +47,23 @@ export function useAudioSession(initialSpec?: GraphSpec, opts?: SessionOptions) 
             .then(s => {
                 setSession(s);
                 setReady(true);
+                sessionRef.current = s;
             })
             .catch(err => {
                 setError(err);
-                console.error('[useAudio/useAudioSession] Failed to create audio session:', err);
+                console.error('[hooks/useAudio.ts/useAudioSession] Failed to create audio session:', err);
             });
 
         return () => {
-            // TODO: dispose the current session instance; this closure only sees the initial null value.
-            if (session) {
-                session.dispose();
+            if (sessionRef.current) {
+                console.log('[hooks/useAudio.ts/useAudioSession] Disposing session: ', session);
+                try {
+                    sessionRef.current.dispose();
+                    sessionRef.current = null;
+                } catch (err) {
+                    console.error('[hooks/useAudio.ts/useAudioSession] Failed to dispose session:', err);
+                }
+                // sessionRef.current.dispose();
             }
         };
     }, []);
@@ -213,8 +221,7 @@ export function useSpatial(
             listener = listenerRef.current;
             console.log('[useAudio/useSpatial] Using provided listener');
         } else {
-            listener = new THREE.AudioListener();
-            // TODO: expose a way to attach this listener to the scene/camera; right now the detached listener never affects rendering.           
+            listener = new THREE.AudioListener();         
             console.log('[useAudio/useSpatial] Created new listener');
         }
 
