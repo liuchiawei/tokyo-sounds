@@ -1,75 +1,393 @@
 'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { AudioManager, AudioTrack } from "@/lib/audio";
+import React, { useState, useRef, useEffect, useCallback, useContext, createContext } from 'react';
+import * as THREE from 'three';
+import {
+    AudioSession,
+    GraphSpec,
+    createAudioSession,
+    RenderResult,
+    AutomationDef,
+    SessionOptions,
+    SpatialOptions,
+    SpatialBindingMode,
+} from '@/lib/audio';
 
-export function useAudio() {
-    const audManagerRef = useRef<AudioManager>(new AudioManager());
-    const [tracks, setTracks] = useState<AudioTrack[]>([]);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
+export const AudioSessionContext = createContext<AudioSession | null>(null);
+
+/**
+ * useAudioSessionContext get the audio session context
+ * @returns the audio session context
+ */
+export function useAudioSessionContext(): AudioSession | null {
+  return useContext(AudioSessionContext);
+}
+
+/**
+ * useAudioSession create an audio session
+ * @param initialSpec - the initial spec
+ * @param opts - the session options
+ * @returns the audio session
+ */
+export function useAudioSession(initialSpec?: GraphSpec, opts?: SessionOptions) {
+    const [session, setSession] = useState<AudioSession | null>(null);
+    const [ready, setReady] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
+    const initRef = useRef(false);
 
     useEffect(() => {
-        const tracks = audManagerRef.current.getTracks();
-        setTracks(tracks);
+        if (initRef.current) return;
+        initRef.current = true;
+
+        createAudioSession(initialSpec, opts)
+            .then(s => {
+                setSession(s);
+                setReady(true);
+            })
+            .catch(err => {
+                setError(err);
+                console.error('[useAudio/useAudioSession] Failed to create audio session:', err);
+            });
+
         return () => {
-            audManagerRef.current?.stop();
-        }
+            if (session) {
+                session.dispose();
+            }
+        };
     }, []);
 
-    const loadSound = async (url: string, name: string) => {
-        if (!audManagerRef.current) return null;
-        
-        try {
-            const track = await audManagerRef.current.loadSound(url, name);
-            setTracks(prev => [...prev, track]);
-            return track;
-        } catch (err) {
-            console.error('Failed to load sound:', err);
-            throw err;
-        }
-    }
+    return { session, ready, error };
+}
 
-    const play = () => {
-        if (!audManagerRef.current) return;
-        audManagerRef.current.play();
-        setIsPlaying(true);
-    }
-
-    const pause = () => {
-        if (!audManagerRef.current) return;
-        audManagerRef.current.pause();
-        setIsPlaying(false);
-    }
-
-    const stop = () => {
-        if (!audManagerRef.current) return;
-        audManagerRef.current.stop();
-        setIsPlaying(false);
-    }
+/**
+ * useParam get the value of a param
+ * @param nodeId - the id of the node
+ * @param param - the param to get the value of
+ * @returns the value of the param
+ */
+export function useParam(nodeId: string, param: string): [number, (value: number, opts?: { record?: boolean }) => void] {
+    const session = useAudioSessionContext();
+    const [value, setValue] = useState<number>(0);
+    const pendingUpdateRef = useRef<number | null>(null);
+    const rafRef = useRef<number | null>(null);
 
     useEffect(() => {
-        if (!isPlaying || !audManagerRef.current) return;
+        if (!session) return;
 
-        const interval = setInterval(() => {
-            const time = audManagerRef.current.getCurrentTime() || 0;
-            const dur = audManagerRef.current.getDuration() || 0;
-            setCurrentTime(time);
-            setDuration(dur);
-        }, 100);
+        const node = session.getNode(nodeId);
+        if (node) {
+            const raw = node.raw();
+            if (raw[param] !== undefined) {
+                const val = raw[param].value !== undefined ? raw[param].value : raw[param];
+                setValue(val);
+            }
+        }
 
-        return () => clearInterval(interval);
-    }, [isPlaying]);
+        const handler = (data: any) => {
+            if (data.nodeId === nodeId && data.param === param) {
+                setValue(data.value);
+            }
+        };
 
-    return {
-        tracks,
-        isPlaying,
-        currentTime,
-        duration,
-        loadSound,
-        play,
-        pause,
-        stop
-    };
+        session.on('paramChange', handler);
+
+        return () => {
+            session.off('paramChange', handler);
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+            }
+        };
+    }, [session, nodeId, param]);
+
+    const setter = useCallback((newValue: number, opts: { record?: boolean } = { record: true }) => {
+        if (!session) return;
+
+        setValue(newValue);
+        pendingUpdateRef.current = newValue;
+
+        if (rafRef.current !== null) {
+            cancelAnimationFrame(rafRef.current);
+        }
+
+        rafRef.current = requestAnimationFrame(() => {
+            if (pendingUpdateRef.current !== null) {
+                session.updateParam(nodeId, param, pendingUpdateRef.current, opts);
+                pendingUpdateRef.current = null;
+            }
+            rafRef.current = null;
+        });
+    }, [session, nodeId, param]);
+
+    return [value, setter];
+}
+
+/**
+ * useCommit commit the spec
+ * @returns the commit result
+ */
+export function useCommit() {
+    const session = useAudioSessionContext();
+    const [status, setStatus] = useState<'idle' | 'rendering' | 'success' | 'error'>('idle');
+    const [lastResult, setLastResult] = useState<RenderResult | null>(null);
+    const [error, setError] = useState<Error | null>(null);
+
+    useEffect(() => {
+        if (!session) return;
+
+        const onRenderStart = () => setStatus('rendering');
+        const onRenderDone = () => setStatus('success');
+        const onError = (err: any) => {
+            setStatus('error');
+            setError(err);
+        };
+
+        session.on('renderStart', onRenderStart);
+        session.on('renderDone', onRenderDone);
+        session.on('error', onError);
+
+        return () => {
+            session.off('renderStart', onRenderStart);
+            session.off('renderDone', onRenderDone);
+            session.off('error', onError);
+        };
+    }, [session]);
+
+    const commit = useCallback(async (opts = {}) => {
+        if (!session) {
+            throw new Error('[useAudio/useCommit] No audio session available');
+        }
+
+        setStatus('rendering');
+        setError(null);
+
+        try {
+            const result = await session.commit(opts);
+            setLastResult(result);
+            setStatus('success');
+            return result;
+        } catch (err) {
+            const error = err instanceof Error ? err : new Error(String(err));
+            setError(error);
+            setStatus('error');
+            throw error;
+        }
+    }, [session]);
+
+    return { commit, status, lastResult, error };
+}
+
+/**
+ * useSpatial bind a spatial audio node
+ * @param nodeId - the id of the node
+ * @param object3DRef - the ref to the object3d
+ * @param listenerRef - the ref to the audio listener
+ * @param opts - the spatial options
+ * @param deps - the dependencies
+ */
+export function useSpatial(
+    nodeId: string,
+    object3DRef: React.RefObject<THREE.Object3D>,
+    listenerRef?: React.RefObject<THREE.AudioListener>,
+    opts?: SpatialOptions,
+    deps: any[] = []
+) {
+    const session = useAudioSessionContext();
+    const disposerRef = useRef<(() => void) | null>(null);
+
+    useEffect(() => {
+        console.log('[useAudio/useSpatial] Effect triggered:', { session: !!session, object3D: !!object3DRef.current, listener: !!listenerRef?.current, nodeId });
+        
+        if (!session || !object3DRef.current) {
+            console.log('[useAudio/useSpatial] Skipping - session or object3D not ready');
+            return;
+        }
+
+        let listener: THREE.AudioListener;
+
+        if (listenerRef?.current) {
+            listener = listenerRef.current;
+            console.log('[useAudio/useSpatial] Using provided listener');
+        } else {
+            listener = new THREE.AudioListener();
+            console.log('[useAudio/useSpatial] Created new listener');
+        }
+
+        try {
+            console.log('[useAudio/useSpatial] Calling bindSpatial for', nodeId);
+            const disposer = session.bindSpatial(nodeId, object3DRef.current, listener, opts);
+            disposerRef.current = disposer;
+            console.log('[useAudio/useSpatial] Spatial binding successful for', nodeId);
+
+            return () => {
+                if (disposerRef.current) {
+                    console.log('[useAudio/useSpatial] Disposing spatial binding for', nodeId);
+                    disposerRef.current();
+                    disposerRef.current = null;
+                }
+            };
+        } catch (err) {
+            console.error('[useAudio/useSpatial] Failed to bind spatial audio:', err);
+        }
+    }, [session, nodeId, object3DRef, listenerRef, opts, ...deps]);
+}
+
+/**
+ * useAutomation get the automations for a node
+ * @param nodeId - the id of the node
+ * @param param - the param to get the automations for
+ * @returns the automations
+ */
+export function useAutomation(nodeId: string, param: string) {
+    const session = useAudioSessionContext();
+    const [automations, setAutomations] = useState<AutomationDef[]>([]);
+
+    useEffect(() => {
+        if (!session) return;
+
+        const updateAutomations = () => {
+            const spec = session.serialize();
+            const filtered = spec.automations.filter(a => a.nodeId === nodeId && a.param === param);
+            setAutomations(filtered);
+        };
+
+        updateAutomations();
+
+        const onAdded = () => updateAutomations();
+        const onRemoved = () => updateAutomations();
+
+        session.on('automationAdded', onAdded);
+        session.on('automationRemoved', onRemoved);
+
+        return () => {
+            session.off('automationAdded', onAdded);
+            session.off('automationRemoved', onRemoved);
+        };
+    }, [session, nodeId, param]);
+
+    const add = useCallback((def: Partial<AutomationDef>) => {
+        if (!session) return '';
+        return session.automate(nodeId, param, def);
+    }, [session, nodeId, param]);
+
+    const remove = useCallback((id: string) => {
+        if (!session) return;
+        session.removeAutomation(id);
+    }, [session]);
+
+    return { automations, add, remove };
+}
+
+/**
+ * useSpatialMode control the spatial binding mode (live/committed)
+ * @param nodeId - the id of the node
+ * @returns the spatial mode control functions
+ */
+export function useSpatialMode(nodeId: string) {
+    const session = useAudioSessionContext();
+    const [mode, setMode] = useState<SpatialBindingMode | undefined>(undefined);
+
+    useEffect(() => {
+        if (!session) return;
+
+        const currentMode = session.getSpatialMode(nodeId);
+        setMode(currentMode);
+
+        const handler = (data: any) => {
+            if (data.nodeId === nodeId) {
+                setMode(data.mode);
+            }
+        };
+
+        session.on('spatialModeChanged', handler);
+
+        return () => {
+            session.off('spatialModeChanged', handler);
+        };
+    }, [session, nodeId]);
+
+    const freeze = useCallback((result: RenderResult) => {
+        if (!session) return;
+        session.freezeSpatialBinding(nodeId, result);
+    }, [session, nodeId]);
+
+    const unfreeze = useCallback(() => {
+        if (!session) return;
+        session.unfreezeSpatialBinding(nodeId);
+    }, [session, nodeId]);
+
+    const getBinding = useCallback(() => {
+        if (!session) return undefined;
+        return session.getSpatialBinding(nodeId);
+    }, [session, nodeId]);
+
+    return { mode, freeze, unfreeze, getBinding };
+}
+
+/**
+ * usePreview control the preview path (Tone.js → speakers)
+ * @param nodeId - the id of the node
+ * @returns preview control functions
+ */
+export function usePreview(nodeId: string) {
+    const session = useAudioSessionContext();
+    const [enabled, setEnabled] = useState(false);
+
+    useEffect(() => {
+        if (!session) return;
+
+        const isEnabled = session.isPreviewEnabled(nodeId);
+        setEnabled(isEnabled);
+
+        const handler = (data: any) => {
+            if (data.nodeId === nodeId) {
+                setEnabled(data.enabled);
+            }
+        };
+
+        session.on('previewChanged', handler);
+
+        return () => {
+            session.off('previewChanged', handler);
+        };
+    }, [session, nodeId]);
+
+    const toggle = useCallback(() => {
+        if (!session) return;
+        const newState = !session.isPreviewEnabled(nodeId);
+        session.setPreview(nodeId, newState);
+    }, [session, nodeId]);
+
+    const enable = useCallback(() => {
+        if (!session) return;
+        session.setPreview(nodeId, true);
+    }, [session, nodeId]);
+
+    const disable = useCallback(() => {
+        if (!session) return;
+        session.setPreview(nodeId, false);
+    }, [session, nodeId]);
+
+    return { enabled, toggle, enable, disable };
+}
+
+/**
+ * AudioSessionProvider provide the audio session
+ * @param children - the children
+ * @param initialSpec - the initial spec
+ * @param opts - the session options
+ */
+export function AudioSessionProvider({
+    children,
+    initialSpec,
+    opts
+}: {
+    children: React.ReactNode;
+    initialSpec?: GraphSpec;
+    opts?: SessionOptions;
+}): React.ReactElement {
+    const { session } = useAudioSession(initialSpec, opts);
+    const Provider = AudioSessionContext.Provider;
+    const providerValue = session;
+
+    return React.createElement(Provider, { value: providerValue }, children);
 }
