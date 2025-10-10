@@ -203,6 +203,7 @@ function AudioControls({ sharedContext }: { sharedContext: AudioContext | null }
             Playback Rate: {playbackRate.toFixed(2)}
           </label>
           <input
+            title="Playback Rate"
             type="range"
             min="0.25"
             max="4"
@@ -220,6 +221,7 @@ function AudioControls({ sharedContext }: { sharedContext: AudioContext | null }
             Filter Frequency: {frequency.toFixed(0)} Hz
           </label>
           <input
+            title="Filter Frequency"
             type="range"
             min="20"
             max="20000"
@@ -235,6 +237,7 @@ function AudioControls({ sharedContext }: { sharedContext: AudioContext | null }
             Filter Q: {filterQ.toFixed(2)}
           </label>
           <input
+            title="Filter Q"
             type="range"
             min="0.1"
             max="36"
@@ -252,6 +255,7 @@ function AudioControls({ sharedContext }: { sharedContext: AudioContext | null }
             Reverb Wet: {(reverbWet * 100).toFixed(0)}%
           </label>
           <input
+            title="Reverb Wet"
             type="range"
             min="0"
             max="1"
@@ -269,6 +273,7 @@ function AudioControls({ sharedContext }: { sharedContext: AudioContext | null }
             Gain: {(gain * 100).toFixed(0)}%
           </label>
           <input
+            title="Gain"
             type="range"
             min="0"
             max="4"
