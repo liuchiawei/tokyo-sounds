@@ -8,9 +8,10 @@ Title: Cartoon Lowpoly Small City Free Pack
 */
 
 import * as THREE from "three";
-import React from "react";
-import { useGLTF } from "@react-three/drei";
+import React, { useMemo } from "react";
+import { useGLTF, useCamera } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
+import { useAudioControl } from "./audio/audio-control-context";
 
 // Define the GLTFAction type
 type GLTFAction = THREE.AnimationAction;
@@ -132,10 +133,50 @@ type GLTFResult = GLTF & {
 
 export function Model(props: React.JSX.IntrinsicElements["group"]) {
   const gltf = useGLTF("/3dtest.glb");
-  const nodes = gltf.nodes as GLTFResult['nodes'];
-  const materials = gltf.materials as GLTFResult['materials'];
+  const nodes = gltf.nodes as GLTFResult["nodes"];
+  const materials = gltf.materials as GLTFResult["materials"];
+
+  const { playAudio } = useAudioControl();
+
+  const geomToNodeName = useMemo(() => {
+    const map = new Map<THREE.BufferGeometry, string>();
+    const nodeNames = Object.keys(nodes) as (keyof typeof nodes)[];
+    for (const nodeName of nodeNames) {
+      const node = nodes[nodeName];
+      if (node instanceof THREE.Mesh && node.geometry) {
+        map.set(node.geometry, nodeName);
+      }
+    }
+    return map;
+  }, [nodes]);
+
+  const pickAudioForName = (name: string) => {
+    if (name.includes("House") || name.includes("Shop")) {
+      return "/audio/tokyo-street.mp3"; // Play Tokyo street sound for buildings
+    }
+    return null; // Return null for non-building objects to prevent playback
+  };
+
+  const handlePointerDown = async (e: any) => {
+    e.stopPropagation();
+    const mesh = e.object;
+    const name = geomToNodeName.get(mesh.geometry) || mesh.name;
+
+    console.log("handlePointerDown triggered", { mesh, name });
+
+    const audioUrl = pickAudioForName(name);
+    if (!audioUrl) {
+      console.log("No audio assigned for this object.", name);
+      return;
+    }
+    playAudio(audioUrl);
+
+    console.log("Playing audio for:", name, audioUrl);
+  };
+
   return (
-    <group {...props} dispose={null}>
+    <group {...props} dispose={null} onPointerDown={handlePointerDown}>
+
       <group position={[-369.069, -90.704, -920.159]}>
         <mesh
           geometry={nodes.CAR_03_1_World_ap_0.geometry}
