@@ -8,10 +8,11 @@ Title: Cartoon Lowpoly Small City Free Pack
 */
 
 import * as THREE from "three";
-import React, { useMemo } from "react";
-import { useGLTF, useCamera } from "@react-three/drei";
+import React, { useMemo, useState, useRef } from "react";
+import { useGLTF, Html } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import { useAudioControl } from "./audio/audio-control-context";
+import type { ThreeEvent } from "@react-three/fiber";
 
 // Define the GLTFAction type
 type GLTFAction = THREE.AnimationAction;
@@ -131,6 +132,64 @@ type GLTFResult = GLTF & {
   animations: GLTFAction[];
 };
 
+function InteractiveMesh({
+  children,
+  name,
+  ...props
+}: {
+  children: React.ReactNode;
+  name: string;
+  [key: string]: any;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<THREE.Group>(null!);
+
+  const handleClick = (e: ThreeEvent<PointerEvent>) => {
+    // Do not stop propagation, so the parent handler can also fire
+    setOpen((v) => !v);
+  };
+
+  return (
+    <group ref={ref} onPointerDown={handleClick} {...props}>
+      {children}
+      {open && (
+        <Html
+          position={[0, 150, 0]} // Hardcoded height
+          distanceFactor={600}
+          // TODO: The 'occlude' prop hides the HTML when it's blocked by the mesh. Uncomment to enable.
+          // occlude={[ref]}
+          center
+          wrapperClass="html-wrapper"
+        >
+          <div className="tag">
+            <h3 style={{ margin: 0 }}>{name}</h3>
+            <p style={{ margin: "6px 0 0 0", fontSize: 12 }}>
+              Click the building again to hide this panel.
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(false);
+              }}
+              style={{
+                marginTop: "8px",
+                padding: "4px 8px",
+                backgroundColor: "#ff6b6b",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+}
+
 export function Model(props: React.JSX.IntrinsicElements["group"]) {
   const gltf = useGLTF("/3dtest.glb");
   const nodes = gltf.nodes as GLTFResult["nodes"];
@@ -176,7 +235,6 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
 
   return (
     <group {...props} dispose={null} onPointerDown={handlePointerDown}>
-
       <group position={[-369.069, -90.704, -920.159]}>
         <mesh
           geometry={nodes.CAR_03_1_World_ap_0.geometry}
@@ -414,12 +472,16 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
             rotation={[-1.382, -1.399, -0.042]}
           />
         </group>
-        <mesh
-          geometry={nodes.House_World_ap_0.geometry}
-          material={materials.World_ap}
+        <InteractiveMesh
+          name="House"
           position={[0, 104.499, 143.579]}
           rotation={[Math.PI / 2, 0, 0]}
-        />
+        >
+          <mesh
+            geometry={nodes.House_World_ap_0.geometry}
+            material={materials.World_ap}
+          />
+        </InteractiveMesh>
       </group>
       <group position={[84.723, -88.642, 8.453]}>
         <group position={[-201.533, -9.817, -54.041]}>
@@ -507,12 +569,16 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           position={[138.129, -19.652, 19.72]}
           rotation={[Math.PI / 2, 0, -Math.PI / 2]}
         />
-        <mesh
-          geometry={nodes.House_2_World_ap_0.geometry}
-          material={materials.World_ap}
+        <InteractiveMesh
+          name="Apartment"
           position={[131.582, -47.962, 121.885]}
           rotation={[0, -Math.PI / 2, 0]}
-        />
+        >
+          <mesh
+            geometry={nodes.House_2_World_ap_0.geometry}
+            material={materials.World_ap}
+          />
+        </InteractiveMesh>
         <mesh
           geometry={nodes.Bench_World_ap_0.geometry}
           material={materials.World_ap}
@@ -631,11 +697,12 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           position={[-186.916, -19.652, -152.012]}
           rotation={[Math.PI / 2, 0, 0]}
         />
-        <mesh
-          geometry={nodes.House_3_World_ap_0.geometry}
-          material={materials.World_ap}
-          position={[-82.285, 5.958, -23.08]}
-        />
+        <InteractiveMesh name="Building" position={[-82.285, 5.958, -23.08]}>
+          <mesh
+            geometry={nodes.House_3_World_ap_0.geometry}
+            material={materials.World_ap}
+          />
+        </InteractiveMesh>
       </group>
       <group
         position={[-938.463, -88.642, -995.244]}
@@ -767,12 +834,16 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
             rotation={[-0.171, -0.162, 1.31]}
           />
         </group>
-        <mesh
-          geometry={nodes.Shop_World_ap_0.geometry}
-          material={materials.World_ap}
+        <InteractiveMesh
+          name="Shop"
           position={[-65.336, -36.633, -123.335]}
           rotation={[Math.PI / 2, 0, 0]}
-        />
+        >
+          <mesh
+            geometry={nodes.Shop_World_ap_0.geometry}
+            material={materials.World_ap}
+          />
+        </InteractiveMesh>
         <mesh
           geometry={nodes.Trash_World_ap_0.geometry}
           material={materials.World_ap}
