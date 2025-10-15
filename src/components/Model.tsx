@@ -135,10 +135,20 @@ type GLTFResult = GLTF & {
 function InteractiveMesh({
   children,
   name,
-  ...props
+  htmlYOffset = 150, // Default value, can be overridden for each instance
+  htmlXOffset = 0, // New default value for htmlXOffset
+  htmlZOffset = 0, // New default value for htmlZOffset
+  rotation,
+  position,
+  ...restProps
 }: {
   children: React.ReactNode;
   name: string;
+  htmlYOffset?: number;
+  htmlXOffset?: number; // New type definition for htmlXOffset
+  htmlZOffset?: number; // New type definition for htmlZOffset
+  rotation?: [number, number, number];
+  position?: [number, number, number];
   [key: string]: any;
 }) {
   const [open, setOpen] = useState(false);
@@ -150,12 +160,22 @@ function InteractiveMesh({
   };
 
   return (
-    <group ref={ref} onPointerDown={handleClick} {...props}>
-      {children}
+    <group
+      ref={ref}
+      onPointerDown={handleClick}
+      {...restProps}
+      position={position}
+      rotation={name === "House" || name === "Shop" ? undefined : rotation}
+    >
+      {name === "House" || name === "Shop" ? (
+        <group rotation={rotation}>{children}</group>
+      ) : (
+        children
+      )}
       {open && (
         <Html
-          position={[0, 150, 0]} // Hardcoded height
-          distanceFactor={600}
+          position={[htmlXOffset, htmlYOffset, htmlZOffset]} // Use the manual offset props
+          distanceFactor={1000}
           // TODO: The 'occlude' prop hides the HTML when it's blocked by the mesh. Uncomment to enable.
           // occlude={[ref]}
           center
@@ -474,6 +494,9 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
         </group>
         <InteractiveMesh
           name="House"
+          htmlYOffset={400.03}
+          htmlXOffset={10}
+          htmlZOffset={-200}
           position={[0, 104.499, 143.579]}
           rotation={[Math.PI / 2, 0, 0]}
         >
@@ -571,6 +594,9 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
         />
         <InteractiveMesh
           name="Apartment"
+          htmlYOffset={577.39}
+          htmlXOffset={-100}
+          htmlZOffset={200}
           position={[131.582, -47.962, 121.885]}
           rotation={[0, -Math.PI / 2, 0]}
         >
@@ -697,7 +723,13 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           position={[-186.916, -19.652, -152.012]}
           rotation={[Math.PI / 2, 0, 0]}
         />
-        <InteractiveMesh name="Building" position={[-82.285, 5.958, -23.08]}>
+        <InteractiveMesh
+          name="Building"
+          htmlYOffset={488.55}
+          htmlXOffset={10}
+          htmlZOffset={100}
+          position={[-82.285, 5.958, -23.08]}
+        >
           <mesh
             geometry={nodes.House_3_World_ap_0.geometry}
             material={materials.World_ap}
@@ -836,6 +868,9 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
         </group>
         <InteractiveMesh
           name="Shop"
+          htmlYOffset={278.52}
+          htmlXOffset={10}
+          htmlZOffset={0}
           position={[-65.336, -36.633, -123.335]}
           rotation={[Math.PI / 2, 0, 0]}
         >
