@@ -14,9 +14,10 @@ import { GLTF } from "three-stdlib";
 import { useAudioControl } from "./audio/audio-control-context";
 import type { ThreeEvent } from "@react-three/fiber";
 
-// Define the GLTFAction type
+// GLTFAction 型の定義 - Define the GLTFAction type
 type GLTFAction = THREE.AnimationAction;
 
+// GLTFResult 型: GLTFデータ構造の定義 - GLTFResult type: Definition of GLTF data structure
 type GLTFResult = GLTF & {
   nodes: {
     CAR_03_1_World_ap_0: THREE.Mesh;
@@ -132,12 +133,14 @@ type GLTFResult = GLTF & {
   animations: GLTFAction[];
 };
 
+// インタラクティブメッシュコンポーネント - Interactive Mesh Component
+// 3Dオブジェクトとのインタラクションを可能にする - Enables interaction with 3D objects
 function InteractiveMesh({
   children,
   name,
-  htmlYOffset = 150, // Default value, can be overridden for each instance
-  htmlXOffset = 0, // New default value for htmlXOffset
-  htmlZOffset = 0, // New default value for htmlZOffset
+  htmlYOffset = 150, // デフォルト値、各インスタンスで上書き可能 - Default value, can be overridden for each instance
+  htmlXOffset = 0, // htmlXOffset の新しいデフォルト値 - New default value for htmlXOffset
+  htmlZOffset = 0, // htmlZOffset の新しいデフォルト値 - New default value for htmlZOffset
   rotation,
   position,
   ...restProps
@@ -145,8 +148,8 @@ function InteractiveMesh({
   children: React.ReactNode;
   name: string;
   htmlYOffset?: number;
-  htmlXOffset?: number; // New type definition for htmlXOffset
-  htmlZOffset?: number; // New type definition for htmlZOffset
+  htmlXOffset?: number; // htmlXOffset の新しい型定義 - New type definition for htmlXOffset
+  htmlZOffset?: number; // htmlZOffset の新しい型定義 - New type definition for htmlZOffset
   rotation?: [number, number, number];
   position?: [number, number, number];
   [key: string]: any;
@@ -155,7 +158,7 @@ function InteractiveMesh({
   const ref = useRef<THREE.Group>(null!);
 
   const handleClick = (e: ThreeEvent<PointerEvent>) => {
-    // Do not stop propagation, so the parent handler can also fire
+    // 親ハンドラも発火できるように伝播を停止しない - Do not stop propagation, so the parent handler can also fire
     setOpen((v) => !v);
   };
 
@@ -174,9 +177,9 @@ function InteractiveMesh({
       )}
       {open && (
         <Html
-          position={[htmlXOffset, htmlYOffset, htmlZOffset]} // Use the manual offset props
+          position={[htmlXOffset, htmlYOffset, htmlZOffset]} // 手動オフセットプロップを使用 - Use the manual offset props
           distanceFactor={1000}
-          // TODO: The 'occlude' prop hides the HTML when it's blocked by the mesh. Uncomment to enable.
+          // TODO: 'occlude' プロップはメッシュに遮断されたときにHTMLを非表示にします。有効にするにはコメントを解除してください。 - The 'occlude' prop hides the HTML when it's blocked by the mesh. Uncomment to enable.
           // occlude={[ref]}
           center
           wrapperClass="html-wrapper"
@@ -184,7 +187,7 @@ function InteractiveMesh({
           <div className="tag">
             <h3 style={{ margin: 0 }}>{name}</h3>
             <p style={{ margin: "6px 0 0 0", fontSize: 12 }}>
-              Click the building again to hide this panel.
+              もう一度建物をクリックしてこのパネルを非表示にしてください。
             </p>
             <button
               onClick={(e) => {
@@ -201,7 +204,7 @@ function InteractiveMesh({
                 cursor: "pointer",
               }}
             >
-              Close
+              閉じる
             </button>
           </div>
         </Html>
@@ -210,6 +213,8 @@ function InteractiveMesh({
   );
 }
 
+// モデルコンポーネント - Model component
+// 3Dモデルを表示し、インタラクションを処理する - Displays the 3D model and handles interactions
 export function Model(props: React.JSX.IntrinsicElements["group"]) {
   const gltf = useGLTF("/3dtest.glb");
   const nodes = gltf.nodes as GLTFResult["nodes"];
@@ -217,6 +222,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
 
   const { playAudio } = useAudioControl();
 
+  // ジオメトリからノード名へのマッピング - Mapping from geometry to node name
   const geomToNodeName = useMemo(() => {
     const map = new Map<THREE.BufferGeometry, string>();
     const nodeNames = Object.keys(nodes) as (keyof typeof nodes)[];
@@ -229,32 +235,38 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
     return map;
   }, [nodes]);
 
+  // 名前に基づいてオーディオを選択 - Select audio based on name
   const pickAudioForName = (name: string) => {
     if (name.includes("House") || name.includes("Shop")) {
-      return "/audio/tokyo-street.mp3"; // Play Tokyo street sound for buildings
+      return "/audio/tokyo-street.mp3"; // 建物には東京の街の音を再生 - Play Tokyo street sound for buildings
     }
-    return null; // Return null for non-building objects to prevent playback
+    return null; // 再生を防ぐために非建物オブジェクトにはnullを返す - Return null for non-building objects to prevent playback
   };
 
+  // ポインターのダウンイベントを処理 - Handle pointer down event
   const handlePointerDown = async (e: any) => {
     e.stopPropagation();
     const mesh = e.object;
     const name = geomToNodeName.get(mesh.geometry) || mesh.name;
 
-    console.log("handlePointerDown triggered", { mesh, name });
+    console.log("handlePointerDown が発生", { mesh, name }); // handlePointerDown triggered
 
     const audioUrl = pickAudioForName(name);
     if (!audioUrl) {
-      console.log("No audio assigned for this object.", name);
+      console.log(
+        "このオブジェクトにはオーディオが割り当てられていません。",
+        name
+      ); // No audio assigned for this object
       return;
     }
     playAudio(audioUrl);
 
-    console.log("Playing audio for:", name, audioUrl);
+    console.log("再生中オーディオ: ", name, audioUrl); // Playing audio for:
   };
 
   return (
     <group {...props} dispose={null} onPointerDown={handlePointerDown}>
+      {/* 車のグループ - Car group */}
       <group position={[-369.069, -90.704, -920.159]}>
         <mesh
           geometry={nodes.CAR_03_1_World_ap_0.geometry}
@@ -404,6 +416,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           scale={1.5}
         />
       </group>
+      {/* 信号機と街路灯のグループ - Traffic lights and street lights group */}
       <group
         position={[-858.07, -53.779, 24.514]}
         rotation={[0, Math.PI / 2, 0]}
@@ -492,6 +505,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
             rotation={[-1.382, -1.399, -0.042]}
           />
         </group>
+        {/* 家のインタラクティブメッシュ - Interactive mesh for house */}
         <InteractiveMesh
           name="House"
           htmlYOffset={400.03}
@@ -506,6 +520,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           />
         </InteractiveMesh>
       </group>
+      {/* アパートメントのグループ - Apartment group */}
       <group position={[84.723, -88.642, 8.453]}>
         <group position={[-201.533, -9.817, -54.041]}>
           <mesh
@@ -592,6 +607,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           position={[138.129, -19.652, 19.72]}
           rotation={[Math.PI / 2, 0, -Math.PI / 2]}
         />
+        {/* アパートメントのインタラクティブメッシュ - Interactive mesh for apartment */}
         <InteractiveMesh
           name="Apartment"
           htmlYOffset={577.39}
@@ -612,6 +628,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           rotation={[Math.PI / 2, 0, -Math.PI / 2]}
         />
       </group>
+      {/* 建物のグループ - Building group */}
       <group position={[77.486, -88.642, -941.285]}>
         <group position={[-201.533, -9.817, -54.041]}>
           <mesh
@@ -723,6 +740,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           position={[-186.916, -19.652, -152.012]}
           rotation={[Math.PI / 2, 0, 0]}
         />
+        {/* 建物のインタラクティブメッシュ - Interactive mesh for building */}
         <InteractiveMesh
           name="Building"
           htmlYOffset={488.55}
@@ -736,6 +754,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           />
         </InteractiveMesh>
       </group>
+      {/* 店のグループ - Shop group */}
       <group
         position={[-938.463, -88.642, -995.244]}
         rotation={[0, Math.PI / 2, 0]}
@@ -866,6 +885,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
             rotation={[-0.171, -0.162, 1.31]}
           />
         </group>
+        {/* 店のインタラクティブメッシュ - Interactive mesh for shop */}
         <InteractiveMesh
           name="Shop"
           htmlYOffset={278.52}
@@ -892,6 +912,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
           rotation={[Math.PI, 0, 0]}
         />
       </group>
+      {/* 道路グループ - Road group */}
       <group
         position={[-549.038, -127.662, -453.774]}
         rotation={[Math.PI / 2, 0, -Math.PI]}
@@ -934,4 +955,5 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
   );
 }
 
+// GLTFの事前読み込み - Preload GLTF model
 useGLTF.preload("/3dtest.glb");
