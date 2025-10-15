@@ -12,6 +12,7 @@ import React, { useMemo, useState, useRef } from "react";
 import { useGLTF, Html } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import { useAudioControl } from "./audio/audio-control-context";
+import { AUDIO_MAP } from "../lib/audio-mapping";
 import type { ThreeEvent } from "@react-three/fiber";
 
 // GLTFAction 型の定義 - Define the GLTFAction type
@@ -237,10 +238,7 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
 
   // 名前に基づいてオーディオを選択 - Select audio based on name
   const pickAudioForName = (name: string) => {
-    if (name.includes("House") || name.includes("Shop")) {
-      return "/audio/tokyo-street.mp3"; // 建物には東京の街の音を再生 - Play Tokyo street sound for buildings
-    }
-    return null; // 再生を防ぐために非建物オブジェクトにはnullを返す - Return null for non-building objects to prevent playback
+    return AUDIO_MAP[name] || null;
   };
 
   // ポインターのダウンイベントを処理 - Handle pointer down event
