@@ -18,10 +18,8 @@ export default function AudioPlayer() {
         <button
           onClick={() => {
             if (!isPlaying && currentAudioUrl) {
-              console.log("AudioPlayer: 'Play' button clicked to resume.");
               resumeAudio();
             } else if (!currentAudioUrl) {
-              console.log("AudioPlayer: 'Play' button clicked to play default.");
               playAudio("/audio/tokyo-street.mp3");
             }
           }}
@@ -33,10 +31,8 @@ export default function AudioPlayer() {
         <button
           onClick={() => {
             if (isPlaying) {
-              console.log("AudioPlayer: 'Pause' button clicked.");
               pauseAudio();
             } else {
-              console.log("AudioPlayer: 'Resume' button clicked.");
               resumeAudio();
             }
           }}
