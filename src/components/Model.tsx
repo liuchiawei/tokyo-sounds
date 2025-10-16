@@ -13,7 +13,6 @@ import { useGLTF, Html } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import { useAudioControl } from "./audio/audio-control-context";
 import { AUDIO_MAP } from "../lib/audio-mapping";
-import type { ThreeEvent } from "@react-three/fiber";
 
 // GLTFAction 型の定義 - Define the GLTFAction type
 type GLTFAction = THREE.AnimationAction;
