@@ -158,7 +158,7 @@ function InteractiveMesh({
   const [open, setOpen] = useState(false);
   const ref = useRef<THREE.Group>(null!);
 
-  const handleClick = (_e: ThreeEvent<PointerEvent>) => {
+  const handleClick = () => {
     // 親ハンドラも発火できるように伝播を停止しない - Do not stop propagation, so the parent handler can also fire
     setOpen((v) => !v);
   };
