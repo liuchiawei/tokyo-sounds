@@ -23,7 +23,6 @@ export const AudioControlProvider = ({ children }: { children: ReactNode }) => {
     const initializeTone = async () => {
       if (Tone.context.state !== 'running') {
         await Tone.start();
-        console.log('Tone.js audio context started');
       }
       // Remove event listeners after context is started
       document.documentElement.removeEventListener('mousedown', initializeTone);

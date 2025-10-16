@@ -158,7 +158,7 @@ function InteractiveMesh({
   const [open, setOpen] = useState(false);
   const ref = useRef<THREE.Group>(null!);
 
-  const handleClick = (e: ThreeEvent<PointerEvent>) => {
+  const handleClick = (_e: ThreeEvent<PointerEvent>) => {
     // 親ハンドラも発火できるように伝播を停止しない - Do not stop propagation, so the parent handler can also fire
     setOpen((v) => !v);
   };
@@ -247,19 +247,12 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
     const mesh = e.object;
     const name = geomToNodeName.get(mesh.geometry) || mesh.name;
 
-    console.log("handlePointerDown が発生", { mesh, name }); // handlePointerDown triggered
-
     const audioUrl = pickAudioForName(name);
     if (!audioUrl) {
-      console.log(
-        "このオブジェクトにはオーディオが割り当てられていません。",
-        name
-      ); // No audio assigned for this object
+      // No audio assigned for this object
       return;
     }
     playAudio(audioUrl);
-
-    console.log("再生中オーディオ: ", name, audioUrl); // Playing audio for:
   };
 
   return (
