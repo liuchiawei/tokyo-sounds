@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/layout/footer";
+import { AudioControlProvider } from "@/components/audio/audio-control-context";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "東京の音 | 東京の日常音を集めたASMRサイト",
-  description: "東京の雰囲気・電車・商店街・寺社・カフェなどの生活音をASMR化。東京を歩いている体験ができるWEBサイト。",
+  description: "東京の雰囲気・電車・商店街・寺社・カフェなどの生活音をASMR化。東京を歩いている体験ができるWEBサイト。 ",
 };
 
 export default function RootLayout({
@@ -28,7 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AudioControlProvider>
+          {children}
+        </AudioControlProvider>
         <Footer />
       </body>
     </html>
