@@ -121,6 +121,66 @@ const initialScenes: Scene[] = [
     ]
   },
   {
+    id: 'rainbow-bridge',
+    name: 'レインボーブリッジ', // Rainbow Bridge
+    description: '東京湾に架かる象徴的な橋を体験', // Experience the iconic bridge over Tokyo Bay
+    thumbnail: '/ui/thumbs/rainbow-bridge.png',
+    cameraPositions: [
+      {
+        position: [300, 50, 300],
+        target: [0, 20, 0],
+        fov: 50,
+        name: 'レインボーブリッジ 全景', // Rainbow Bridge Full View
+        description: 'お台場から見たレインボーブリッジのパノラマビュー' // Panoramic view of the Rainbow Bridge from Odaiba
+      }
+    ]
+  },
+  {
+    id: 'imperial-palace',
+    name: '皇居', // Imperial Palace
+    description: '東京の中心に位置する天皇の住まい', // The residence of the Emperor of Japan in the heart of Tokyo
+    thumbnail: '/ui/thumbs/imperial-palace.png',
+    cameraPositions: [
+      {
+        position: [-200, 30, 100],
+        target: [0, 10, 0],
+        fov: 45,
+        name: '皇居正門', // Imperial Palace Main Gate
+        description: '正門石橋と伏見櫓のクラシックなビュー' // Classic view of the main gate stone bridge and Fushimi-yagura turret
+      }
+    ]
+  },
+  {
+    id: 'asakusa',
+    name: '浅草', // Asakusa
+    description: '東京の歴史的な下町地区を探索', // Explore Tokyo's historic downtown district
+    thumbnail: '/ui/thumbs/asakusa.png',
+    cameraPositions: [
+      {
+        position: [500, 20, -200],
+        target: [300, 10, -100],
+        fov: 55,
+        name: '浅草寺と雷門', // Senso-ji Temple & Kaminarimon
+        description: '象徴的な雷門と浅草寺の境内への参道' // The iconic Kaminarimon gate and the approach to Senso-ji Temple
+      }
+    ]
+  },
+  {
+    id: 'tokyo-skytree',
+    name: '東京スカイツリー', // Tokyo Skytree
+    description: '日本で最も高い建造物からの眺め', // Views from the tallest structure in Japan
+    thumbnail: '/ui/thumbs/tokyo-skytree.png',
+    cameraPositions: [
+      {
+        position: [800, 100, -300],
+        target: [600, 50, -200],
+        fov: 50,
+        name: '東京スカイツリー 全景', // Tokyo Skytree Full View
+        description: '隅田川越しに見るスカイツリーの全景' // Full view of the Skytree from across the Sumida River
+      }
+    ]
+  },
+  {
     id: 'roppongi',
     name: '六本木', // Roppongi
     description: '東京の国際的なエンターテインメント地区を体験', // Experience Tokyo's international entertainment district
