@@ -30,8 +30,8 @@ export interface QuizStage {
 
 // クイズゲームの状態インターフェース - Quiz game state interface
 export interface QuizGameState {
-  currentStage: number;          // 現在のステージ - Current stage
   currentQuestionIndex: number;  // 現在の質問インデックス - Current question index
+  currentQuestions: QuizQuestion[]; // 現在の質問リスト - Current questions list
   score: number;                 // 現在のスコア - Current score
   totalScore: number;            // 総合スコア - Total score
   gameStarted: boolean;          // ゲームが開始されたかどうか - Whether the game has started
@@ -39,20 +39,18 @@ export interface QuizGameState {
   selectedAnswer: string | null; // 選択された回答 - Selected answer
   feedback: string | null;       // フィードバックメッセージ - Feedback message
   showFeedback: boolean;         // フィードバックを表示するかどうか - Whether to show feedback
-  stages: QuizStage[];           // すべてのステージ - All stages
   answeredQuestions: string[];   // 回答済みの質問IDの配列 - Array of answered question IDs
 }
 
 // クイズゲームのアクションインターフェース - Quiz game actions interface
 export interface QuizGameActions {
-  startGame: () => void;         // ゲーム開始 - Start the game
+  startGame: (landmarkName?: string) => void;         // ゲーム開始 - Start the game (with optional landmark name)
   answerQuestion: (optionId: string) => void; // 質問に回答 - Answer a question
   nextQuestion: () => void;      // 次の質問へ進む - Move to the next question
-  nextStage: () => void;         // 次のステージへ進む - Move to the next stage
   resetGame: () => void;         // ゲームをリセット - Reset the game
   setShowFeedback: (show: boolean) => void; // フィードバック表示の設定 - Set feedback visibility
-  setCurrentStage: (stage: number) => void; // 現在のステージを設定 - Set current stage
   setCurrentQuestionIndex: (index: number) => void; // 現在の質問インデックスを設定 - Set current question index
   updateScore: (points: number) => void; // スコアを更新 - Update score
   moveCameraToLocation: (location: string) => void; // カメラを指定の場所に移動 - Move camera to a specific location
+  switchQuestionSet: (landmarkName: string) => void; // 質問セットを切り替える - Switch question set to a different landmark
 }

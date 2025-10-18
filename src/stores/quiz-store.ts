@@ -3,13 +3,13 @@
 
 import { create } from 'zustand';
 import { QuizGameState, QuizGameActions } from '../types/quiz';
-import { quizStages } from '../data/quiz-data';
+import { quizStages, landmarkSpecificQuestions } from '../data/quiz-data';
 import { useSceneStore } from './use-scene-store';
 
 // 初期状態の定義 - Define initial state
 const initialQuizState: Omit<QuizGameState, keyof QuizGameActions> = {
-  currentStage: 0,                    // 現在のステージ - Current stage (0-indexed)
   currentQuestionIndex: 0,            // 現在の質問インデックス - Current question index
+  currentQuestions: [],               // 現在の質問リスト - Current questions list
   score: 0,                           // 現在のスコア - Current score
   totalScore: 0,                      // 総合スコア - Total score
   gameStarted: false,                 // ゲームが開始されたかどうか - Whether the game has started
@@ -17,7 +17,6 @@ const initialQuizState: Omit<QuizGameState, keyof QuizGameActions> = {
   selectedAnswer: null,               // 選択された回答 - Selected answer
   feedback: null,                     // フィードバックメッセージ - Feedback message
   showFeedback: false,                // フィードバックを表示するかどうか - Whether to show feedback
-  stages: quizStages,                 // すべてのステージ - All stages
   answeredQuestions: [],              // 回答済みの質問IDの配列 - Array of answered question IDs
 };
 
@@ -26,13 +25,26 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
   // 初期状態 - Initial state
   ...initialQuizState,
 
-  // ゲーム開始 - Start the game
-  startGame: () => {
+  // ゲーム開始 - Start the game with optional landmark-specific questions
+  startGame: (landmarkName?: string) => {
+    let questionsToUse = []; // Default to empty
+    
+    // If a specific landmark is provided, get its specific questions
+    if (landmarkName && landmarkSpecificQuestions[landmarkName]) {
+      // Use the landmark-specific questions directly
+      questionsToUse = landmarkSpecificQuestions[landmarkName];
+    } else {
+      // If no landmark specified, use all questions from default quizStages
+      for (const stage of quizStages) {
+        questionsToUse = questionsToUse.concat(stage.questions);
+      }
+    }
+    
     set({ 
       gameStarted: true,
       gameCompleted: false,
+      currentQuestions: questionsToUse,
       score: 0,
-      currentStage: 0,
       currentQuestionIndex: 0,
       selectedAnswer: null,
       feedback: null,
@@ -41,10 +53,31 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
     });
   },
 
+  // 質問セットを切り替える - Switch question set to a different landmark
+  switchQuestionSet: (landmarkName: string) => {
+    // Check if this specific landmark has dedicated questions
+    if (landmarkSpecificQuestions[landmarkName]) {
+      // Get the landmark-specific questions
+      const landmarkQuestions = landmarkSpecificQuestions[landmarkName];
+      
+      // Update the questions and reset to the first question, but keep other state
+      set({ 
+        currentQuestions: landmarkQuestions,
+        currentQuestionIndex: 0,
+        selectedAnswer: null,
+        feedback: null,
+        showFeedback: false
+      });
+    }
+  },
+
   // 質問に回答 - Answer a question
   answerQuestion: (optionId: string) => {
-    const { stages, currentStage, currentQuestionIndex } = get();
-    const currentQuestion = stages[currentStage].questions[currentQuestionIndex];
+    const { currentQuestions, currentQuestionIndex } = get();
+    const currentQuestion = currentQuestions[currentQuestionIndex];
+    
+    if (!currentQuestion) return;
+    
     const selectedOption = currentQuestion.options.find(opt => opt.id === optionId);
 
     if (!selectedOption) return;
@@ -82,73 +115,53 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       answeredQuestions.push(questionId);
     }
 
-    // 質問がすべて終わったら次のステージへ進む、そうでなければ次の質問 - 
-    // Go to next stage if all questions are answered, otherwise go to next question
+    // 質問がすべて終わったらゲーム終了、そうでなければ次の質問 - 
+    // Complete game if all questions are answered, otherwise go to next question
     setTimeout(() => {
-      const stage = get().stages[get().currentStage];
       set({ 
         answeredQuestions,
         showFeedback: false
       });
 
-      if (get().currentQuestionIndex < stage.questions.length - 1) {
+      if (get().currentQuestionIndex < currentQuestions.length - 1) {
         // 次の質問へ進む - Go to next question
-        set({ currentQuestionIndex: get().currentQuestionIndex + 1 });
+        const nextIndex = get().currentQuestionIndex + 1;
+        set({ currentQuestionIndex: nextIndex });
         
         // Move camera to the location of the next question
-        const nextQuestion = stage.questions[get().currentQuestionIndex + 1];
-        get().moveCameraToLocation(nextQuestion.location);
-      } else {
-        // 次のステージへ進む - Go to next stage
-        set({ currentQuestionIndex: 0 });
-        
-        // 全ステージ完了チェック - Check if all stages are completed
-        if (get().currentStage < get().stages.length - 1) {
-          set({ currentStage: get().currentStage + 1 });
-          
-          // Move camera to the location of the next stage
-          const nextStage = get().stages[get().currentStage + 1];
-          get().moveCameraToLocation(nextStage.location);
-        } else {
-          // ゲーム終了 - Game completed
-          set({ gameCompleted: true });
+        const nextQuestion = currentQuestions[nextIndex];
+        if (nextQuestion && nextQuestion.location) {
+          get().moveCameraToLocation(nextQuestion.location);
         }
+      } else {
+        // ゲーム終了 - Game completed
+        set({ gameCompleted: true });
       }
     }, 1500); // 1.5秒後に次へ進む - Move to next after 1.5 seconds
   },
 
   // 次の質問へ進む - Move to next question
   nextQuestion: () => {
-    const { currentStage, currentQuestionIndex, stages } = get();
-    if (currentQuestionIndex < stages[currentStage].questions.length - 1) {
-      set({ currentQuestionIndex: currentQuestionIndex + 1 });
+    const { currentQuestions, currentQuestionIndex } = get();
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      set({ currentQuestionIndex: nextIndex });
       
       // Move camera to the location of the current question
-      const nextQuestion = stages[currentStage].questions[currentQuestionIndex + 1];
-      get().moveCameraToLocation(nextQuestion.location);
+      const nextQuestion = currentQuestions[nextIndex];
+      if (nextQuestion && nextQuestion.location) {
+        get().moveCameraToLocation(nextQuestion.location);
+      }
     }
   },
 
-  // 次のステージへ進む - Move to next stage
-  nextStage: () => {
-    const { currentStage, stages } = get();
-    if (currentStage < stages.length - 1) {
-      set({ 
-        currentStage: currentStage + 1,
-        currentQuestionIndex: 0  // ステージが変わったら最初の質問に戻る - Return to first question when stage changes
-      });
-      
-      // Move camera to the location of the next stage
-      const nextStage = stages[currentStage + 1];
-      get().moveCameraToLocation(nextStage.location);
-    }
-  },
+
 
   // ゲームをリセット - Reset the game
   resetGame: () => {
     set({ 
-      currentStage: 0,
       currentQuestionIndex: 0,
+      currentQuestions: [],
       score: 0,
       totalScore: 0,
       gameStarted: false,
@@ -160,11 +173,11 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
     });
   },
 
-  // フィードバック表示の設定 - Set feedback visibility
-  setShowFeedback: (show: boolean) => set({ showFeedback: show }),
-
   // 現在のステージを設定 - Set current stage
   setCurrentStage: (stage: number) => set({ currentStage: stage }),
+  
+  // フィードバック表示の設定 - Set feedback visibility
+  setShowFeedback: (show: boolean) => set({ showFeedback: show }),
 
   // 現在の質問インデックスを設定 - Set current question index
   setCurrentQuestionIndex: (index: number) => set({ currentQuestionIndex: index }),

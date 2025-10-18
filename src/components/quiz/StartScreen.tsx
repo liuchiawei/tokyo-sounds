@@ -2,11 +2,10 @@
 // クイズ開始画面用のコンポーネント - Component for the quiz start screen
 
 import React from 'react';
+import { useQuizStore } from '@/stores/quiz-store';
 
 interface StartScreenProps {
   landmarkName: string;
-  // onStart will be implemented in a later task
-  // onStart: () => void;
 }
 
 /**
@@ -16,6 +15,8 @@ interface StartScreenProps {
  * @returns {JSX.Element}
  */
 export default function StartScreen({ landmarkName }: StartScreenProps): React.JSX.Element {
+  const { startGame } = useQuizStore();
+
   return (
     <div className="text-center">
       <h2 className="text-2xl font-bold text-white">Quiz Time!</h2>
@@ -23,7 +24,7 @@ export default function StartScreen({ landmarkName }: StartScreenProps): React.J
       <p className="mt-1 text-xl font-bold text-blue-400">{landmarkName}</p>
       <button
         className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-bold transition-colors duration-200"
-        // onClick={onStart} // To be implemented in Task 4/6
+        onClick={() => startGame(landmarkName.toLowerCase())}
       >
         Start Quiz
       </button>

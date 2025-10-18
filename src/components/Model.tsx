@@ -13,6 +13,8 @@ import { useGLTF, Html } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import { useAudioControl } from "./audio/audio-control-context";
 import { AUDIO_MAP } from "../lib/audio-mapping";
+import { useQuizStore } from "@/stores/quiz-store";
+import { landmarkSpecificQuestions } from "@/data/quiz-data";
 
 // GLTFAction 型の定義 - Define the GLTFAction type
 type GLTFAction = THREE.AnimationAction;
@@ -156,10 +158,22 @@ function InteractiveMesh({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<THREE.Group>(null!);
+  const { gameStarted, startGame, switchQuestionSet } = useQuizStore();
 
   const handleClick = () => {
     // 親ハンドラも発火できるように伝播を停止しない - Do not stop propagation, so the parent handler can also fire
     setOpen((v) => !v);
+    
+    // Quiz functionality: Check if this name has specific questions and trigger quiz if appropriate
+    if (landmarkSpecificQuestions[name]) {
+      // If a game is already in progress, switch to the new question set
+      if (gameStarted) {
+        switchQuestionSet(name);
+      } else {
+        // If no game is in progress, start a new game with the landmark-specific questions
+        startGame(name);
+      }
+    }
   };
 
   return (

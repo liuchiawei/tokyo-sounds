@@ -2,11 +2,11 @@
 // 回答選択肢用のコンポーネント - Component for an answer option
 
 import React from 'react';
+import { useQuizStore } from '@/stores/quiz-store';
 
 interface AnswerOptionProps {
   optionText: string;
-  // onClick will be added in a later task
-  // onClick: () => void; 
+  optionId: string;
 }
 
 /**
@@ -15,11 +15,30 @@ interface AnswerOptionProps {
  * @param {AnswerOptionProps} props - The props for the component.
  * @returns {JSX.Element}
  */
-export default function AnswerOption({ optionText }: AnswerOptionProps): React.JSX.Element {
+export default function AnswerOption({ optionText, optionId }: AnswerOptionProps): React.JSX.Element {
+  const { answerQuestion, selectedAnswer, showFeedback, feedback } = useQuizStore();
+
+  // Determine the style based on selection and feedback status
+  let buttonStyle = "w-full p-3 my-2 rounded-lg text-left text-white transition-colors duration-200 ";
+  
+  if (showFeedback && selectedAnswer === optionId) {
+    // If feedback is shown and this option was selected
+    if (feedback === '正解！') {
+      // Correct answer
+      buttonStyle += "bg-green-600"; 
+    } else {
+      // Incorrect answer
+      buttonStyle += "bg-red-600";
+    }
+  } else {
+    // Default style
+    buttonStyle += "bg-gray-700 hover:bg-blue-600";
+  }
+
   return (
     <button
-      className="w-full p-3 my-2 bg-gray-700 hover:bg-blue-600 rounded-lg text-left text-white transition-colors duration-200"
-      // onClick={onClick} // To be implemented in Task 6
+      className={buttonStyle}
+      onClick={() => answerQuestion(optionId)}
     >
       {optionText}
     </button>
