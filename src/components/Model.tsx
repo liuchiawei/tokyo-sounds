@@ -14,7 +14,6 @@ import { GLTF } from "three-stdlib";
 import { useAudioControl } from "./audio/audio-control-context";
 import { AUDIO_MAP } from "../lib/audio-mapping";
 import { useQuizStore } from "@/stores/quiz-store";
-import { landmarkSpecificQuestions } from "@/data/quiz-data";
 
 // GLTFAction 型の定義 - Define the GLTFAction type
 type GLTFAction = THREE.AnimationAction;
@@ -164,14 +163,34 @@ function InteractiveMesh({
     // 親ハンドラも発火できるように伝播を停止しない - Do not stop propagation, so the parent handler can also fire
     setOpen((v) => !v);
     
-    // Quiz functionality: Check if this name has specific questions and trigger quiz if appropriate
-    if (landmarkSpecificQuestions[name]) {
-      // If a game is already in progress, switch to the new question set
+    // Designate which landmarks can trigger the quiz
+    const designatedLandmarks = ['House', 'Apartment', 'Building', 'Shop'];
+    
+    // Check if this is a designated landmark that should trigger the quiz with building-specific questions
+    if (designatedLandmarks.includes(name)) {
+      // If a game is already in progress, switch to the new question set based on the building type
       if (gameStarted) {
         switchQuestionSet(name);
       } else {
-        // If no game is in progress, start a new game with the landmark-specific questions
+        // If no game is in progress, start a new game with building-specific questions
         startGame(name);
+      }
+    }
+    // For non-designated landmarks, use the default stage behavior
+    else {
+      // Get the current stage from the store
+      const currentStage = useQuizStore.getState().currentStage;
+      
+      // Determine which stage to use (current stage or default to stage 1)
+      const stageToUse = currentStage || 1;
+      const stageId = `stage-${stageToUse}`;
+      
+      // If a game is already in progress, continue with the current stage
+      if (gameStarted) {
+        switchQuestionSet(stageId);
+      } else {
+        // If no game is in progress, start the quiz with the current stage
+        startGame(stageId);
       }
     }
   };

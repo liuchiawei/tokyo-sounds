@@ -14,8 +14,6 @@ export interface QuizQuestion {
   text: string;                  // 質問文 - Question text
   options: QuizOption[];         // 選択肢の配列 - Array of options
   location: string;              // 関連する東京の場所 - Related Tokyo location
-  difficulty: number;            // 難易度 (1-5, 1が最も易しい) - Difficulty (1-5, 1 being easiest)
-  points: number;                // この問題の得点 - Points for this question
 }
 
 // クイズステージインターフェース - Quiz stage interface
@@ -30,6 +28,7 @@ export interface QuizStage {
 
 // クイズゲームの状態インターフェース - Quiz game state interface
 export interface QuizGameState {
+  currentStage: number;          // 現在のステージ - Current stage
   currentQuestionIndex: number;  // 現在の質問インデックス - Current question index
   currentQuestions: QuizQuestion[]; // 現在の質問リスト - Current questions list
   score: number;                 // 現在のスコア - Current score
@@ -40,6 +39,9 @@ export interface QuizGameState {
   feedback: string | null;       // フィードバックメッセージ - Feedback message
   showFeedback: boolean;         // フィードバックを表示するかどうか - Whether to show feedback
   answeredQuestions: string[];   // 回答済みの質問IDの配列 - Array of answered question IDs
+  completedLocations: string[];  // 完了したロケーションの配列 - Array of completed locations
+  currentLocationIndex: number;  // 現在のロケーションインデックス - Current location index in the sequence
+  readyForNextLocation: boolean; // 次のロケーションに進む準備ができているか - Whether ready to proceed to the next location
 }
 
 // クイズゲームのアクションインターフェース - Quiz game actions interface
@@ -53,4 +55,5 @@ export interface QuizGameActions {
   updateScore: (points: number) => void; // スコアを更新 - Update score
   moveCameraToLocation: (location: string) => void; // カメラを指定の場所に移動 - Move camera to a specific location
   switchQuestionSet: (landmarkName: string) => void; // 質問セットを切り替える - Switch question set to a different landmark
+  proceedToNextLocation: () => void; // 次のロケーションに進む - Proceed to the next location
 }

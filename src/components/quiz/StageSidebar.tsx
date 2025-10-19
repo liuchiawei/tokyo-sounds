@@ -17,11 +17,11 @@ interface StageSidebarProps {
  * @returns {JSX.Element}
  */
 export default function StageSidebar({}: StageSidebarProps): React.JSX.Element {
-  const { gameStarted, gameCompleted, score } = useQuizStore();
+  const { gameStarted, gameCompleted, score, currentStage } = useQuizStore();
 
   return (
     <div className="w-full h-full bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl shadow-2xl overflow-hidden flex flex-col">
-      {/* Header with title and current score */}
+      {/* Header with title, current stage and score */}
       <div className="p-4 bg-gray-900/50 border-b border-gray-700">
         <h2 className="text-xl font-bold text-white flex items-center">
           <span className="bg-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">
@@ -30,8 +30,8 @@ export default function StageSidebar({}: StageSidebarProps): React.JSX.Element {
           Tokyo Quiz
         </h2>
         <div className="mt-2 text-sm text-blue-300">
-          <span className="font-semibold">Score: </span>
-          <span className="font-mono">{score}</span>
+          <div className="font-semibold">Stage: <span className="font-mono">Level {currentStage}</span></div>
+          <div className="font-semibold">Score: <span className="font-mono">{score}</span></div>
         </div>
       </div>
 

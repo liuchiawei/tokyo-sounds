@@ -12,7 +12,7 @@ import AnswerOption from './AnswerOption';
  * @returns {JSX.Element}
  */
 export default function QuizGame(): React.JSX.Element {
-  const { gameStarted, gameCompleted, currentQuestions, currentQuestionIndex, showFeedback, score } = useQuizStore();
+  const { gameStarted, gameCompleted, currentStage, currentQuestions, currentQuestionIndex, showFeedback, score, readyForNextLocation, proceedToNextLocation } = useQuizStore();
 
   // If the game hasn't started yet, show an instructional message
   if (!gameStarted) {
@@ -53,6 +53,25 @@ export default function QuizGame(): React.JSX.Element {
     );
   }
 
+  // If user has completed all questions at current location but not yet proceeded
+  if (readyForNextLocation) {
+    return (
+      <div className="w-full text-center">
+        <div className="mb-6">
+          <h1 className="text-xl font-bold text-green-400">📍 現在のロケーション完了！</h1>
+          <p className="text-lg text-white mt-2">お疲れ様でした！</p>
+          <p className="text-blue-300 mt-4">次のロケーションに進みましょう</p>
+        </div>
+        <button
+          className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold transition-colors duration-200"
+          onClick={proceedToNextLocation}
+        >
+          次のロケーションに進む
+        </button>
+      </div>
+    );
+  }
+
   // Otherwise, show the current question and answer options
   const currentQuestion = currentQuestions[currentQuestionIndex];
   
@@ -62,14 +81,14 @@ export default function QuizGame(): React.JSX.Element {
 
   return (
     <div className="w-full">
-      {/* Score and stage level display */}
+      {/* Score and stage display */}
       <div className="mb-4 p-2 bg-gray-700/50 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="text-sm font-medium text-blue-300">
-            スコア: <span className="font-mono">{score}</span>
+            ステージ: <span className="font-mono">Level {currentStage}</span>
           </div>
-          <div className="text-sm font-medium text-gray-300">
-            難易度: {currentQuestion.difficulty}/5
+          <div className="text-sm font-medium text-blue-300">
+            スコア: <span className="font-mono">{score}</span>
           </div>
         </div>
       </div>
