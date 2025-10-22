@@ -1460,32 +1460,19 @@ class AudioSessionImpl implements AudioSession {
         return this.spatialBindings.get(nodeId)?.mode;
     }
 
-    private disposeNodeChain(nodeId: string, disposedSet: Set<string> = new Set()): void {
-        if (disposedSet.has(nodeId)) return;
-        disposedSet.add(nodeId);
-        
+    private disposeNodeChain(nodeId: string): void {
         const node = this.registry.get(nodeId);
         if (!node) return;
 
-        for (const edge of this.spec.connections || []) {
-            if (edge.to.id === nodeId) {
-                this.disposeNodeChain(edge.from.id, disposedSet);
-            }
-        }
-        
         try {
             if (node.exportBus) {
                 node.exportBus.disconnect();
-            }
-            
-            if (node.instance && typeof node.instance.dispose === 'function') {
-                node.instance.dispose();
-            }
-            if (DEBUG_AUDIO) {
-                console.log(`[Freeze] 🧹 Disposed Tone.js node: ${nodeId}`);
+                if (DEBUG_AUDIO) {
+                    console.log(`[Freeze] Disconnected exportBus for node: ${nodeId}`);
+                }
             }
         } catch (err) {
-            if (DEBUG_AUDIO) console.warn(`[Freeze] Failed to dispose node ${nodeId}:`, err);
+            if (DEBUG_AUDIO) console.warn(`[Freeze] Failed to disconnect exportBus for ${nodeId}:`, err);
         }
     }
 
@@ -1505,7 +1492,7 @@ class AudioSessionImpl implements AudioSession {
                 
                 this.disposeNodeChain(nodeId);
             } catch (err) {
-                if (DEBUG_AUDIO) console.log(`[freezeSpatialBinding] Disconnect failed:`, err);
+                if (DEBUG_AUDIO) console.log(`[lib/audio.ts/freezeSpatialBinding] Disconnect failed:`, err);
             }
         } else if (binding.mode === 'committed' && binding.audio.isPlaying) {
             binding.audio.stop();
