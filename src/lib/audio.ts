@@ -1112,26 +1112,28 @@ class AudioSessionImpl implements AudioSession {
                 }
                 
                 const arrayBuffer = await response.arrayBuffer();
-                
-                const estimatedSizeMB = arrayBuffer.byteLength / (1024 * 1024);
-                if (estimatedSizeMB > maxBufferSizeMB) {
-                    console.warn(`Asset ${asset.id} exceeds max buffer size (${estimatedSizeMB.toFixed(1)}MB > ${maxBufferSizeMB}MB), skipping`);
+
+                const audioBuffer = await this.context.decodeAudioData(arrayBuffer.slice(0));
+
+                // Validate against decoded buffer size (Float32 samples = 4 bytes per sample)
+                const decodedBytes = audioBuffer.length * audioBuffer.numberOfChannels * 4;
+                const decodedSizeMB = decodedBytes / (1024 * 1024);
+                if (decodedSizeMB > maxBufferSizeMB) {
+                    console.warn(`Asset ${asset.id} exceeds max buffer size after decoding (${decodedSizeMB.toFixed(1)}MB > ${maxBufferSizeMB}MB), skipping`);
                     continue;
                 }
-                
-                const audioBuffer = await this.context.decodeAudioData(arrayBuffer.slice(0));
+
                 preloadedBuffers.set(asset.id, audioBuffer);
                 assetDurations.set(asset.id, audioBuffer.duration);
-                
-                const bufferSize = audioBuffer.length * audioBuffer.numberOfChannels * 4;
+
                 this.bufferCache.set(asset.id, {
                     buffer: audioBuffer,
                     timestamp: Date.now(),
-                    size: bufferSize,
+                    size: decodedBytes,
                 });
                 
                 if (DEBUG_AUDIO) {
-                    console.log(`Pre-loaded asset ${asset.id} (${audioBuffer.duration}s, ${audioBuffer.numberOfChannels}ch, ${(bufferSize / (1024 * 1024)).toFixed(2)}MB)`);
+                    console.log(`Pre-loaded asset ${asset.id} (${audioBuffer.duration}s, ${audioBuffer.numberOfChannels}ch, ${(decodedBytes / (1024 * 1024)).toFixed(2)}MB)`);
                 }
             } catch (err) {
                 console.error(`Failed to pre-load asset ${asset.id}:`, err);
