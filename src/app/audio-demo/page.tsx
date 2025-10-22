@@ -3,6 +3,8 @@
  * 
  * This page demonstrates the audio system, library, and useAudio hooks.
  * Features: Multi-file upload, distance culling, memory optimization
+ * 
+ * IMPORTANT: THIS PAGE IS AI GENERATED - IT IS PRONE TO ERRORS. DO NOT USE IT AS A REFERENCE.
  */
 
 'use client';
@@ -369,22 +371,21 @@ function AudioControls({ sharedContext, sourceCount }: { sharedContext: AudioCon
   );
 }
 
-function SoundSphere({ 
-  index, 
-  audioReady, 
-  sharedContext,
+function SoundSphere({
+  index,
+  audioReady,
   position,
-  cameraRef
-}: { 
-  index: number; 
-  audioReady: boolean; 
-  sharedContext: AudioContext | null;
+  cameraRef,
+  listenerRef
+}: {
+  index: number;
+  audioReady: boolean;
   position: [number, number, number];
   cameraRef: React.MutableRefObject<THREE.Camera | null>;
+  listenerRef: React.RefObject<THREE.AudioListener>;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
-  const listenerRef = useRef<THREE.AudioListener | null>(null);
   const session = useContext(AudioSessionContext);
   const [isCulled, setIsCulled] = useState(false);
 
@@ -393,25 +394,6 @@ function SoundSphere({
   useEffect(() => {
     cameraRef.current = camera;
   }, [camera, cameraRef]);
-
-  useEffect(() => {
-    if (camera && !listenerRef.current && sharedContext) {
-      const listener = new THREE.AudioListener();
-      
-      if (listener.context !== sharedContext) {
-        console.log(`[SoundSphere ${index}] Using MediaStream bridge`);
-      }
-      
-      listenerRef.current = listener;
-      camera.add(listener);
-    }
-
-    return () => {
-      if (listenerRef.current && camera) {
-        camera.remove(listenerRef.current);
-      }
-    };
-  }, [camera, sharedContext, index]);
 
   // Memoize spatial options to prevent recreating binding on every render
   const spatialOpts = useMemo(() => ({
@@ -427,7 +409,7 @@ function SoundSphere({
   useSpatial(
     `gain${index}`,
     meshRef as React.RefObject<THREE.Object3D>,
-    listenerRef as React.RefObject<THREE.AudioListener>,
+    listenerRef,
     spatialOpts,
     [] // No extra dependencies - binding should persist
   );
@@ -477,19 +459,75 @@ function SoundSphere({
   );
 }
 
-function SceneWithStats({ children }: { children: React.ReactNode }) {
+function Scene({
+  sourceCount,
+  audioReady,
+  sharedContext,
+  spherePositions,
+  cameraRef
+}: {
+  sourceCount: number;
+  audioReady: boolean;
+  sharedContext: AudioContext | null;
+  spherePositions: [number, number, number][];
+  cameraRef: React.MutableRefObject<THREE.Camera | null>;
+}) {
   const { camera } = useThree();
-  const cameraRef = useRef(camera);
-  
+  const listenerRef = useRef<THREE.AudioListener | null>(null);
+
+  // Create a single shared AudioListener attached to the camera
+  useEffect(() => {
+    if (camera && !listenerRef.current && sharedContext) {
+      const listener = new THREE.AudioListener();
+
+      if (listener.context !== sharedContext) {
+        console.log('[Scene] Using MediaStream bridge for spatial audio');
+      }
+
+      listenerRef.current = listener;
+      camera.add(listener);
+      console.log('[Scene] Created shared AudioListener attached to camera');
+    }
+
+    return () => {
+      if (listenerRef.current && camera) {
+        camera.remove(listenerRef.current);
+        console.log('[Scene] Removed shared AudioListener from camera');
+      }
+    };
+  }, [camera, sharedContext]);
+
   useEffect(() => {
     cameraRef.current = camera;
-  }, [camera]);
+  }, [camera, cameraRef]);
 
-  const stats = useDistanceCulling(cameraRef as React.RefObject<THREE.Camera>);
+  useDistanceCulling(cameraRef as React.RefObject<THREE.Camera>);
 
   return (
     <>
-      {children}
+      <color attach="background" args={['#1a1a1a']} />
+      <ambientLight intensity={0.3} />
+      <directionalLight position={[10, 10, 5]} intensity={1} />
+
+      {Array.from({ length: sourceCount }, (_, i) => (
+        <SoundSphere
+          key={i + 1}
+          index={i + 1}
+          audioReady={audioReady && !!listenerRef.current}
+          position={spherePositions[i] || [0, 0, 0]}
+          cameraRef={cameraRef}
+          listenerRef={listenerRef as React.RefObject<THREE.AudioListener>}
+        />
+      ))}
+
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
+        <planeGeometry args={[20, 20]} />
+        <meshStandardMaterial color="#2a2a2a" />
+      </mesh>
+
+      <gridHelper args={[20, 20, '#444', '#222']} position={[0, -0.99, 0]} />
+
+      <OrbitControls makeDefault />
     </>
   );
 }
@@ -697,29 +735,13 @@ export default function AudioDemo() {
 
           <div className="flex-1 relative">
             <Canvas camera={{ position: [0, 2, 8], fov: 50 }}>
-              <color attach="background" args={['#1a1a1a']} />
-              <ambientLight intensity={0.3} />
-              <directionalLight position={[10, 10, 5]} intensity={1} />
-
-              {Array.from({ length: sourceCount }, (_, i) => (
-                <SoundSphere
-                  key={i + 1}
-                  index={i + 1}
-                  audioReady={ready && !!session}
-                  sharedContext={sharedContext}
-                  position={spherePositions[i] || [0, 0, 0]}
-                  cameraRef={cameraRef}
-                />
-              ))}
-
-              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-                <planeGeometry args={[20, 20]} />
-                <meshStandardMaterial color="#2a2a2a" />
-              </mesh>
-
-              <gridHelper args={[20, 20, '#444', '#222']} position={[0, -0.99, 0]} />
-
-              <OrbitControls makeDefault />
+              <Scene
+                sourceCount={sourceCount}
+                audioReady={ready && !!session}
+                sharedContext={sharedContext}
+                spherePositions={spherePositions}
+                cameraRef={cameraRef}
+              />
             </Canvas>
 
             {ready && session && <MemoryStatsDisplay stats={stats} />}
