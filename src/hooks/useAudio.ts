@@ -208,10 +208,7 @@ export function useSpatial(
     const disposerRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
-        console.log('[useAudio/useSpatial] Effect triggered:', { session: !!session, object3D: !!object3DRef.current, listener: !!listenerRef?.current, nodeId });
-        
         if (!session || !object3DRef.current) {
-            console.log('[useAudio/useSpatial] Skipping - session or object3D not ready');
             return;
         }
 
@@ -219,21 +216,16 @@ export function useSpatial(
 
         if (listenerRef?.current) {
             listener = listenerRef.current;
-            console.log('[useAudio/useSpatial] Using provided listener');
         } else {
-            listener = new THREE.AudioListener();         
-            console.log('[useAudio/useSpatial] Created new listener');
+            listener = new THREE.AudioListener();
         }
 
         try {
-            console.log('[useAudio/useSpatial] Calling bindSpatial for', nodeId);
             const disposer = session.bindSpatial(nodeId, object3DRef.current, listener, opts);
             disposerRef.current = disposer;
-            console.log('[useAudio/useSpatial] Spatial binding successful for', nodeId);
 
             return () => {
                 if (disposerRef.current) {
-                    console.log('[useAudio/useSpatial] Disposing spatial binding for', nodeId);
                     disposerRef.current();
                     disposerRef.current = null;
                 }
@@ -403,4 +395,53 @@ export function AudioSessionProvider({
     const providerValue = session;
 
     return React.createElement(Provider, { value: providerValue }, children);
+}
+
+/**
+ * useDistanceCulling perform distance-based audio culling every frame
+ * @param cameraRef - ref to the camera
+ * @returns culling statistics
+ */
+export function useDistanceCulling(cameraRef: React.RefObject<THREE.Camera>) {
+    const session = useAudioSessionContext();
+    const [stats, setStats] = useState({ totalSources: 0, activeSources: 0, culledSources: 0, estimatedMemoryMB: 0 });
+    const rafRef = useRef<number | null>(null);
+    const camPosRef = useRef(new THREE.Vector3());
+    const lastCullTsRef = useRef(0);
+    const lastStatsTsRef = useRef(0);
+
+    useEffect(() => {
+        if (!session || !cameraRef.current) return;
+
+        const updateCulling = (ts: number) => {
+            if (session && cameraRef.current) {
+                const shouldCull = ts - lastCullTsRef.current > 66;
+                const shouldUpdateStats = ts - lastStatsTsRef.current > 500;
+
+                if (shouldCull) {
+                    cameraRef.current.getWorldPosition(camPosRef.current);
+                    session.updateSpatialCulling(camPosRef.current);
+                    lastCullTsRef.current = ts;
+                }
+
+                if (shouldUpdateStats) {
+                    const currentStats = session.getSpatialStats();
+                    setStats(currentStats);
+                    lastStatsTsRef.current = ts;
+                }
+            }
+
+            rafRef.current = requestAnimationFrame(updateCulling);
+        };
+
+        rafRef.current = requestAnimationFrame(updateCulling);
+
+        return () => {
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+            }
+        };
+    }, [session, cameraRef]);
+
+    return stats;
 }
