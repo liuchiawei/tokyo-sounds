@@ -1123,6 +1123,31 @@ class AudioSessionImpl implements AudioSession {
                     continue;
                 }
 
+                let totalCacheSize = 0;
+                for (const [_, cached] of this.bufferCache) {
+                    totalCacheSize += cached.size;
+                }
+
+                if (decodedBytes > this.maxCacheSize) {
+                    console.warn(`Asset ${asset.id} (${decodedSizeMB.toFixed(1)}MB) is larger than max cache size (${(this.maxCacheSize / (1024 * 1024)).toFixed(1)}MB), skipping`);
+                    continue;
+                }
+
+                if (totalCacheSize + decodedBytes > this.maxCacheSize) {
+                    const sortedCache = Array.from(this.bufferCache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+                    while (totalCacheSize + decodedBytes > this.maxCacheSize && sortedCache.length > 0) {
+                        const [key, oldest] = sortedCache.shift()!;
+                        this.bufferCache.delete(key);
+                        preloadedBuffers.delete(key);
+                        totalCacheSize -= oldest.size;
+
+                        if (DEBUG_AUDIO) {
+                            console.log(`[commit] Evicted old buffer ${key} to free ${(oldest.size / (1024 * 1024)).toFixed(2)}MB`);
+                        }
+                    }
+                }
+
                 preloadedBuffers.set(asset.id, audioBuffer);
                 assetDurations.set(asset.id, audioBuffer.duration);
 
@@ -1131,31 +1156,12 @@ class AudioSessionImpl implements AudioSession {
                     timestamp: Date.now(),
                     size: decodedBytes,
                 });
-                
+
                 if (DEBUG_AUDIO) {
                     console.log(`Pre-loaded asset ${asset.id} (${audioBuffer.duration}s, ${audioBuffer.numberOfChannels}ch, ${(decodedBytes / (1024 * 1024)).toFixed(2)}MB)`);
                 }
             } catch (err) {
                 console.error(`Failed to pre-load asset ${asset.id}:`, err);
-            }
-        }
-        
-        let totalCacheSize = 0;
-        for (const [_, cached] of this.bufferCache) {
-            totalCacheSize += cached.size;
-        }
-        
-        if (totalCacheSize > this.maxCacheSize) {
-            const sortedCache = Array.from(this.bufferCache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
-            
-            while (totalCacheSize > this.maxCacheSize && sortedCache.length > 0) {
-                const [key, oldest] = sortedCache.shift()!;
-                this.bufferCache.delete(key);
-                totalCacheSize -= oldest.size;
-                
-                if (DEBUG_AUDIO) {
-                    console.log(`[commit] Evicted old buffer ${key} to free ${(oldest.size / (1024 * 1024)).toFixed(2)}MB`);
-                }
             }
         }
 
