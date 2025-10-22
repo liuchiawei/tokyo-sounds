@@ -137,6 +137,7 @@ export interface SpatialBindingInfo {
     cullDistance: number;
     resumeDistance: number;
     enableCulling: boolean;
+    enableLevelMeter: boolean;
 }
 
 export interface NodeSummary {
@@ -1277,6 +1278,7 @@ class AudioSessionImpl implements AudioSession {
         const enableCulling = opts.enableCulling !== undefined ? opts.enableCulling : true;
         const cullDistance = opts.cullDistance !== undefined ? opts.cullDistance : 500;
         const resumeDistance = opts.resumeDistance !== undefined ? opts.resumeDistance : cullDistance * 0.8;
+        const enableLevelMeter = opts.enableLevelMeter !== undefined ? opts.enableLevelMeter : false;
 
         let mediaStreamSource: MediaStreamAudioSourceNode | null = null;
         let analyser: AnalyserNode | undefined = undefined;
@@ -1394,6 +1396,7 @@ class AudioSessionImpl implements AudioSession {
             cullDistance,
             resumeDistance,
             enableCulling,
+            enableLevelMeter,
         };
 
         this.spatialBindings.set(nodeId, bindingInfo);
@@ -1676,7 +1679,10 @@ class AudioSessionImpl implements AudioSession {
             return 0;
         }
 
-        // Lazily create an analyser only when requested
+        if (!binding.enableLevelMeter) {
+            return 0;
+        }
+
         if (!binding.analyser && (binding.audio as any)?.context) {
             try {
                 const analyser = (binding.audio as any).context.createAnalyser();
@@ -1686,19 +1692,22 @@ class AudioSessionImpl implements AudioSession {
                     (binding.audio as any).gain.connect(analyser);
                 }
                 binding.analyser = analyser;
-            } catch {}
+            } catch (err) {
+                if (DEBUG_AUDIO) console.warn(`[getAudioLevel] Failed to create analyser:`, err);
+                return 0;
+            }
         }
 
         if (!binding.analyser) return 0;
 
         const dataArray = new Uint8Array(binding.analyser.frequencyBinCount);
         binding.analyser.getByteFrequencyData(dataArray);
-        
+
         let sum = 0;
         for (let i = 0; i < dataArray.length; i++) {
             sum += dataArray[i];
         }
-        
+
         const average = sum / dataArray.length;
         return average / 255;
     }
