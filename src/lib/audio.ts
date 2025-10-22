@@ -117,6 +117,7 @@ export interface SpatialOptions {
     cullDistance?: number;
     resumeDistance?: number;
     enableCulling?: boolean;
+    cullFadeMs?: number;
     enableLevelMeter?: boolean; // Default: false; create AnalyserNode only if needed
 }
 
@@ -138,6 +139,9 @@ export interface SpatialBindingInfo {
     resumeDistance: number;
     enableCulling: boolean;
     enableLevelMeter: boolean;
+    prevGain?: number;
+    fadeMs: number;
+    cullPending?: boolean;
 }
 
 export interface NodeSummary {
@@ -1278,6 +1282,7 @@ class AudioSessionImpl implements AudioSession {
         const enableCulling = opts.enableCulling !== undefined ? opts.enableCulling : true;
         const cullDistance = opts.cullDistance !== undefined ? opts.cullDistance : 500;
         const resumeDistance = opts.resumeDistance !== undefined ? opts.resumeDistance : cullDistance * 0.8;
+        const fadeMs = opts.cullFadeMs !== undefined ? Math.max(0, opts.cullFadeMs) : 30;
         const enableLevelMeter = opts.enableLevelMeter !== undefined ? opts.enableLevelMeter : false;
 
         let mediaStreamSource: MediaStreamAudioSourceNode | null = null;
@@ -1397,6 +1402,9 @@ class AudioSessionImpl implements AudioSession {
             resumeDistance,
             enableCulling,
             enableLevelMeter,
+            prevGain: (positional.gain && (positional.gain as any).gain?.value) || 1,
+            fadeMs,
+            cullPending: false,
         };
 
         this.spatialBindings.set(nodeId, bindingInfo);
@@ -1621,8 +1629,20 @@ class AudioSessionImpl implements AudioSession {
             const distance = Math.sqrt(distanceSq);
             binding.lastDistance = distance;
 
-            if (!binding.isCulled && shouldBeCulled) {
+            if (!binding.isCulled && shouldBeCulled && !binding.cullPending) {
                 try {
+                    binding.cullPending = true;
+                    const gNode: any = (binding.audio as any).gain;
+                    const ctx: any = (binding.audio as any).context;
+                    if (gNode?.gain && ctx?.currentTime !== undefined) {
+                        const param: AudioParam = gNode.gain;
+                        const previous = param.value;
+                        binding.prevGain = previous;
+                        const t = ctx.currentTime;
+                        const dt = (binding.fadeMs || 0) / 1000;
+                        try { param.setValueAtTime(previous, t); } catch {}
+                        try { param.linearRampToValueAtTime(0, t + dt); } catch {}
+                    }
                     if (binding.startedAt !== undefined) {
                         const elapsed = (now - binding.startedAt) / 1000;
                         binding.virtualTime = binding.startOffset + elapsed;
@@ -1631,19 +1651,28 @@ class AudioSessionImpl implements AudioSession {
                             binding.virtualTime = binding.virtualTime % binding.committedBuffer.duration;
                         }
                     }
-                    
-                    try { if ((binding.audio as any).isPlaying) binding.audio.stop(); } catch {}
-                    binding.audio.disconnect();
-                    binding.pausedAt = now;
-                    binding.isCulled = true;
-                    if (DEBUG_AUDIO) {
-                        console.log(`[Culling] 🔴 CULLED ${nodeId} at distance ${distance.toFixed(2)}, saved position: ${binding.virtualTime.toFixed(2)}s`);
+                    const finalize = () => {
+                        try { if ((binding.audio as any).isPlaying) binding.audio.stop(); } catch {}
+                        try { binding.audio.disconnect(); } catch {}
+                        binding.pausedAt = now;
+                        binding.isCulled = true;
+                        binding.cullPending = false;
+                        if (DEBUG_AUDIO) {
+                            console.log(`[Culling] 🔴 CULLED ${nodeId} at distance ${distance.toFixed(2)}, saved position: ${binding.virtualTime.toFixed(2)}s`);
+                        }
+                    };
+                    const delay = Math.max(0, binding.fadeMs || 0);
+                    if (delay > 0) {
+                        setTimeout(finalize, delay);
+                    } else {
+                        finalize();
                     }
                 } catch (err) {
+                    binding.cullPending = false;
                     if (DEBUG_AUDIO) console.warn(`[Culling] Failed to disconnect ${nodeId}:`, err);
                 }
             } 
-            else if (binding.isCulled && shouldBeActive) {
+            else if (binding.isCulled && shouldBeActive && !binding.cullPending) {
                 const buffer = binding.committedBuffer;
                 if (buffer && binding.pausedAt !== undefined) {
                     const elapsedTime = (now - binding.pausedAt) / 1000;
@@ -1653,6 +1682,16 @@ class AudioSessionImpl implements AudioSession {
                     const newOffset = binding.virtualTime % bufferDuration;
                     
                     try {
+                        binding.cullPending = true;
+                        const gNode: any = (binding.audio as any).gain;
+                        const ctx: any = (binding.audio as any).context;
+                        const target = binding.prevGain ?? 1;
+                        if (gNode?.gain && ctx?.currentTime !== undefined) {
+                            const t = ctx.currentTime;
+                            const dt = (binding.fadeMs || 0) / 1000;
+                            try { gNode.gain.setValueAtTime(0, t); } catch {}
+                            try { gNode.gain.linearRampToValueAtTime(target, t + dt); } catch {}
+                        }
                         binding.audio.offset = newOffset;
                         binding.audio.connect();
                         binding.audio.play();
@@ -1662,8 +1701,15 @@ class AudioSessionImpl implements AudioSession {
                         if (DEBUG_AUDIO) {
                             console.log(`[Culling] 🟢 RESUMED ${nodeId} at ${newOffset.toFixed(2)}s`);
                         }
+                        const delay = Math.max(0, binding.fadeMs || 0);
+                        if (delay > 0) {
+                            setTimeout(() => { binding.cullPending = false; }, delay);
+                        } else {
+                            binding.cullPending = false;
+                        }
                     } catch (err) {
                         if (DEBUG_AUDIO) console.warn(`[Culling] Resume failed:`, err);
+                        binding.cullPending = false;
                     }
                 }
                 
