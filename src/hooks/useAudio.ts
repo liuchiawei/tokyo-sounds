@@ -193,9 +193,11 @@ export function useCommit() {
  * useSpatial bind a spatial audio node
  * @param nodeId - the id of the node
  * @param object3DRef - the ref to the object3d
- * @param listenerRef - the ref to the audio listener
+ * @param listenerRef - the ref to the audio listener (recommended for proper spatial audio)
  * @param opts - the spatial options
  * @param deps - the dependencies
+ *
+ * IMPORTANT: For correct spatial audio, pass a listenerRef attached to your camera.
  */
 export function useSpatial(
     nodeId: string,
@@ -207,6 +209,8 @@ export function useSpatial(
     const session = useAudioSessionContext();
     const disposerRef = useRef<(() => void) | null>(null);
     const fallbackListenerRef = useRef<THREE.AudioListener | null>(null);
+    const cameraRef = useRef<THREE.Camera | null>(null);
+    const fallbackWarningShownRef = useRef(false);
 
     const stableOpts = useMemo(() => {
         if (!opts) return undefined;
@@ -237,13 +241,55 @@ export function useSpatial(
         }
 
         let listener: THREE.AudioListener;
+        let usingFallback = false;
+
         if (listenerRef?.current) {
             listener = listenerRef.current;
         } else {
             if (!fallbackListenerRef.current) {
                 fallbackListenerRef.current = new THREE.AudioListener();
+
+                if (!fallbackWarningShownRef.current) {
+                    console.warn(
+                        `[useAudio/useSpatial] No AudioListener provided for node ${nodeId}. ` +
+                        `Using fallback listener with limited spatial accuracy. ` +
+                        `For best results, create an AudioListener attached to your camera and pass it via listenerRef.`
+                    );
+                    fallbackWarningShownRef.current = true;
+                }
             }
             listener = fallbackListenerRef.current;
+            usingFallback = true;
+
+            let foundCamera: THREE.Camera | undefined;
+            let current = object3DRef.current.parent;
+
+            while (current && current.parent) {
+                current = current.parent;
+            }
+
+            if (current) {
+                current.traverse((obj: THREE.Object3D) => {
+                    if (!foundCamera && obj instanceof THREE.Camera) {
+                        foundCamera = obj;
+                    }
+                });
+            }
+
+            if (foundCamera) {
+                const camera = foundCamera;
+                if (!camera.children.includes(listener)) {
+                    camera.add(listener);
+                    cameraRef.current = camera;
+                    if (process.env.NODE_ENV !== 'production') {
+                        console.log(`[useAudio/useSpatial] Attached fallback listener to camera for node ${nodeId}`);
+                    }
+                }
+            } else {
+                console.warn(
+                    `[useAudio/useSpatial] No camera found in scene for node ${nodeId}. `
+                );
+            }
         }
 
         try {
@@ -254,6 +300,11 @@ export function useSpatial(
                 if (disposerRef.current) {
                     disposerRef.current();
                     disposerRef.current = null;
+                }
+
+                if (usingFallback && cameraRef.current && fallbackListenerRef.current) {
+                    cameraRef.current.remove(fallbackListenerRef.current);
+                    cameraRef.current = null;
                 }
             };
         } catch (err) {
