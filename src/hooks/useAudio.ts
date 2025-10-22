@@ -218,7 +218,7 @@ export function useSpatial(
             cullDistance: opts.cullDistance,
             resumeDistance: opts.resumeDistance,
             enableCulling: opts.enableCulling,
-            enableLevelMeter: (opts as any).enableLevelMeter,
+            enableLevelMeter: opts.enableLevelMeter,
         } as SpatialOptions;
     }, [
         opts?.refDistance,
