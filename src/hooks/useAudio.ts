@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback, useContext, createContext } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useContext, createContext, useMemo } from 'react';
 import * as THREE from 'three';
 import {
     AudioSession,
@@ -206,6 +206,30 @@ export function useSpatial(
 ) {
     const session = useAudioSessionContext();
     const disposerRef = useRef<(() => void) | null>(null);
+    const fallbackListenerRef = useRef<THREE.AudioListener | null>(null);
+
+    const stableOpts = useMemo(() => {
+        if (!opts) return undefined;
+        return {
+            refDistance: opts.refDistance,
+            rolloffFactor: opts.rolloffFactor,
+            distanceModel: opts.distanceModel,
+            mode: opts.mode,
+            cullDistance: opts.cullDistance,
+            resumeDistance: opts.resumeDistance,
+            enableCulling: opts.enableCulling,
+            enableLevelMeter: (opts as any).enableLevelMeter,
+        } as SpatialOptions;
+    }, [
+        opts?.refDistance,
+        opts?.rolloffFactor,
+        opts?.distanceModel,
+        opts?.mode,
+        opts?.cullDistance,
+        opts?.resumeDistance,
+        opts?.enableCulling,
+        (opts as any)?.enableLevelMeter,
+    ]);
 
     useEffect(() => {
         if (!session || !object3DRef.current) {
@@ -213,15 +237,17 @@ export function useSpatial(
         }
 
         let listener: THREE.AudioListener;
-
         if (listenerRef?.current) {
             listener = listenerRef.current;
         } else {
-            listener = new THREE.AudioListener();
+            if (!fallbackListenerRef.current) {
+                fallbackListenerRef.current = new THREE.AudioListener();
+            }
+            listener = fallbackListenerRef.current;
         }
 
         try {
-            const disposer = session.bindSpatial(nodeId, object3DRef.current, listener, opts);
+            const disposer = session.bindSpatial(nodeId, object3DRef.current, listener, stableOpts);
             disposerRef.current = disposer;
 
             return () => {
@@ -233,7 +259,7 @@ export function useSpatial(
         } catch (err) {
             console.error('[useAudio/useSpatial] Failed to bind spatial audio:', err);
         }
-    }, [session, nodeId, object3DRef, listenerRef, opts, ...deps]); // TODO: memoize opts/deps or relax effect triggers to avoid thrashing spatial bindings.
+    }, [session, nodeId, object3DRef, listenerRef, stableOpts, ...deps]);
 }
 
 /**
