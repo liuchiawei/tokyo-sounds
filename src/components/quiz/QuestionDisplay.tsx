@@ -17,22 +17,28 @@ export default function QuestionDisplay(): React.JSX.Element {
   
   if (!currentQuestion) {
     return (
-      <div className="text-white text-center py-8">
+      <div className="text-white text-center py-6">
         <div className="animate-pulse">問題を読み込み中...</div> {/* 質問が利用できない場合のロード中メッセージ - Loading message if question is not available */}
       </div>
     );
   }
   
   return (
-    <div className="mb-4">
+    <div className="mb-3">
       {/* 質問番号とステージ表示 - Question number and stage display */}
-      <div className="text-xs font-medium text-blue-300 mb-2 flex justify-between items-center">
-        <span>質問 {currentQuestionIndex + 1} / {currentQuestions.length}</span>
-        <span className="text-xs bg-blue-900/50 px-1.5 py-0.5 rounded">ステージ {useQuizStore.getState().currentStage}</span>
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-xs font-medium text-slate-400">
+          質問 {currentQuestionIndex + 1} / {currentQuestions.length}
+        </span>
+        <span className="text-xs font-medium bg-slate-700/60 text-slate-300 px-2 py-1 rounded">
+          ステージ {useQuizStore.getState().currentStage}
+        </span>
       </div>
-      <h2 className="text-lg font-semibold text-white bg-gray-800/70 p-4 rounded-xl border border-gray-700 shadow-inner">
-        {currentQuestion.text}
-      </h2>
+      <div className="text-white p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+        <h2 className="text-base font-medium leading-relaxed">
+          {currentQuestion.text}
+        </h2>
+      </div>
     </div>
   );
 }

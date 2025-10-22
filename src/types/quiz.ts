@@ -14,6 +14,8 @@ export interface QuizQuestion {
   text: string;                  // 質問文 - Question text
   options: QuizOption[];         // 選択肢の配列 - Array of options
   location: string;              // 関連する東京の場所 - Related Tokyo location
+  image?: string;                // 関連画像URL - Related image URL
+  interestingFacts?: string;     // 面白い豆知識 - Interesting facts
 }
 
 // クイズステージインターフェース - Quiz stage interface
@@ -42,6 +44,7 @@ export interface QuizGameState {
   completedLocations: string[];  // 完了したロケーションの配列 - Array of completed locations
   currentLocationIndex: number;  // 現在のロケーションインデックス - Current location index in the sequence
   readyForNextLocation: boolean; // 次のロケーションに進む準備ができているか - Whether ready to proceed to the next location
+  showQuestionDetails: boolean;  // 質問詳細を表示するかどうか - Whether to show question details
 }
 
 // クイズゲームのアクションインターフェース - Quiz game actions interface
@@ -56,4 +59,6 @@ export interface QuizGameActions {
   moveCameraToLocation: (location: string) => void; // カメラを指定の場所に移動 - Move camera to a specific location
   switchQuestionSet: (landmarkName: string) => void; // 質問セットを切り替える - Switch question set to a different landmark
   proceedToNextLocation: () => void; // 次のロケーションに進む - Proceed to the next location
+  setShowQuestionDetails: (show: boolean) => void; // 質問詳細表示の設定 - Set question details visibility
+  goToNextQuestion: () => void; // 次の質問に進む - Move to the next question
 }

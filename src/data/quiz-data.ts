@@ -13,6 +13,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-tokyo-q1',
         text: '[東京] 東京都の総人口はおおよそ何人ですか？',
         location: 'tokyo',
+        image: '/images/Tokyo-Tower.png',
+        interestingFacts: '東京都は23区、26市、1郡、4島から構成されており、日本の政治・経済・文化の中心地です。人口密度は非常に高く、世界でも有数の巨大都市です。',
         options: [
           { id: 's1-t1-opt1', text: '約1000万人', isCorrect: false },
           { id: 's1-t1-opt2', text: '約1400万人', isCorrect: true },
@@ -24,6 +26,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-tokyo-q2',
         text: '[東京] 東京都庁舎の高さは約何メートルですか？',
         location: 'tokyo',
+        image: '/images/Tokyo-Tower.png',
+        interestingFacts: '東京都庁舎は1991年に完成し、設計者は丹下健三です。高さ243メートルの2棟の塔から構成され、展望室は1991年に一般公開されました。',
         options: [
           { id: 's1-t2-opt1', text: '180メートル', isCorrect: false },
           { id: 's1-t2-opt2', text: '200メートル', isCorrect: false },
@@ -35,6 +39,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-tokyo-q3',
         text: '[東京] 東京都の面積は約何平方キロメートルですか？',
         location: 'tokyo',
+        image: '/images/Tokyo-Tower.png',
+        interestingFacts: '東京都の面積は約2,194平方キロメートルで、これは日本の総面積の約0.6%に相当します。東京都は23区のほか、多摩地域と島嶼部から構成されています。',
         options: [
           { id: 's1-t3-opt1', text: '約1,700平方キロメートル', isCorrect: false },
           { id: 's1-t3-opt2', text: '約2,100平方キロメートル', isCorrect: true },
@@ -48,6 +54,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-shibuya-q1',
         text: '[渋谷] 渋谷スクランブル交差点の1日に通過する歩行者数はどれくらいですか？',
         location: 'shibuya',
+        image: '/images/Shibuya.png',
+        interestingFacts: '渋谷スクランブル交差点は「世界一歩行者が多い交差点」としてギネス記録にも認定されています。1日に約300万人もの人々が通過するとされており、東京の象徴的な場所の一つです。',
         options: [
           { id: 's1-s1-opt1', text: '約100万人', isCorrect: false },
           { id: 's1-s1-opt2', text: '約200万人', isCorrect: false },
@@ -59,6 +67,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-shibuya-q2',
         text: '[渋谷] 忠犬ハチ公像はどの駅の前におかれていますか？',
         location: 'shibuya',
+        image: '/images/Shibuya.png',
+        interestingFacts: '忠犬ハチ公は、東大の上野英三郎教授が飼っていた秋田犬で、主人の帰りを渋谷駅で待ち続けた忠義の物語で知られています。1934年に銅像が設置され、現在も多くの観光客に親しまれています。',
         options: [
           { id: 's1-s2-opt1', text: '新宿駅', isCorrect: false },
           { id: 's1-s2-opt2', text: '原宿駅', isCorrect: false },
@@ -70,6 +80,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-shibuya-q3',
         text: '[渋谷] SHIBUYA SCRAMBLE SQUAREの開業年はいつですか？',
         location: 'shibuya',
+        image: '/images/Shibuya.png',
+        interestingFacts: 'SHIBUYA SCRAMBLE SQUAREは2019年11月に開業した複合施設で、東急電鉄と東京建物が共同開発しました。屋上には公開スペース「SHIBUYA SKY」があり、東京のパノラマビューを楽しむことができます。',
         options: [
           { id: 's1-s3-opt1', text: '2018年', isCorrect: false },
           { id: 's1-s3-opt2', text: '2019年', isCorrect: true },
@@ -83,6 +95,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-shinjuku-q1',
         text: '[新宿] 新宿駅は世界で最も利用者数が多い駅の一つですが、1日に平均何人が利用しますか？',
         location: 'shinjuku',
+        image: '/images/Shinjuku City.png',
+        interestingFacts: '新宿駅はJR線、京王線、小田急線、都営地下鉄、東京メトロが乗り入れる日本最大のターミナルで、1日に約350万人もの乗降客がいます。世界でも有数の利用者数を誇ります。',
         options: [
           { id: 's1-sk1-opt1', text: '約100万人', isCorrect: false },
           { id: 's1-sk1-opt2', text: '約200万人', isCorrect: false },
@@ -94,6 +108,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-shinjuku-q2',
         text: '[新宿] 東京都内で最も高い建築物である東京都庁が立地する区はどこですか？',
         location: 'shinjuku',
+        image: '/images/Shinjuku City.png',
+        interestingFacts: '東京都庁は新宿区西新宿に位置し、243mの高さを持つ建築物は東京都内でも最も高い建物です。この地域は新宿副都心として開発され、多くの高層ビルが立ち並んでいます。',
         options: [
           { id: 's1-sk2-opt1', text: '千代田区', isCorrect: false },
           { id: 's1-sk2-opt2', text: '港区', isCorrect: false },
@@ -105,6 +121,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-shinjuku-q3',
         text: '[新宿] 新宿に位置する日本最大級の高層複合商業施設「新宿ミライナタワー」の開業年はいつですか？',
         location: 'shinjuku',
+        image: '/images/Shinjuku City.png',
+        interestingFacts: '新宿ミライナタワーは2012年に開業した超高層複合施設で、高さ230mの「東京オペラシティタワー」、203mの「新宿センタービル」、195mの「住友不動産新宿タワー」などから構成されています。',
         options: [
           { id: 's1-sk3-opt1', text: '2010年', isCorrect: false },
           { id: 's1-sk3-opt2', text: '2011年', isCorrect: false },
@@ -118,6 +136,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-asakusa-q1',
         text: '[浅草] 浅草寺の正式名称は何ですか？',
         location: 'asakusa',
+        image: '/images/asakusa.png',
+        interestingFacts: '浅草寺の正式名称は「金龍山浅草寺」で、628年に建立された東京都最古の寺院です。観音菩薩を本尊としており、江戸時代には多くの人々の信仰を集めていました。',
         options: [
           { id: 's1-a1-opt1', text: '観音院浅草寺', isCorrect: false },
           { id: 's1-a1-opt2', text: '金龍山浅草寺', isCorrect: true },
@@ -129,6 +149,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-asakusa-q2',
         text: '[浅草] 浅草寺の仁王門の正式名称は何ですか？',
         location: 'asakusa',
+        image: '/images/asakusa.png',
+        interestingFacts: '雷門は浅草寺の総門で、正式には「風雷神門」と呼ばれています。現在の門は1960年に再建されたもので、以前の門は1865年の火災で消失しました。門の上には巨大な赤い提灯が有名です。',
         options: [
           { id: 's1-a2-opt1', text: '風神門', isCorrect: false },
           { id: 's1-a2-opt2', text: '雷門', isCorrect: true },
@@ -140,6 +162,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage1-asakusa-q3',
         text: '[浅草] 浅草寺の周辺にある伝統的な参道の通り名は何ですか？',
         location: 'asakusa',
+        image: '/images/asakusa.png',
+        interestingFacts: '仲見世通は浅草寺への参道として発展した商店街で、江戸時代から続く伝統的な通りです。浅草寺へ向かう参拝者で賑わい、観光客にも人気のショッピングエリアです。',
         options: [
           { id: 's1-a3-opt1', text: '仲見世通', isCorrect: true },
           { id: 's1-a3-opt2', text: '雷門通り', isCorrect: false },
@@ -155,6 +179,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage2-tokyo-q1',
         text: '[東京] 東京都23区の面積が最も広い区はどこですか？',
         location: 'tokyo',
+        image: '/images/Tokyo-Tower.png',
+        interestingFacts: '世田谷区は東京都23区で最も面積が広く、約48平方キロメートルあります。多摩川沿いの自然環境に恵まれ、多くの住宅地が広がっています。',
         options: [
           { id: 's2-t1-opt1', text: '杉並区', isCorrect: false },
           { id: 's2-t1-opt2', text: '世田谷区', isCorrect: true },
@@ -190,6 +216,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage2-shibuya-q1',
         text: '[渋谷] 渋谷区が制定した年はいつですか？',
         location: 'shibuya',
+        image: '/images/Shibuya.png',
+        interestingFacts: '渋谷区は1878年に東京府の行政区画整理により設置され、当初は荏原郡渋谷村でした。1932年に東京市に編入され、後に特別区制が施行されて現在の渋谷区となりました。',
         options: [
           { id: 's2-s1-opt1', text: '1878年', isCorrect: true },
           { id: 's2-s1-opt2', text: '1889年', isCorrect: false },
@@ -367,6 +395,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage3-shinjuku-q1',
         text: '[新宿] 1991年に完成した東京都庁舎の設計者として有名なのは谁ですか？',
         location: 'shinjuku',
+        image: '/images/Shinjuku City.png',
+        interestingFacts: '東京都庁舎は建築家・丹下健三の設計で1991年に完成しました。後期高層建築の代表作とされ、設計にはメタボリズム建築の理念が反映されています。高さ243mの塔が二つ並ぶ特徴的な外観が印象的です。',
         options: [
           { id: 's3-sk1-opt1', text: '安藤忠雄', isCorrect: false },
           { id: 's3-sk1-opt2', text: '菊竹清訓', isCorrect: false },
@@ -544,6 +574,8 @@ export const stageBasedQuestions: Record<number, Record<string, QuizQuestion[]>>
         id: 'stage4-asakusa-q1',
         text: '[浅草] 浅草寺の創建に関わった三兄弟の名前は？',
         location: 'asakusa',
+        image: '/images/asakusa.png',
+        interestingFacts: '浅草寺の創建伝説によると、628年に檜前浜成、檜前竹成、檜前田来の三兄弟が隅田川で一対の観音像を発見しました。この像をもとに浅草寺が建立されたとされています。',
         options: [
           { id: 's4-a1-opt1', text: '陳、趙、張', isCorrect: false },
           { id: 's4-a1-opt2', text: '本田、平、寺島', isCorrect: false },

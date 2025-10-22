@@ -22,6 +22,7 @@ const initialQuizState: Omit<QuizGameState, keyof QuizGameActions> = {
   completedLocations: [],             // 完了したロケーションの配列 - Array of completed locations
   currentLocationIndex: 0,            // 現在のロケーションインデックス - Current location index in the sequence
   readyForNextLocation: false,        // 次のロケーションに進む準備ができているか - Whether ready to proceed to the next location
+  showQuestionDetails: false,         // 質問詳細を表示するかどうか - Whether to show question details
 };
 
 // クイズストアの定義 - Define the quiz store
@@ -134,60 +135,14 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       answeredQuestions.push(questionId);
     }
 
-    // 質問がすべて終わったら次のロケーションへ、そうでなければ次の質問 - 
-    // Move to next location if all questions at current location are answered, otherwise go to next question
+    // Show question details after the feedback delay (preserving the original 1.5s feedback)
     setTimeout(() => {
       set({ 
         answeredQuestions,
-        showFeedback: false
+        showFeedback: false,  // Hide the brief feedback
+        showQuestionDetails: true  // Show question details instead of continuing automatically
       });
-
-      if (get().currentQuestionIndex < currentQuestions.length - 1) {
-        // 次の質問へ進む - Go to next question
-        const nextIndex = get().currentQuestionIndex + 1;
-        set({ currentQuestionIndex: nextIndex });
-        
-        // 同じ場所内の次の質問に進むときはカメラを移動しない - Do not move camera when progressing to the next question within the same location
-        // 場所間の移行時にのみカメラ移動が発生します - Camera movement only happens when transitioning between locations
-      } else {
-        // 現在のロケーションの質問がすべて完了 - All questions at current location completed
-        // すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
-        const locationSequence = ['tokyo', 'shibuya', 'shinjuku', 'asakusa'];
-        
-        // 現在の場所を完了としてマーク - Mark current location as completed
-        const currentLocation = locationSequence[currentLocationIndex];
-        const newCompletedLocations = [...completedLocations];
-        if (!newCompletedLocations.includes(currentLocation)) {
-          newCompletedLocations.push(currentLocation);
-        }
-
-        // 訪問する場所がまだあるか確認 - Check if there are more locations to visit
-        if (currentLocationIndex < locationSequence.length - 1) {
-          // 次の場所に進む準備ができていることを示すフラグを設定 - Set the flag to indicate user is ready to proceed to next location
-          set({
-            completedLocations: newCompletedLocations,
-            readyForNextLocation: true
-          });
-        } else {
-          // 現在のステージのすべての場所が完了 - All locations completed for current stage
-          // さらにステージがあるか確認 - Check if there are more stages
-          if (currentStage < 5) {
-            // ユーザーは現在のステージのすべての場所を完了しましたが、さらにステージがあります - User has completed all locations in current stage, but there are more stages
-            // ここにステージ進行を実装する必要があります - We would need to implement stage progression here
-            set({
-              completedLocations: newCompletedLocations,
-              readyForNextLocation: true
-            });
-          } else {
-            // すべてのステージと場所が完了 - Game complete
-            set({ 
-              gameCompleted: true,
-              completedLocations: newCompletedLocations
-            });
-          }
-        }
-      }
-    }, 1500); // 1.5秒後に次へ進む - Move to next after 1.5 seconds
+    }, 1500); // 1.5秒後に質問詳細を表示 - Show question details after 1.5 seconds (original delay)
   },
 
   // 次の質問へ進む - Move to next question
@@ -228,6 +183,9 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
   
   // フィードバック表示の設定 - Set feedback visibility
   setShowFeedback: (show: boolean) => set({ showFeedback: show }),
+
+  // 質問詳細表示の設定 - Set question details visibility
+  setShowQuestionDetails: (show: boolean) => set({ showQuestionDetails: show }),
 
   // 現在の質問インデックスを設定 - Set current question index
   setCurrentQuestionIndex: (index: number) => set({ currentQuestionIndex: index }),
@@ -289,6 +247,53 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
           gameCompleted: true,
           readyForNextLocation: false
         });
+      }
+    }
+  },
+
+  // 次の質問に進む（質問詳細表示後に呼び出される） - Move to the next question (called after viewing question details)
+  goToNextQuestion: () => {
+    const { currentQuestions, currentQuestionIndex, currentLocationIndex } = get();
+    
+    // 閉じる質問詳細をリセット - Reset the question details view
+    set({ showQuestionDetails: false });
+    
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+      // 次の質問へ進む - Go to next question
+      const nextIndex = currentQuestionIndex + 1;
+      set({ 
+        currentQuestionIndex: nextIndex,
+        selectedAnswer: null,
+        feedback: null
+      });
+      
+      // 同じ場所内の次の質問に進むときはカメラを移動しない - Do not move camera when progressing to the next question within the same location
+      // 場所間の移行時にのみカメラ移動が発生します - Camera movement only happens when transitioning between locations
+    } else {
+      // 現在のロケーションの質問がすべて完了 - All questions at current location completed
+      // すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
+      const locationSequence = ['tokyo', 'shibuya', 'shinjuku', 'asakusa'];
+      
+      // 訪問する場所がまだあるか確認 - Check if there are more locations to visit
+      if (currentLocationIndex < locationSequence.length - 1) {
+        // 次の場所に進む準備ができていることを示すフラグを設定 - Set the flag to indicate user is ready to proceed to next location
+        set({
+          readyForNextLocation: true
+        });
+      } else {
+        // 現在のステージのすべての場所が完了 - All locations completed for current stage
+        // さらにステージがあるか確認 - Check if there are more stages
+        if (get().currentStage < 5) {
+          // ユーザーは現在のステージのすべての場所を完了しましたが、さらにステージがあります - User has completed all locations in current stage, but there are more stages
+          set({
+            readyForNextLocation: true
+          });
+        } else {
+          // すべてのステージと場所が完了 - Game complete
+          set({ 
+            gameCompleted: true
+          });
+        }
       }
     }
   },

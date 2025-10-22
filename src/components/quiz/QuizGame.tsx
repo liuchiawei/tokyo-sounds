@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import { useQuizStore } from '@/stores/quiz-store';
 import QuestionDisplay from './QuestionDisplay';
 import AnswerOption from './AnswerOption';
+import QuestionDetails from './QuestionDetails';
 import { CheckCircle, ArrowRightCircle } from 'lucide-react';
 
 /**
@@ -12,14 +13,14 @@ import { CheckCircle, ArrowRightCircle } from 'lucide-react';
  * @returns {JSX.Element}
  */
 export default function QuizGame(): React.JSX.Element {
-  const { gameStarted, gameCompleted, currentStage, currentQuestions, currentQuestionIndex, showFeedback, score, readyForNextLocation, proceedToNextLocation, answerQuestion, currentLocationIndex } = useQuizStore();
+  const { gameStarted, gameCompleted, currentStage, currentQuestions, currentQuestionIndex, showFeedback, score, readyForNextLocation, proceedToNextLocation, answerQuestion, currentLocationIndex, showQuestionDetails, selectedAnswer } = useQuizStore();
 
   // キーボードイベントを処理 - Handle keyboard events
   useEffect(() => {
     // 回答選択用のキーボードイベントリスナーを設定 - Set up keyboard event listener for answer selection
     const handleKeyDown = (e: KeyboardEvent) => {
       // 回答選択は1-4キーで行う - Answer selection using keys 1-4
-      if (e.key >= '1' && e.key <= '4' && !showFeedback) {
+      if (e.key >= '1' && e.key <= '4' && !showFeedback && !showQuestionDetails) {
         const optionIndex = parseInt(e.key) - 1; // Convert to 0-based index
         const currentQuestion = currentQuestions[currentQuestionIndex];
         if (currentQuestion && optionIndex < currentQuestion.options.length) {
@@ -35,7 +36,7 @@ export default function QuizGame(): React.JSX.Element {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [currentQuestionIndex, currentQuestions, showFeedback, answerQuestion]);
+  }, [currentQuestionIndex, currentQuestions, showFeedback, showQuestionDetails, answerQuestion]);
 
   // ゲームがまだ開始されていない場合、説明メッセージを表示 - If the game hasn't started yet, show an instructional message
   if (!gameStarted) {
@@ -140,6 +141,15 @@ export default function QuizGame(): React.JSX.Element {
         </div>
       </div>
     );
+  }
+
+  // Show question details if showQuestionDetails is true
+  if (showQuestionDetails && selectedAnswer) {
+    const currentQuestion = currentQuestions[currentQuestionIndex];
+    
+    if (currentQuestion) {
+      return <QuestionDetails question={currentQuestion} selectedOptionId={selectedAnswer} />;
+    }
   }
 
   // それ以外の場合は、現在の質問と回答オプションを表示 - Otherwise, show the current question and answer options
