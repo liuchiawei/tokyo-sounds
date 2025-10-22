@@ -1101,7 +1101,7 @@ class AudioSessionImpl implements AudioSession {
 
         const preloadedBuffers = new Map<string, AudioBuffer>();
         const assetDurations = new Map<string, number>();
-        const maxBufferSizeMB = 50;
+        const maxBufferSizeMB = 200;
         
         for (const asset of spec.assets) {
             try {
@@ -1139,7 +1139,6 @@ class AudioSessionImpl implements AudioSession {
                     while (totalCacheSize + decodedBytes > this.maxCacheSize && sortedCache.length > 0) {
                         const [key, oldest] = sortedCache.shift()!;
                         this.bufferCache.delete(key);
-                        preloadedBuffers.delete(key);
                         totalCacheSize -= oldest.size;
 
                         if (DEBUG_AUDIO) {
