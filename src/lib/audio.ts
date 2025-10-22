@@ -1402,7 +1402,7 @@ class AudioSessionImpl implements AudioSession {
             resumeDistance,
             enableCulling,
             enableLevelMeter,
-            prevGain: (positional.gain && (positional.gain as any).gain?.value) || 1,
+            prevGain: ((positional.gain as any)?.gain?.value) ?? 1,
             fadeMs,
             cullPending: false,
         };
