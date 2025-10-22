@@ -260,6 +260,24 @@ export function useSpatial(
             console.error('[useAudio/useSpatial] Failed to bind spatial audio:', err);
         }
     }, [session, nodeId, object3DRef, listenerRef, stableOpts, ...deps]);
+
+    useEffect(() => {
+        return () => {
+            if (fallbackListenerRef.current) {
+                const listener = fallbackListenerRef.current;
+                if (listener.context && listener.context.state !== 'closed') {
+                    try {
+                        if ((listener as any).gain) {
+                            (listener as any).gain.disconnect();
+                        }
+                    } catch (err) {
+                        console.error('[useAudio/useSpatial] Failed to disconnect fallback listener:', err);
+                    }
+                }
+                fallbackListenerRef.current = null;
+            }
+        };
+    }, []);
 }
 
 /**
