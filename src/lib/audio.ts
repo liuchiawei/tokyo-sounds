@@ -2,7 +2,7 @@ import * as Tone from 'tone';
 import * as THREE from 'three';
 
 // define debug flag
-const DEBUG_AUDIO = typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
+const DEBUG_AUDIO = false; // Set to true to enable debug logging
 
 export type NodeType = 'Player' | 'Filter' | 'Reverb' | 'Gain';
 export type AutomationMode = 'linearRamp' | 'expRamp' | 'points' | 'lfoRef';
@@ -114,6 +114,11 @@ export interface SpatialOptions {
     rolloffFactor?: number;
     distanceModel?: 'linear' | 'inverse' | 'exponential';
     mode?: SpatialBindingMode; // Default: 'live'
+    cullDistance?: number;
+    resumeDistance?: number;
+    enableCulling?: boolean;
+    cullFadeMs?: number;
+    enableLevelMeter?: boolean; // Default: false; create AnalyserNode only if needed
 }
 
 export interface SpatialBindingInfo {
@@ -123,6 +128,20 @@ export interface SpatialBindingInfo {
     object3D: THREE.Object3D;
     committedBuffer?: AudioBuffer;
     mediaStreamSource?: MediaStreamAudioSourceNode;
+    pausedAt?: number;
+    startedAt?: number;
+    startOffset: number;
+    virtualTime: number;
+    isCulled: boolean;
+    analyser?: AnalyserNode;
+    lastDistance: number;
+    cullDistance: number;
+    resumeDistance: number;
+    enableCulling: boolean;
+    enableLevelMeter: boolean;
+    prevGain?: number;
+    fadeMs: number;
+    cullPending?: boolean;
 }
 
 export interface NodeSummary {
@@ -141,6 +160,13 @@ export interface NodeHandle {
     type: NodeType;
     raw(): any;
     set(params: Record<string, any>, opts?: { record?: boolean }): void;
+}
+
+export interface SpatialStats {
+    totalSources: number;
+    activeSources: number;
+    culledSources: number;
+    estimatedMemoryMB: number;
 }
 
 export interface AudioSession {
@@ -163,6 +189,11 @@ export interface AudioSession {
     unfreezeSpatialBinding(nodeId: string): void;
     setPreview(nodeId: string, enabled: boolean): void;
     isPreviewEnabled(nodeId: string): boolean;
+    updateSpatialCulling(cameraPosition: THREE.Vector3): void;
+    getAudioLevel(nodeId: string): number;
+    getSpatialStats(): SpatialStats;
+    clearCache(): void;
+    disposeUnusedBuffers(maxAgeSeconds?: number): void;
     undo(): boolean;
     redo(): boolean;
     dispose(): void;
@@ -511,14 +542,27 @@ async function buildRuntimeGraph(spec: GraphSpec, context: BaseAudioContext): Pr
         if (nodeType === 'Player') {
             const assetDef = spec.assets.find(a => a.id === nodeDef.assetId);
             if (assetDef) {
-                instance = new Tone.Player(assetDef.src);
-                try {
-                    await instance.loaded;
-                    if (DEBUG_AUDIO) {
-                        console.log(`Player ${nodeDef.id} loaded successfully`);
+                const predecoded = assetMap.get(assetDef.id);
+                if (predecoded) {
+                    instance = new Tone.Player(predecoded);
+                    try {
+                        await instance.loaded;
+                        if (DEBUG_AUDIO) {
+                            console.log(`Player ${nodeDef.id} loaded from pre-decoded buffer (${predecoded.duration.toFixed(2)}s)`);
+                        }
+                    } catch (err) {
+                        console.error(`Failed to init player ${nodeDef.id} from predecoded buffer:`, err);
                     }
-                } catch (err) {
-                    console.error(`Failed to load player ${nodeDef.id}:`, err);
+                } else {
+                    instance = new Tone.Player(assetDef.src);
+                    try {
+                        await instance.loaded;
+                        if (DEBUG_AUDIO) {
+                            console.log(`Player ${nodeDef.id} loaded successfully (direct URL)`);
+                        }
+                    } catch (err) {
+                        console.error(`Failed to load player ${nodeDef.id}:`, err);
+                    }
                 }
             } else {
                 instance = new Tone.Player();
@@ -779,12 +823,14 @@ class AudioSessionImpl implements AudioSession {
     private context: BaseAudioContext;
     private cachedHash: string | null = null;
     private dirty = true;
-    private cache: { specHash: string; result: RenderResult } | null = null;
+    private cache: { specHash: string; result: RenderResult; timestamp: number } | null = null;
     private eventHandlers: Map<AudioSessionEvent, Set<(...args: any[]) => void>> = new Map();
     private past: ChangeRecord[] = [];
     private future: ChangeRecord[] = [];
     private spatialBindings: Map<string, SpatialBindingInfo> = new Map();
     private previewNodes: Set<string> = new Set();
+    private bufferCache: Map<string, { buffer: AudioBuffer; timestamp: number; size: number }> = new Map();
+    private maxCacheSize = 200 * 1024 * 1024; // 200MB max cache
 
     constructor(spec: GraphSpec, registry: Map<string, RuntimeNode>, context: BaseAudioContext) {
         this.spec = spec;
@@ -1055,16 +1101,63 @@ class AudioSessionImpl implements AudioSession {
 
         const preloadedBuffers = new Map<string, AudioBuffer>();
         const assetDurations = new Map<string, number>();
+        const maxBufferSizeMB = 200;
+        
         for (const asset of spec.assets) {
             try {
                 const response = await fetch(asset.src);
-                // TODO: bail out early if !response.ok to avoid decoding empty/HTML responses.
+                if (!response.ok) {
+                    console.error(`Failed to fetch asset ${asset.id}: ${response.status} ${response.statusText}`);
+                    continue;
+                }
+                
                 const arrayBuffer = await response.arrayBuffer();
+
                 const audioBuffer = await this.context.decodeAudioData(arrayBuffer.slice(0));
+
+                // Validate against decoded buffer size (Float32 samples = 4 bytes per sample)
+                const decodedBytes = audioBuffer.length * audioBuffer.numberOfChannels * 4;
+                const decodedSizeMB = decodedBytes / (1024 * 1024);
+                if (decodedSizeMB > maxBufferSizeMB) {
+                    console.warn(`Asset ${asset.id} exceeds max buffer size after decoding (${decodedSizeMB.toFixed(1)}MB > ${maxBufferSizeMB}MB), skipping`);
+                    continue;
+                }
+
+                let totalCacheSize = 0;
+                for (const [_, cached] of this.bufferCache) {
+                    totalCacheSize += cached.size;
+                }
+
+                if (decodedBytes > this.maxCacheSize) {
+                    console.warn(`Asset ${asset.id} (${decodedSizeMB.toFixed(1)}MB) is larger than max cache size (${(this.maxCacheSize / (1024 * 1024)).toFixed(1)}MB), skipping`);
+                    continue;
+                }
+
+                if (totalCacheSize + decodedBytes > this.maxCacheSize) {
+                    const sortedCache = Array.from(this.bufferCache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+                    while (totalCacheSize + decodedBytes > this.maxCacheSize && sortedCache.length > 0) {
+                        const [key, oldest] = sortedCache.shift()!;
+                        this.bufferCache.delete(key);
+                        totalCacheSize -= oldest.size;
+
+                        if (DEBUG_AUDIO) {
+                            console.log(`[commit] Evicted old buffer ${key} to free ${(oldest.size / (1024 * 1024)).toFixed(2)}MB`);
+                        }
+                    }
+                }
+
                 preloadedBuffers.set(asset.id, audioBuffer);
                 assetDurations.set(asset.id, audioBuffer.duration);
+
+                this.bufferCache.set(asset.id, {
+                    buffer: audioBuffer,
+                    timestamp: Date.now(),
+                    size: decodedBytes,
+                });
+
                 if (DEBUG_AUDIO) {
-                    console.log(`Pre-loaded asset ${asset.id} (${audioBuffer.duration}s, ${audioBuffer.numberOfChannels}ch)`);
+                    console.log(`Pre-loaded asset ${asset.id} (${audioBuffer.duration}s, ${audioBuffer.numberOfChannels}ch, ${(decodedBytes / (1024 * 1024)).toFixed(2)}MB)`);
                 }
             } catch (err) {
                 console.error(`Failed to pre-load asset ${asset.id}:`, err);
@@ -1148,7 +1241,7 @@ class AudioSessionImpl implements AudioSession {
             sampleRate: buffer.get()!.sampleRate,
         };
 
-        this.cache = { specHash, result };
+        this.cache = { specHash, result, timestamp: Date.now() };
 
         const elapsed = Date.now() - startTime;
 
@@ -1183,17 +1276,24 @@ class AudioSessionImpl implements AudioSession {
         const mode = opts.mode || 'live';
         const positional = new THREE.PositionalAudio(listener);
 
-        if (opts.refDistance !== undefined) {
-            positional.setRefDistance(opts.refDistance);
-        }
-        if (opts.rolloffFactor !== undefined) {
-            positional.setRolloffFactor(opts.rolloffFactor);
-        }
+        const refDistance = opts.refDistance !== undefined ? opts.refDistance : 1;
+        const rolloffFactor = opts.rolloffFactor !== undefined ? opts.rolloffFactor : 1;
+        
+        positional.setRefDistance(refDistance);
+        positional.setRolloffFactor(rolloffFactor);
+        
         if (opts.distanceModel !== undefined) {
             positional.setDistanceModel(opts.distanceModel);
         }
 
+        const enableCulling = opts.enableCulling !== undefined ? opts.enableCulling : true;
+        const cullDistance = opts.cullDistance !== undefined ? opts.cullDistance : 500;
+        const resumeDistance = opts.resumeDistance !== undefined ? opts.resumeDistance : cullDistance * 0.8;
+        const fadeMs = opts.cullFadeMs !== undefined ? Math.max(0, opts.cullFadeMs) : 30;
+        const enableLevelMeter = opts.enableLevelMeter !== undefined ? opts.enableLevelMeter : false;
+
         let mediaStreamSource: MediaStreamAudioSourceNode | null = null;
+        let analyser: AnalyserNode | undefined = undefined;
 
         if (mode === 'live') {
             const toneContext = Tone.getContext().rawContext;
@@ -1276,12 +1376,42 @@ class AudioSessionImpl implements AudioSession {
 
         object3D.add(positional);
 
+        if (opts.enableLevelMeter) {
+            try {
+                analyser = listener.context.createAnalyser();
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.8;
+                
+                if (positional.gain) {
+                    positional.gain.connect(analyser);
+                }
+                
+                if (DEBUG_AUDIO) {
+                    console.log(`[lib/audio.ts/bindSpatial] Created AnalyserNode for ${nodeId}`);
+                }
+            } catch (err) {
+                if (DEBUG_AUDIO) console.warn(`[lib/audio.ts/bindSpatial] Failed to create AnalyserNode:`, err);
+            }
+        }
+
         const bindingInfo: SpatialBindingInfo = {
             nodeId,
             mode,
             audio: positional,
             object3D,
             mediaStreamSource: mediaStreamSource || undefined,
+            startOffset: 0,
+            virtualTime: 0,
+            isCulled: false,
+            analyser,
+            lastDistance: 0,
+            cullDistance,
+            resumeDistance,
+            enableCulling,
+            enableLevelMeter,
+            prevGain: ((positional.gain as any)?.gain?.value) ?? 1,
+            fadeMs,
+            cullPending: false,
         };
 
         this.spatialBindings.set(nodeId, bindingInfo);
@@ -1293,6 +1423,14 @@ class AudioSessionImpl implements AudioSession {
                     node.exportBus.disconnect();
                 } catch (err) {
                     if (DEBUG_AUDIO) console.warn(`[lib/audio.ts/bindSpatial] Error disconnecting MediaStream bridge:`, err);
+                }
+            }
+
+            if (analyser) {
+                try {
+                    analyser.disconnect();
+                } catch (err) {
+                    if (DEBUG_AUDIO) console.warn(`[lib/audio.ts/bindSpatial] Error disconnecting AnalyserNode:`, err);
                 }
             }
 
@@ -1321,6 +1459,22 @@ class AudioSessionImpl implements AudioSession {
         return this.spatialBindings.get(nodeId)?.mode;
     }
 
+    private disposeNodeChain(nodeId: string): void {
+        const node = this.registry.get(nodeId);
+        if (!node) return;
+
+        try {
+            if (node.exportBus) {
+                node.exportBus.disconnect();
+                if (DEBUG_AUDIO) {
+                    console.log(`[Freeze] Disconnected exportBus for node: ${nodeId}`);
+                }
+            }
+        } catch (err) {
+            if (DEBUG_AUDIO) console.warn(`[Freeze] Failed to disconnect exportBus for ${nodeId}:`, err);
+        }
+    }
+
     freezeSpatialBinding(nodeId: string, result: RenderResult): void {
         const binding = this.spatialBindings.get(nodeId);
         if (!binding) {
@@ -1328,18 +1482,37 @@ class AudioSessionImpl implements AudioSession {
         }
 
         if (binding.mode === 'live') {
-            binding.audio.disconnect();
+            try {
+                if (binding.mediaStreamSource) {
+                    binding.mediaStreamSource.disconnect();
+                    binding.mediaStreamSource = undefined;
+                }
+                binding.audio.disconnect();
+                
+                this.disposeNodeChain(nodeId);
+            } catch (err) {
+                if (DEBUG_AUDIO) console.log(`[lib/audio.ts/freezeSpatialBinding] Disconnect failed:`, err);
+            }
+        } else if (binding.mode === 'committed' && binding.audio.isPlaying) {
+            binding.audio.stop();
         }
 
         binding.audio.setBuffer(result.buffer);
         binding.audio.setLoop(true);
+        
+        binding.audio.connect();
         binding.audio.play();
+
+        binding.startedAt = Date.now();
+        binding.startOffset = 0;
+        binding.virtualTime = 0;
 
         binding.mode = 'committed';
         binding.committedBuffer = result.buffer;
 
         if (DEBUG_AUDIO) {
-            console.log(`[lib/audio.ts/freezeSpatialBinding] ${nodeId} switched to committed mode (${result.duration.toFixed(2)}s buffer)`);
+            console.log(`[Freeze] ✅ ${nodeId} switched to COMMITTED mode (${result.duration.toFixed(2)}s buffer)`);
+            console.log(`[Freeze] Culling config: cullDist=${binding.cullDistance}, resumeDist=${binding.resumeDistance}, enabled=${binding.enableCulling}`);
         }
 
         this.emit('spatialModeChanged', { nodeId, mode: 'committed' });
@@ -1365,24 +1538,18 @@ class AudioSessionImpl implements AudioSession {
             const toneContext = Tone.getContext().rawContext;
             const threeContext = binding.audio.context;
 
-            // Validate contexts are AudioContext (not OfflineAudioContext)
             if (toneContext instanceof OfflineAudioContext || threeContext instanceof OfflineAudioContext) {
                 throw new Error('MediaStream bridge requires AudioContext, not OfflineAudioContext');
             }
 
-            // Create a MediaStreamDestination in Tone.js context
             const destination = (toneContext as AudioContext).createMediaStreamDestination();
 
-            // Connect Tone.js export bus to MediaStreamDestination
             node.exportBus.connect(destination as unknown as AudioNode);
 
-            // Create MediaStreamSource in THREE.js context from the stream
             const mediaStreamSource = (threeContext as AudioContext).createMediaStreamSource(destination.stream);
 
-            // Connect to PositionalAudio using the correct method
             binding.audio.setNodeSource(mediaStreamSource as any);
 
-            // Update binding info
             binding.mediaStreamSource = mediaStreamSource;
             binding.mode = 'live';
             binding.committedBuffer = undefined;
@@ -1431,6 +1598,237 @@ class AudioSessionImpl implements AudioSession {
 
     isPreviewEnabled(nodeId: string): boolean {
         return this.previewNodes.has(nodeId);
+    }
+
+    updateSpatialCulling(cameraPosition: THREE.Vector3): void {
+        const now = Date.now();
+        
+        for (const [nodeId, binding] of this.spatialBindings) {
+            if (!binding.enableCulling) continue;
+            
+            if (binding.mode === 'live') {
+                binding.lastDistance = cameraPosition.distanceTo(binding.object3D.position);
+                continue;
+            }
+
+            const pos = binding.object3D.position;
+            const dx = cameraPosition.x - pos.x;
+            const dy = cameraPosition.y - pos.y;
+            const dz = cameraPosition.z - pos.z;
+            const distanceSq = dx * dx + dy * dy + dz * dz;
+            const cullDistanceSq = binding.cullDistance * binding.cullDistance;
+            const resumeDistanceSq = binding.resumeDistance * binding.resumeDistance;
+            const shouldBeCulled = distanceSq > cullDistanceSq;
+            const shouldBeActive = distanceSq < resumeDistanceSq;
+            const distance = Math.sqrt(distanceSq);
+            binding.lastDistance = distance;
+
+            if (!binding.isCulled && shouldBeCulled && !binding.cullPending) {
+                try {
+                    binding.cullPending = true;
+                    const gNode: any = (binding.audio as any).gain;
+                    const ctx: any = (binding.audio as any).context;
+                    if (gNode?.gain && ctx?.currentTime !== undefined) {
+                        const param: AudioParam = gNode.gain;
+                        const previous = param.value;
+                        binding.prevGain = previous;
+                        const t = ctx.currentTime;
+                        const dt = (binding.fadeMs || 0) / 1000;
+                        try { param.setValueAtTime(previous, t); } catch {}
+                        try { param.linearRampToValueAtTime(0, t + dt); } catch {}
+                    }
+                    if (binding.startedAt !== undefined) {
+                        const elapsed = (now - binding.startedAt) / 1000;
+                        binding.virtualTime = binding.startOffset + elapsed;
+                        
+                        if (binding.committedBuffer) {
+                            binding.virtualTime = binding.virtualTime % binding.committedBuffer.duration;
+                        }
+                    }
+                    const finalize = () => {
+                        try { if ((binding.audio as any).isPlaying) binding.audio.stop(); } catch {}
+                        try { binding.audio.disconnect(); } catch {}
+                        binding.pausedAt = now;
+                        binding.isCulled = true;
+                        binding.cullPending = false;
+                        if (DEBUG_AUDIO) {
+                            console.log(`[Culling] 🔴 CULLED ${nodeId} at distance ${distance.toFixed(2)}, saved position: ${binding.virtualTime.toFixed(2)}s`);
+                        }
+                    };
+                    const delay = Math.max(0, binding.fadeMs || 0);
+                    if (delay > 0) {
+                        setTimeout(finalize, delay);
+                    } else {
+                        finalize();
+                    }
+                } catch (err) {
+                    binding.cullPending = false;
+                    if (DEBUG_AUDIO) console.warn(`[Culling] Failed to disconnect ${nodeId}:`, err);
+                }
+            } 
+            else if (binding.isCulled && shouldBeActive && !binding.cullPending) {
+                const buffer = binding.committedBuffer;
+                if (buffer && binding.pausedAt !== undefined) {
+                    const elapsedTime = (now - binding.pausedAt) / 1000;
+                    binding.virtualTime += elapsedTime;
+                    
+                    const bufferDuration = buffer.duration;
+                    const newOffset = binding.virtualTime % bufferDuration;
+                    
+                    try {
+                        binding.cullPending = true;
+                        const gNode: any = (binding.audio as any).gain;
+                        const ctx: any = (binding.audio as any).context;
+                        const target = binding.prevGain ?? 1;
+                        if (gNode?.gain && ctx?.currentTime !== undefined) {
+                            const t = ctx.currentTime;
+                            const dt = (binding.fadeMs || 0) / 1000;
+                            try { gNode.gain.setValueAtTime(0, t); } catch {}
+                            try { gNode.gain.linearRampToValueAtTime(target, t + dt); } catch {}
+                        }
+                        binding.audio.offset = newOffset;
+                        binding.audio.connect();
+                        binding.audio.play();
+                        
+                        binding.startedAt = Date.now();
+                        binding.startOffset = newOffset;
+                        if (DEBUG_AUDIO) {
+                            console.log(`[Culling] 🟢 RESUMED ${nodeId} at ${newOffset.toFixed(2)}s`);
+                        }
+                        const delay = Math.max(0, binding.fadeMs || 0);
+                        if (delay > 0) {
+                            setTimeout(() => { binding.cullPending = false; }, delay);
+                        } else {
+                            binding.cullPending = false;
+                        }
+                    } catch (err) {
+                        if (DEBUG_AUDIO) console.warn(`[Culling] Resume failed:`, err);
+                        binding.cullPending = false;
+                    }
+                }
+                
+                binding.pausedAt = undefined;
+                binding.isCulled = false;
+            }
+        }
+    }
+
+    getAudioLevel(nodeId: string): number {
+        const binding = this.spatialBindings.get(nodeId);
+        if (!binding) {
+            return 0;
+        }
+
+        if (!binding.enableLevelMeter) {
+            return 0;
+        }
+
+        if (!binding.analyser && (binding.audio as any)?.context) {
+            try {
+                const analyser = (binding.audio as any).context.createAnalyser();
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.8;
+                if ((binding.audio as any).gain) {
+                    (binding.audio as any).gain.connect(analyser);
+                }
+                binding.analyser = analyser;
+            } catch (err) {
+                if (DEBUG_AUDIO) console.warn(`[getAudioLevel] Failed to create analyser:`, err);
+                return 0;
+            }
+        }
+
+        if (!binding.analyser) return 0;
+
+        const dataArray = new Uint8Array(binding.analyser.frequencyBinCount);
+        binding.analyser.getByteFrequencyData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+        }
+
+        const average = sum / dataArray.length;
+        return average / 255;
+    }
+
+    getSpatialStats(): SpatialStats {
+        let totalSources = 0;
+        let activeSources = 0;
+        let culledSources = 0;
+        let estimatedMemoryMB = 0;
+
+        for (const [_, binding] of this.spatialBindings) {
+            totalSources++;
+            
+            if (binding.isCulled) {
+                culledSources++;
+            } else {
+                activeSources++;
+            }
+
+            if (binding.committedBuffer) {
+                const bufferSize = binding.committedBuffer.length * binding.committedBuffer.numberOfChannels * 4;
+                estimatedMemoryMB += bufferSize / (1024 * 1024);
+            }
+        }
+
+        for (const [_, cached] of this.bufferCache) {
+            estimatedMemoryMB += cached.size / (1024 * 1024);
+        }
+
+        if (this.cache?.result.buffer) {
+            const buffer = this.cache.result.buffer;
+            const bufferSize = buffer.length * buffer.numberOfChannels * 4;
+            estimatedMemoryMB += bufferSize / (1024 * 1024);
+        }
+
+        return {
+            totalSources,
+            activeSources,
+            culledSources,
+            estimatedMemoryMB,
+        };
+    }
+
+    clearCache(): void {
+        if (this.cache?.result.url) {
+            URL.revokeObjectURL(this.cache.result.url);
+        }
+        this.cache = null;
+        
+        for (const [_, cached] of this.bufferCache) {
+            // AudioBuffers don't need explicit disposal, just remove references
+        }
+        this.bufferCache.clear();
+
+        if (DEBUG_AUDIO) {
+            console.log('[lib/audio.ts/clearCache] Cleared all cached audio buffers');
+        }
+    }
+
+    disposeUnusedBuffers(maxAgeSeconds: number = 60): void {
+        const now = Date.now();
+        const maxAgeMs = maxAgeSeconds * 1000;
+        let disposed = 0;
+
+        for (const [key, cached] of this.bufferCache) {
+            if (now - cached.timestamp > maxAgeMs) {
+                this.bufferCache.delete(key);
+                disposed++;
+            }
+        }
+
+        if (this.cache && (now - this.cache.timestamp) > maxAgeMs) {
+            if (this.cache.result.url) {
+                URL.revokeObjectURL(this.cache.result.url);
+            }
+            this.cache = null;
+        }
+
+        if (DEBUG_AUDIO && disposed > 0) {
+            console.log(`[lib/audio.ts/disposeUnusedBuffers] Disposed ${disposed} unused buffers`);
+        }
     }
 
     undo(): boolean {
@@ -1602,7 +2000,7 @@ class AudioSessionImpl implements AudioSession {
  */
 export function createSharedAudioContext(opts: { sampleRate?: number; latencyHint?: AudioContextLatencyCategory } = {}): AudioContext {
     const context = new AudioContext({
-        sampleRate: opts.sampleRate,
+        sampleRate: opts.sampleRate !== undefined ? opts.sampleRate : 22050,  // 22.05kHz = 50% memory savings
         latencyHint: opts.latencyHint || 'interactive'
     });
     
