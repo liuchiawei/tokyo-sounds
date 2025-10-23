@@ -2,7 +2,7 @@
 // クイズゲームのZustandストア - Zustand store for the quiz game
 
 import { create } from 'zustand';
-import { QuizGameState, QuizGameActions, QuizQuestion } from '../types/quiz';
+import { QuizGameState, QuizGameActions, QuizQuestion } from '../types/quiz'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { getQuestionsForStageAndLocation, getPointsForStage } from '../data/quiz-data';
 import { useSceneStore } from './use-scene-store';
 
@@ -90,7 +90,7 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
 
   // 質問に回答 - Answer a question
   answerQuestion: (optionId: string) => {
-    const { currentQuestions, currentQuestionIndex, currentLocationIndex, completedLocations, currentStage } = get();
+    const { currentQuestions, currentQuestionIndex, currentStage } = get();
     const currentQuestion = currentQuestions[currentQuestionIndex];
     
     if (!currentQuestion) return;
@@ -195,7 +195,7 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
 
   // 現在の場所で質問を完了した後、次の場所に進む - Proceed to the next location after completing questions at current location
   proceedToNextLocation: () => {
-    const { currentLocationIndex, completedLocations, currentStage } = get();
+    const { currentLocationIndex, currentStage } = get();
     
     // すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
     const locationSequence = ['tokyo', 'shibuya', 'shinjuku', 'asakusa'];

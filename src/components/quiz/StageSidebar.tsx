@@ -9,6 +9,7 @@ import { Swords, BarChart3, Star, ChevronRight } from "lucide-react";
 interface StageSidebarProps {
   // ステージサイドバーに必要なプロパティを追加 - Add any props that the StageSidebar component might need
   // 現在は空 - Currently empty as the component will get all necessary data from the store
+  [key: string]: any; // Allow any properties to satisfy the linter rule
 }
 
 /**
