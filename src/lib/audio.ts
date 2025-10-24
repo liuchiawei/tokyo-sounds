@@ -2,7 +2,7 @@ import * as Tone from 'tone';
 import * as THREE from 'three';
 
 // define debug flag
-const DEBUG_AUDIO = false; // Set to true to enable debug logging
+const DEBUG_AUDIO = true; // Set to true to enable debug logging
 
 export type NodeType = 'Player' | 'Filter' | 'Reverb' | 'Gain';
 export type AutomationMode = 'linearRamp' | 'expRamp' | 'points' | 'lfoRef';
@@ -95,6 +95,7 @@ export interface CommitOptions {
     normalize?: boolean;
     bitDepth?: 16 | 24;
     durationOverride?: number;
+    nodeId?: string;
 }
 
 export interface RenderResult {
@@ -1088,8 +1089,81 @@ class AudioSessionImpl implements AudioSession {
         this.emit('graphDirty');
     }
 
+    /**
+     * Trace upstream connections to find all nodes in the chain leading to the given nodeId
+     * @param nodeId - the target node to trace from
+     * @param spec - the graph spec containing connections
+     * @returns Set of node IDs in the chain
+     */
+    private traceNodeChain(nodeId: string, spec: GraphSpec): Set<string> {
+        const chain = new Set<string>();
+        const visited = new Set<string>();
+
+        const trace = (id: string) => {
+            if (visited.has(id)) return;
+            visited.add(id);
+            chain.add(id);
+
+            for (const conn of spec.connections) {
+                if (conn.to.id === id) {
+                    trace(conn.from.id);
+                }
+            }
+        };
+
+        trace(nodeId);
+        return chain;
+    }
+
+    /**
+     * Filter spec to include only nodes in the given chain
+     * @param spec - the original spec
+     * @param chain - set of node IDs to include
+     * @returns filtered spec
+     */
+    private filterSpecForChain(spec: GraphSpec, chain: Set<string>): GraphSpec {
+        const filteredNodes = spec.nodes.filter(node => chain.has(node.id));
+        const filteredConnections = spec.connections.filter(
+            conn => chain.has(conn.from.id) && chain.has(conn.to.id)
+        );
+
+        const referencedAssets = new Set<string>();
+        for (const node of filteredNodes) {
+            if (node.assetId) {
+                referencedAssets.add(node.assetId);
+            }
+        }
+
+        const filteredAssets = spec.assets.filter(asset => referencedAssets.has(asset.id));
+
+        return {
+            ...spec,
+            nodes: filteredNodes,
+            connections: filteredConnections,
+            assets: filteredAssets,
+        };
+    }
+
     async commit(opts: CommitOptions = {}): Promise<RenderResult> {
-        const spec = this.serialize();
+        let spec = this.serialize();
+
+        if (opts.nodeId) {
+            const chain = this.traceNodeChain(opts.nodeId, spec);
+            spec = this.filterSpecForChain(spec, chain);
+            // for (const node of spec.nodes) {
+            //     if (node.id === opts.nodeId) {
+            //         chain.add(node.id);
+            //         break;
+            //     } else {
+            //         chain.delete(node.id);
+            //     }
+            // }
+
+            if (DEBUG_AUDIO) {
+                console.log(`[commit] Rendering chain for node ${opts.nodeId}:`, Array.from(chain));
+            }
+        }
+
         const specHash = await hashString(JSON.stringify(spec));
 
         if (this.cache && this.cache.specHash === specHash) {
@@ -1105,15 +1179,26 @@ class AudioSessionImpl implements AudioSession {
         
         for (const asset of spec.assets) {
             try {
-                const response = await fetch(asset.src);
-                if (!response.ok) {
-                    console.error(`Failed to fetch asset ${asset.id}: ${response.status} ${response.statusText}`);
-                    continue;
-                }
-                
-                const arrayBuffer = await response.arrayBuffer();
+                const cached = this.bufferCache.get(asset.id);
+                let audioBuffer: AudioBuffer;
 
-                const audioBuffer = await this.context.decodeAudioData(arrayBuffer.slice(0));
+                if (cached) {
+                    audioBuffer = cached.buffer;
+                    cached.timestamp = Date.now(); // update LRU timestamp
+
+                    if (DEBUG_AUDIO) {
+                        console.log(`[commit] Reusing cached buffer ${asset.id} (${audioBuffer.duration}s, ${(cached.size / (1024 * 1024)).toFixed(2)}MB)`);
+                    }
+                } else {
+                    const response = await fetch(asset.src);
+                    if (!response.ok) {
+                        console.error(`Failed to fetch asset ${asset.id}: ${response.status} ${response.statusText}`);
+                        continue;
+                    }
+
+                    const arrayBuffer = await response.arrayBuffer();
+                    audioBuffer = await this.context.decodeAudioData(arrayBuffer.slice(0));
+                }
 
                 // Validate against decoded buffer size (Float32 samples = 4 bytes per sample)
                 const decodedBytes = audioBuffer.length * audioBuffer.numberOfChannels * 4;
@@ -1123,42 +1208,45 @@ class AudioSessionImpl implements AudioSession {
                     continue;
                 }
 
-                let totalCacheSize = 0;
-                for (const [_, cached] of this.bufferCache) {
-                    totalCacheSize += cached.size;
-                }
+                if (!cached) {
+                    let totalCacheSize = 0;
+                    for (const [_, cached] of this.bufferCache) {
+                        totalCacheSize += cached.size;
+                    }
 
-                if (decodedBytes > this.maxCacheSize) {
-                    console.warn(`Asset ${asset.id} (${decodedSizeMB.toFixed(1)}MB) is larger than max cache size (${(this.maxCacheSize / (1024 * 1024)).toFixed(1)}MB), skipping`);
-                    continue;
-                }
+                    if (decodedBytes > this.maxCacheSize) {
+                        console.warn(`Asset ${asset.id} (${decodedSizeMB.toFixed(1)}MB) is larger than max cache size (${(this.maxCacheSize / (1024 * 1024)).toFixed(1)}MB), skipping`);
+                        continue;
+                    }
 
-                if (totalCacheSize + decodedBytes > this.maxCacheSize) {
-                    const sortedCache = Array.from(this.bufferCache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
+                    if (totalCacheSize + decodedBytes > this.maxCacheSize) {
+                        const sortedCache = Array.from(this.bufferCache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
 
-                    while (totalCacheSize + decodedBytes > this.maxCacheSize && sortedCache.length > 0) {
-                        const [key, oldest] = sortedCache.shift()!;
-                        this.bufferCache.delete(key);
-                        totalCacheSize -= oldest.size;
+                        while (totalCacheSize + decodedBytes > this.maxCacheSize && sortedCache.length > 0) {
+                            const [key, oldest] = sortedCache.shift()!;
 
-                        if (DEBUG_AUDIO) {
-                            console.log(`[commit] Evicted old buffer ${key} to free ${(oldest.size / (1024 * 1024)).toFixed(2)}MB`);
+                            this.bufferCache.delete(key);
+                            totalCacheSize -= oldest.size;
+
+                            if (DEBUG_AUDIO) {
+                                console.log(`[commit] Evicted old buffer ${key} to free ${(oldest.size / (1024 * 1024)).toFixed(2)}MB`);
+                            }
                         }
+                    }
+
+                    this.bufferCache.set(asset.id, {
+                        buffer: audioBuffer,
+                        timestamp: Date.now(),
+                        size: decodedBytes,
+                    });
+
+                    if (DEBUG_AUDIO) {
+                        console.log(`[commit] Cached asset ${asset.id} (${audioBuffer.duration}s, ${audioBuffer.numberOfChannels}ch, ${(decodedBytes / (1024 * 1024)).toFixed(2)}MB)`);
                     }
                 }
 
                 preloadedBuffers.set(asset.id, audioBuffer);
                 assetDurations.set(asset.id, audioBuffer.duration);
-
-                this.bufferCache.set(asset.id, {
-                    buffer: audioBuffer,
-                    timestamp: Date.now(),
-                    size: decodedBytes,
-                });
-
-                if (DEBUG_AUDIO) {
-                    console.log(`Pre-loaded asset ${asset.id} (${audioBuffer.duration}s, ${audioBuffer.numberOfChannels}ch, ${(decodedBytes / (1024 * 1024)).toFixed(2)}MB)`);
-                }
             } catch (err) {
                 console.error(`Failed to pre-load asset ${asset.id}:`, err);
             }
