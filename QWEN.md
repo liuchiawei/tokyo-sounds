@@ -1,6 +1,24 @@
-# Tokyo Sounds - R3F Development Rules & Plan
+<!-- # Tokyo Sounds - Advanced Spatial Audio Implementation
 
-## Core Rules
+## Project Overview
+
+This project implements a sophisticated spatial audio system for the Tokyo Sounds application using React, Three.js, and Tone.js. The system provides immersive audio experiences with spatial positioning based on camera/object positions in the 3D environment.
+
+## Core Objective
+
+Implement a dual-path audio system:
+
+1. **Live Path**: Tone.js → Web Audio API → MediaStream Bridge → Three.js PositionalAudio
+2. **Committed Path**: Rendered Audio Buffer → PositionalAudio
+
+## Key Components
+
+1. **GraphSpec**: Defines the audio processing graph with nodes (Player, Filter, Reverb, Gain), connections, and parameters
+2. **AudioSession**: Main interface managing the audio graph and spatial bindings
+3. **useAudio hooks**: React hooks for controlling audio parameters and spatial binding modes
+4. **MediaStream Bridge**: Connects Tone.js context with Three.js context for spatial audio -->
+
+## Development Rules
 
 1. **Work only with existing files and folders** - Never modify files that don't exist in the current project structure
 2. **Create new folders and files only when necessary** - Follow established patterns in the project
@@ -13,190 +31,208 @@
    - 例: // シーン管理のための Zustand ストア - Zustand store for scene management
 9. **Deep Research Before Implementation** - For each and every task, conduct thorough research to be 100% certain about implementation from the internet and the whole project before proceeding
 
-## Project Structure Reference
+## Quiz Game Implementation Tasks
 
-```
-tokyo-sounds/
-├── public/
-│   ├── 3dtest.glb        # 3D model for initial testing
-│   ├── file.svg
-│   ├── globe.svg
-│   ├── models/           # 3D model files (GLB/GLTF)
-│   │   ├── skytree.glb
-│   │   ├── tokyo-tower.glb
-│   │   ├── shibuya-crossing.glb
-│   │   └── tokyo-station.glb
-│   ├── ui/               # UI assets (thumbnails, etc.)
-│   │   ├── thumbs/
-│   │   │   ├── skytree.png
-│   │   │   ├── tower.png
-│   │   │   └── crossing.png
-│   ├── audio/            # Audio files for the experience
-│   │   ├── city_day_loop.mp3
-│   │   ├── skytree_announcer.mp3
-│   │   └── shibuya_bustle.mp3
-│   ├── next.svg
-│   ├── vercel.svg
-│   └── window.svg
-├── src/
-│   ├── app/
-│   │   ├── favicon.ico
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── audio-player.tsx
-│   │   │   ├── canvas.tsx
-│   │   │   └── footer.tsx
-│   │   └── ui/
-│   │       ├── button.tsx
-│   │       ├── input.tsx
-│   │       ├── separator.tsx
-│   │       ├── sheet.tsx
-│   │       ├── sidebar.tsx
-│   │       ├── skeleton.tsx
-│   │       └── tooltip.tsx
-│   ├── hooks/
-│   │   └── use-mobile.ts
-│   ├── lib/
-│   │   └── utils.ts
-│   ├── stores/           # Zustand stores for state management
-│   │   └── use-scene-store.ts
-│   ├── types/            # TypeScript type definitions
-│   │   ├── scene.ts
-│   │   └── building.ts
-│   └── assets/           # Additional assets (data schemas, etc.)
-│       ├── scenes.json
-│       ├── buildings.json
-│       └── sounds.json
-```
+- [x] **Task 2**: Create basic quiz game data structure and sample questions
+  - [x] **Subtask 2.1**: Create quiz data types and interfaces with proper TypeScript definitions
+  - [x] **Subtask 2.2**: Create 5 stages with 3-4 questions each about Tokyo locations
+  - [x] **Subtask 2.3**: Ensure questions increase in difficulty from Stage 1 to Stage 5
+  - [x] **Subtask 2.4**: Associate each question with a specific Tokyo location/landmark
+  - [x] **Subtask 2.5**: Add proper Japanese and English comments
+  - [x] **Subtask 2.6**: Run TypeScript type checking to ensure no errors
+  - [x] **Subtask 2.7**: Verify 100% implementation according to requirements
+- [x] **Task 3**: Set up basic React components for the quiz game UI
+  - [x] **Subtask 3.1**: Create main QuizGame component
+  - [x] **Subtask 3.2**: Create QuestionDisplay component
+  - [x] **Subtask 3.3**: Create AnswerOption component
+  - [x] **Subtask 3.4**: Create StartScreen component
+  - [x] **Subtask 3.5**: Add proper Japanese and English comments
+  - [x] **Subtask 3.6**: Run TypeScript type checking to ensure no errors
+  - [x] **Subtask 3.7**: Verify 100% implementation according to requirements
+- [x] **Task 4**: Implement core game state management
+  - [x] **Subtask 4.1**: Create quiz game store using Zustand
+  - [x] **Subtask 4.2**: Implement state properties (currentStage, currentQuestion, score, etc.)
+  - [x] **Subtask 4.3**: Add action functions (startGame, answerQuestion, nextQuestion, etc.)
+  - [x] **Subtask 4.4**: Add proper Japanese and English comments
+  - [x] **Subtask 4.5**: Run TypeScript type checking to ensure no errors
+  - [x] **Subtask 4.6**: Verify 100% implementation according to requirements
+- [x] **Task 5**: Create sidebar component showing stages
+  - [x] **Subtask 5.1**: Create StageSidebar component
+  - [x] **Subtask 5.2**: Implement stage indicators with visual feedback
+  - [x] **Subtask 5.3**: Add styling for active/completed stages
+  - [x] **Subtask 5.4**: Add proper Japanese and English comments
+  - [x] **Subtask 5.5**: Run TypeScript type checking to ensure no errors
+  - [x] **Subtask 5.6**: Verify 100% implementation according to requirements
+- [ ] **Task 6**: Implement question display and multiple choice selection
+  - [ ] **Subtask 6.1**: Create question display with proper styling
+  - [ ] **Subtask 6.2**: Implement multiple choice selection with click handlers
+  - [ ] **Subtask 6.3**: Add keyboard support for answer selection
+  - [ ] **Subtask 6.4**: Add proper Japanese and English comments
+  - [ ] **Subtask 6.5**: Run TypeScript type checking to ensure no errors
+  - [ ] **Subtask 6.6**: Verify 100% implementation according to requirements
+- [ ] **Task 7**: Implement visual feedback system (GREEN/RED)
+  - [ ] **Subtask 7.1**: Create visual feedback for correct answers (GREEN)
+  - [ ] **Subtask 7.2**: Create visual feedback for incorrect answers (RED)
+  - [ ] **Subtask 7.3**: Implement immediate feedback after selection
+  - [ ] **Subtask 7.4**: Add proper Japanese and English comments
+  - [ ] **Subtask 7.5**: Run TypeScript type checking to ensure no errors
+  - [ ] **Subtask 7.6**: Verify 100% implementation according to requirements
+- [ ] **Task 8**: Implement scoring system with difficulty-based points
+  - [ ] **Subtask 8.1**: Create scoring logic with higher points for later stages
+  - [ ] **Subtask 8.2**: Implement real-time score updates
+  - [ ] **Subtask 8.3**: Create score display component
+  - [ ] **Subtask 8.4**: Add proper Japanese and English comments
+  - [ ] **Subtask 8.5**: Run TypeScript type checking to ensure no errors
+  - [ ] **Subtask 8.6**: Verify 100% implementation according to requirements
+- [ ] **Task 9**: Add keyword-based answer functionality (1-4)
+  - [ ] **Subtask 9.1**: Implement keyboard event handling for answer selection
+  - [ ] **Subtask 9.2**: Map keys 1-4 to answer options
+  - [ ] **Subtask 9.3**: Add user interface indication for keyboard controls
+  - [ ] **Subtask 9.4**: Add proper Japanese and English comments
+  - [ ] **Subtask 9.5**: Run TypeScript type checking to ensure no errors
+  - [ ] **Subtask 9.6**: Verify 100% implementation according to requirements
+- [ ] **Task 10**: Implement stage progression logic -[ ] **Subtask 10.1**: Create logic for advancing to next stage - [ ] **Subtask 10.2**: Implement camera movement to specific locations after questions - [ ] **Subtask 10.3**: Update stage indicators in sidebar - [ ] **Subtask 10.4**: Add proper Japanese and English comments - [ ] **Subtask 10.5**: Run TypeScript type checking to ensure no errors - [ ] **Subtask 10.6**: Verify 100% implementation according to requirements
 
-## Development Plan (Checklist)
+## Quiz Game Implementation Requirements
 
-- [x] **Task 1**: Set up R3F dependencies with GLB model loading - COMPLETED
-- [x] **Task 2**: Replace placeholder canvas component with actual 3D models (GLB files) - COMPLETED
-- [x] **Task 3**: Implement CameraControls for advanced camera manipulation
-- [ ] **Task 7**: Develop click/drag-to-go feature for camera movement
-- [ ] **Task 8**: Create interactive hotspots for guided tours
-- [ ] **Task 9**: Implement camera presets for each landmark
-- [ ] **Task 10**: Add smooth transitions between camera positions
-- [ ] **Task 11**: Develop adaptive controls based on distance
-- [ ] **Task 14**: Implement collision detection for camera
-- [ ] **Task 15**: Develop focus system for object interaction
-- [ ] **Task 16**: Create cinematic camera paths
-- [ ] **Task 17**: Set up multi-camera system with different perspectives
-- [ ] **Task 18**: Add depth of field effects
-- [ ] **Task 19**: Implement time-of-day camera settings
-- [ ] **Task 21**: Optimize for mobile devices
-- [ ] **Task 23**: Implement performance optimizations (LOD, frustum culling)
-- [ ] **Task 24**: Create state management for scenes and audio using Zustand
-- [ ] **Task 25**: Implement scene data structure and loading
-- [ ] **Task 26**: Add audio integration with Howler.js
-- [ ] **Task 27**: Implement interaction system (click detection, selection)
-- [ ] **Task 28**: Create UI components for scene selection
-- [ ] **Task 29**: Implement modals (ScenePreviewModal, BuildingInfoModal)
-- [ ] **Task 30**: Polish and testing
+### Game Structure
 
-## Current Status
+- The game begins when a Start button is clicked OR when a player clicks on a random place in the scene
+- 5 stages (Stage 1 to Stage 5) displayed in a sidebar on the left
+- Each stage contains 3-4 questions about different Tokyo locations
+- After answering each question, the camera moves to that specific location
+- Player progresses through stages of increasing difficulty
 
-- Ready to begin Task 3: CameraShake effect for immersive experience
-- Awaiting instruction to proceed with implementation
+### Question System
 
-- Step 1:
-  ( npx gltfjsx /public/3dtest.glb --output src/components/Model.tsx --typescript ) to transfer from 3D to JSX
+- Each question has 4 multiple choice options
+- Questions become progressively harder from Stage 1 to Stage 5
+- If the same location appears in different stages, questions will be different with varying difficulty levels
+- Player can select an answer by clicking the multiple choice options
+- Player can also answer using keywords (e.g., "1", "2", "3", "4" for the respective options)
 
-  Deep Research: Advanced Camera Controls Improvements
+### Visual Feedback System
 
-  1. Enhanced Camera Movement Features
+- When a player clicks an answer option or enters a keyword:
+  - Correct answer: Show GREEN visual feedback
+  - Incorrect answer: Show RED visual feedback
+- Feedback appears immediately after selection or keyword entry
 
-  Smooth Transitions & Animation
+### Stage Progression
 
-  - Easing Functions: Implement cubic, exponential, or elastic
-    easing for natural camera movements
-  - Spline Interpolation: Use Catmull-Rom or Bézier curves for
-    smooth path following
-  - Dynamic Speed Control: Adjust movement speed based on
-    distance and scene complexity
+- After answering required questions in a stage, progress to the next stage
+- When progressing to the next stage, the camera moves to the new location
+- The stage indicator updates to reflect the current stage
+- Each question is tied to a specific Tokyo location
 
-  Intelligent Camera Behaviors
+### UI Components
 
-  - Auto-Framing: Automatically adjust camera to keep subjects in
-    frame
-  - Obstacle Avoidance: Navigate around buildings and terrain
-    during movement
-  - Context-Aware Transitions: Adapt camera movements based on
-    current scene
+- Sidebar on the left showing the current stage
+- The main quiz interface (questions, answers, score) will appear in the side panel, sharing space with the audio player controls, which will remain visible.
+- Visual feedback system for answers (GREEN/RED indicators)
+- Progress bar showing overall game progress
+- Score display showing current points
+- Camera movement that transitions when moving to the next question's location
 
-  2. Advanced User Interaction
+### Scoring System
 
-  Gesture Controls
+- Points awarded for each correct answer
+- Higher points for questions in later stages (increasing difficulty)
+- Real-time score updates
+- Score displayed prominently in the UI
 
-  - Multi-Touch Navigation: Pinch, rotate, and swipe gestures for
-    mobile devices
-  - Pointer Lock Support: First-person navigation for immersive
-    exploration
+### Additional Features
 
-  Keyboard Controls
+- Support for keyword-based answers (1, 2, 3, 4 for different options)
+- Japanese documentation and comments for all new functionality
+- Integration with existing Three.js scene and camera system
+- Use of actual 3D models (GLB files) for landmarks at each location
 
-- Gamepad Support: Controller navigation for console-style
-  interaction
+## Quiz Game Implementation Plan
 
-  Adaptive Behavior
+### Task 2: Create basic quiz game data structure and sample questions
 
-  - Proximity-Based Adjustments: Modify camera behavior based on
-    distance to objects
-  - Time-of-Day Settings: Adjust camera for different lighting
-    conditions
-  - User Preference Learning: Remember and adapt to individual
-    user preferences
+- **Subtask 2.1**: Create quiz data types and interfaces with proper TypeScript definitions (COMPLETED)
+  - Created `/src/types/quiz.ts` with interfaces for QuizOption, QuizQuestion, QuizStage, QuizGameState, and QuizGameActions
+  - Added both English and Japanese comments as per project standards
+- **Subtask 2.2**: Create 5 stages with 3-4 questions each about Tokyo locations (IN PROGRESS)
+- **Subtask 2.3**: Ensure questions increase in difficulty from Stage 1 to Stage 5 (PENDING)
+- **Subtask 2.4**: Associate each question with a specific Tokyo location/landmark (PENDING)
+- **Subtask 2.5**: Add proper Japanese and English comments (PENDING)
+- **Subtask 2.6**: Run TypeScript type checking to ensure no errors (PENDING)
+- **Subtask 2.7**: Verify 100% implementation according to requirements (PENDING)
 
-  4. Performance Optimization
+### Task 3: Set up basic React components for the quiz game UI
 
-  Efficient Rendering
+- **Subtask 3.1**: Create main QuizGame component (PENDING)
+- **Subtask 3.2**: Create QuestionDisplay component (PENDING)
+- **Subtask 3.3**: Create AnswerOption component (PENDING)
+- **Subtask 3.4**: Create StartScreen component (PENDING)
+- **Subtask 3.5**: Add proper Japanese and English comments (PENDING)
+- **Subtask 3.6**: Run TypeScript type checking to ensure no errors (PENDING)
+- **Subtask 3.7**: Verify 100% implementation according to requirements (PENDING)
 
-  - Level of Detail (LOD): Adjust model detail based on camera
-    distance
-  - Frustum Culling: Only render objects within camera view
-  - Occlusion Culling: Hide objects obscured by other elements
+### Task 4: Implement core game state management
 
-  Resource Management
+- **Subtask 4.1**: Create quiz game store using Zustand (PENDING)
+- **Subtask 4.2**: Implement state properties (currentStage, currentQuestion, score, etc.) (PENDING)
+- **Subtask 4.3**: Add action functions (startGame, answerQuestion, nextQuestion, etc.) (PENDING)
+- **Subtask 4.4**: Add proper Japanese and English comments (PENDING)
+- **Subtask 4.5**: Run TypeScript type checking to ensure no errors (PENDING)
+- **Subtask 4.6**: Verify 100% implementation according to requirements (PENDING)
 
-  - Memory Optimization: Efficiently manage GPU memory during
-    transitions
-  - Adaptive Quality: Dynamically adjust rendering quality based
-    on performance
+### Task 5: Create sidebar component showing stages
 
-  5. Immersive Experience Features
+- **Subtask 5.1**: Create StageSidebar component (PENDING)
+- **Subtask 5.2**: Implement stage indicators with visual feedback (PENDING)
+- **Subtask 5.3**: Add styling for active/completed stages (PENDING)
+- **Subtask 5.4**: Add proper Japanese and English comments (PENDING)
+- **Subtask 5.5**: Run TypeScript type checking to ensure no errors (PENDING)
+- **Subtask 5.6**: Verify 100% implementation according to requirements (PENDING)
 
-  Environmental Effects
+### Task 6: Implement question display and multiple choice selection
 
-  - Depth of Field: Simulate camera focus for cinematic effects
-  - Motion Blur: Add realism during camera movements
-  - Dynamic Lighting: Adjust lighting based on camera position
-    and time
+- **Subtask 6.1**: Create question display with proper styling (PENDING)
+- **Subtask 6.2**: Implement multiple choice selection with click handlers (PENDING)
+- **Subtask 6.3**: Add keyboard support for answer selection (PENDING)
+- **Subtask 6.4**: Add proper Japanese and English comments (PENDING)
+- **Subtask 6.5**: Run TypeScript type checking to ensure no errors (PENDING)
+- **Subtask 6.6**: Verify 100% implementation according to requirements (PENDING)
 
-  Audio Integration
+### Task 7: Implement visual feedback system (GREEN/RED)
 
-  - Spatial Audio: 3D sound that changes with camera orientation
-  - Ambient Soundscapes: Environmental audio that shifts with
-    location
-  - Narrative Audio: Voiceovers that sync with camera movements
+- **Subtask 7.1**: Create visual feedback for correct answers (GREEN) (PENDING)
+- **Subtask 7.2**: Create visual feedback for incorrect answers (RED) (PENDING)
+- **Subtask 7.3**: Implement immediate feedback after selection (PENDING)
+- **Subtask 7.4**: Add proper Japanese and English comments (PENDING)
+- **Subtask 7.5**: Run TypeScript type checking to ensure no errors (PENDING)
+- **Subtask 7.6**: Verify 100% implementation according to requirements (PENDING)
 
-  7. Social & Sharing Features
+### Task 8: Implement scoring system with difficulty-based points
 
-  Collaborative Exploration
+- **Subtask 8.1**: Create scoring logic with higher points for later stages (PENDING)
+- **Subtask 8.2**: Implement real-time score updates (PENDING)
+- **Subtask 8.3**: Create score display component (PENDING)
+- **Subtask 8.4**: Add proper Japanese and English comments (PENDING)
+- **Subtask 8.5**: Run TypeScript type checking to ensure no errors (PENDING)
+- **Subtask 8.6**: Verify 100% implementation according to requirements (PENDING)
 
-  - Multi-User Sessions: Shared camera control with friends
-  - Guided Tours: Expert-led virtual walkthroughs
-  - User-Created Paths: Share custom camera routes with community
+### Task 9: Add keyword-based answer functionality (1-4)
 
-  Content Creation
+- **Subtask 9.1**: Implement keyboard event handling for answer selection (PENDING)
+- **Subtask 9.2**: Map keys 1-4 to answer options (PENDING)
+- **Subtask 9.3**: Add user interface indication for keyboard controls (PENDING)
+- **Subtask 9.4**: Add proper Japanese and English comments (PENDING)
+- **Subtask 9.5**: Run TypeScript type checking to ensure no errors (PENDING)
+- **Subtask 9.6**: Verify 100% implementation according to requirements (PENDING)
 
-  - Screenshot Mode: Professional capture tools with overlays
-  - Video Recording: Capture exploration sessions
-  - Export Options: Save camera paths for later use
+### Task 10: Implement stage progression logic
 
-  Tokyo Sounds experience by providing more sophisticated camera
-  controls, intelligent behaviors, and immersive features that
-  respond to user interaction and environmental context.
+- **Subtask 10.1**: Create logic for advancing to next stage (PENDING)
+- **Subtask 10.2**: Implement camera movement to specific locations after questions (PENDING)
+- **Subtask 10.3**: Update stage indicators in sidebar (PENDING)
+- **Subtask 10.4**: Add proper Japanese and English comments (PENDING)
+- **Subtask 10.5**: Run TypeScript type checking to ensure no errors (PENDING)
+- **Subtask 10.6**: Verify 100% implementation according to requirements (PENDING)
+
+based on right and wrong answers, after answering question should show the details of the asnwer questions with images!
