@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback, useContext, createContext } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useContext, createContext, useMemo } from 'react';
 import * as THREE from 'three';
 import {
     AudioSession,
@@ -193,9 +193,11 @@ export function useCommit() {
  * useSpatial bind a spatial audio node
  * @param nodeId - the id of the node
  * @param object3DRef - the ref to the object3d
- * @param listenerRef - the ref to the audio listener
+ * @param listenerRef - the ref to the audio listener (recommended for proper spatial audio)
  * @param opts - the spatial options
  * @param deps - the dependencies
+ *
+ * IMPORTANT: For correct spatial audio, pass a listenerRef attached to your camera.
  */
 export function useSpatial(
     nodeId: string,
@@ -206,42 +208,127 @@ export function useSpatial(
 ) {
     const session = useAudioSessionContext();
     const disposerRef = useRef<(() => void) | null>(null);
+    const fallbackListenerRef = useRef<THREE.AudioListener | null>(null);
+    const cameraRef = useRef<THREE.Camera | null>(null);
+    const fallbackWarningShownRef = useRef(false);
+
+    const stableOpts = useMemo(() => {
+        if (!opts) return undefined;
+        return {
+            refDistance: opts.refDistance,
+            rolloffFactor: opts.rolloffFactor,
+            distanceModel: opts.distanceModel,
+            mode: opts.mode,
+            cullDistance: opts.cullDistance,
+            resumeDistance: opts.resumeDistance,
+            enableCulling: opts.enableCulling,
+            enableLevelMeter: opts.enableLevelMeter,
+        } as SpatialOptions;
+    }, [
+        opts?.refDistance,
+        opts?.rolloffFactor,
+        opts?.distanceModel,
+        opts?.mode,
+        opts?.cullDistance,
+        opts?.resumeDistance,
+        opts?.enableCulling,
+        (opts as any)?.enableLevelMeter,
+    ]);
 
     useEffect(() => {
-        console.log('[useAudio/useSpatial] Effect triggered:', { session: !!session, object3D: !!object3DRef.current, listener: !!listenerRef?.current, nodeId });
-        
         if (!session || !object3DRef.current) {
-            console.log('[useAudio/useSpatial] Skipping - session or object3D not ready');
             return;
         }
 
         let listener: THREE.AudioListener;
+        let usingFallback = false;
 
         if (listenerRef?.current) {
             listener = listenerRef.current;
-            console.log('[useAudio/useSpatial] Using provided listener');
         } else {
-            listener = new THREE.AudioListener();         
-            console.log('[useAudio/useSpatial] Created new listener');
+            if (!fallbackListenerRef.current) {
+                fallbackListenerRef.current = new THREE.AudioListener();
+
+                if (!fallbackWarningShownRef.current) {
+                    console.warn(
+                        `[useAudio/useSpatial] No AudioListener provided for node ${nodeId}. ` +
+                        `Using fallback listener with limited spatial accuracy. ` +
+                        `For best results, create an AudioListener attached to your camera and pass it via listenerRef.`
+                    );
+                    fallbackWarningShownRef.current = true;
+                }
+            }
+            listener = fallbackListenerRef.current;
+            usingFallback = true;
+
+            let foundCamera: THREE.Camera | undefined;
+            let current = object3DRef.current.parent;
+
+            while (current && current.parent) {
+                current = current.parent;
+            }
+
+            if (current) {
+                current.traverse((obj: THREE.Object3D) => {
+                    if (!foundCamera && obj instanceof THREE.Camera) {
+                        foundCamera = obj;
+                    }
+                });
+            }
+
+            if (foundCamera) {
+                const camera = foundCamera;
+                if (!camera.children.includes(listener)) {
+                    camera.add(listener);
+                    cameraRef.current = camera;
+                    if (process.env.NODE_ENV !== 'production') {
+                        console.log(`[useAudio/useSpatial] Attached fallback listener to camera for node ${nodeId}`);
+                    }
+                }
+            } else {
+                console.warn(
+                    `[useAudio/useSpatial] No camera found in scene for node ${nodeId}. `
+                );
+            }
         }
 
         try {
-            console.log('[useAudio/useSpatial] Calling bindSpatial for', nodeId);
-            const disposer = session.bindSpatial(nodeId, object3DRef.current, listener, opts);
+            const disposer = session.bindSpatial(nodeId, object3DRef.current, listener, stableOpts);
             disposerRef.current = disposer;
-            console.log('[useAudio/useSpatial] Spatial binding successful for', nodeId);
 
             return () => {
                 if (disposerRef.current) {
-                    console.log('[useAudio/useSpatial] Disposing spatial binding for', nodeId);
                     disposerRef.current();
                     disposerRef.current = null;
+                }
+
+                if (usingFallback && cameraRef.current && fallbackListenerRef.current) {
+                    cameraRef.current.remove(fallbackListenerRef.current);
+                    cameraRef.current = null;
                 }
             };
         } catch (err) {
             console.error('[useAudio/useSpatial] Failed to bind spatial audio:', err);
         }
-    }, [session, nodeId, object3DRef, listenerRef, opts, ...deps]); // TODO: memoize opts/deps or relax effect triggers to avoid thrashing spatial bindings.
+    }, [session, nodeId, object3DRef, listenerRef, stableOpts, ...deps]);
+
+    useEffect(() => {
+        return () => {
+            if (fallbackListenerRef.current) {
+                const listener = fallbackListenerRef.current;
+                if (listener.context && listener.context.state !== 'closed') {
+                    try {
+                        if ((listener as any).gain) {
+                            (listener as any).gain.disconnect();
+                        }
+                    } catch (err) {
+                        console.error('[useAudio/useSpatial] Failed to disconnect fallback listener:', err);
+                    }
+                }
+                fallbackListenerRef.current = null;
+            }
+        };
+    }, []);
 }
 
 /**
@@ -403,4 +490,53 @@ export function AudioSessionProvider({
     const providerValue = session;
 
     return React.createElement(Provider, { value: providerValue }, children);
+}
+
+/**
+ * useDistanceCulling perform distance-based audio culling every frame
+ * @param cameraRef - ref to the camera
+ * @returns culling statistics
+ */
+export function useDistanceCulling(cameraRef: React.RefObject<THREE.Camera>) {
+    const session = useAudioSessionContext();
+    const [stats, setStats] = useState({ totalSources: 0, activeSources: 0, culledSources: 0, estimatedMemoryMB: 0 });
+    const rafRef = useRef<number | null>(null);
+    const camPosRef = useRef(new THREE.Vector3());
+    const lastCullTsRef = useRef(0);
+    const lastStatsTsRef = useRef(0);
+
+    useEffect(() => {
+        if (!session || !cameraRef.current) return;
+
+        const updateCulling = (ts: number) => {
+            if (session && cameraRef.current) {
+                const shouldCull = ts - lastCullTsRef.current > 66;
+                const shouldUpdateStats = ts - lastStatsTsRef.current > 500;
+
+                if (shouldCull) {
+                    cameraRef.current.getWorldPosition(camPosRef.current);
+                    session.updateSpatialCulling(camPosRef.current);
+                    lastCullTsRef.current = ts;
+                }
+
+                if (shouldUpdateStats) {
+                    const currentStats = session.getSpatialStats();
+                    setStats(currentStats);
+                    lastStatsTsRef.current = ts;
+                }
+            }
+
+            rafRef.current = requestAnimationFrame(updateCulling);
+        };
+
+        rafRef.current = requestAnimationFrame(updateCulling);
+
+        return () => {
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+            }
+        };
+    }, [session, cameraRef]);
+
+    return stats;
 }
