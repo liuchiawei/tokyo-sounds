@@ -95,6 +95,7 @@ export interface CommitOptions {
     normalize?: boolean;
     bitDepth?: 16 | 24;
     durationOverride?: number;
+    nodeId?: string;
 }
 
 export interface RenderResult {
@@ -1088,8 +1089,81 @@ class AudioSessionImpl implements AudioSession {
         this.emit('graphDirty');
     }
 
+    /**
+     * Trace upstream connections to find all nodes in the chain leading to the given nodeId
+     * @param nodeId - the target node to trace from
+     * @param spec - the graph spec containing connections
+     * @returns Set of node IDs in the chain
+     */
+    private traceNodeChain(nodeId: string, spec: GraphSpec): Set<string> {
+        const chain = new Set<string>();
+        const visited = new Set<string>();
+
+        const trace = (id: string) => {
+            if (visited.has(id)) return;
+            visited.add(id);
+            chain.add(id);
+
+            for (const conn of spec.connections) {
+                if (conn.to.id === id) {
+                    trace(conn.from.id);
+                }
+            }
+        };
+
+        trace(nodeId);
+        return chain;
+    }
+
+    /**
+     * Filter spec to include only nodes in the given chain
+     * @param spec - the original spec
+     * @param chain - set of node IDs to include
+     * @returns filtered spec
+     */
+    private filterSpecForChain(spec: GraphSpec, chain: Set<string>): GraphSpec {
+        const filteredNodes = spec.nodes.filter(node => chain.has(node.id));
+        const filteredConnections = spec.connections.filter(
+            conn => chain.has(conn.from.id) && chain.has(conn.to.id)
+        );
+
+        const referencedAssets = new Set<string>();
+        for (const node of filteredNodes) {
+            if (node.assetId) {
+                referencedAssets.add(node.assetId);
+            }
+        }
+
+        const filteredAssets = spec.assets.filter(asset => referencedAssets.has(asset.id));
+
+        return {
+            ...spec,
+            nodes: filteredNodes,
+            connections: filteredConnections,
+            assets: filteredAssets,
+        };
+    }
+
     async commit(opts: CommitOptions = {}): Promise<RenderResult> {
-        const spec = this.serialize();
+        let spec = this.serialize();
+
+        if (opts.nodeId) {
+            const chain = this.traceNodeChain(opts.nodeId, spec);
+            spec = this.filterSpecForChain(spec, chain);
+            // for (const node of spec.nodes) {
+            //     if (node.id === opts.nodeId) {
+            //         chain.add(node.id);
+            //         break;
+            //     } else {
+            //         chain.delete(node.id);
+            //     }
+            // }
+
+            if (DEBUG_AUDIO) {
+                console.log(`[commit] Rendering chain for node ${opts.nodeId}:`, Array.from(chain));
+            }
+        }
+
         const specHash = await hashString(JSON.stringify(spec));
 
         if (this.cache && this.cache.specHash === specHash) {
