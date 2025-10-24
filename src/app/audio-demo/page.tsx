@@ -599,7 +599,7 @@ export default function AudioDemo() {
     setStarted(true);
 
     try {
-      const audioContext = createSharedAudioContext({ sampleRate: 44100 });
+      const audioContext = createSharedAudioContext({ sampleRate: 22050 });
       setSharedContext(audioContext);
 
       const sources = audioUrls.length > 0 

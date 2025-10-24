@@ -2,7 +2,7 @@ import * as Tone from 'tone';
 import * as THREE from 'three';
 
 // define debug flag
-const DEBUG_AUDIO = false; // Set to true to enable debug logging
+const DEBUG_AUDIO = true; // Set to true to enable debug logging
 
 export type NodeType = 'Player' | 'Filter' | 'Reverb' | 'Gain';
 export type AutomationMode = 'linearRamp' | 'expRamp' | 'points' | 'lfoRef';
@@ -1179,15 +1179,26 @@ class AudioSessionImpl implements AudioSession {
         
         for (const asset of spec.assets) {
             try {
-                const response = await fetch(asset.src);
-                if (!response.ok) {
-                    console.error(`Failed to fetch asset ${asset.id}: ${response.status} ${response.statusText}`);
-                    continue;
-                }
-                
-                const arrayBuffer = await response.arrayBuffer();
+                const cached = this.bufferCache.get(asset.id);
+                let audioBuffer: AudioBuffer;
 
-                const audioBuffer = await this.context.decodeAudioData(arrayBuffer.slice(0));
+                if (cached) {
+                    audioBuffer = cached.buffer;
+                    cached.timestamp = Date.now(); // update LRU timestamp
+
+                    if (DEBUG_AUDIO) {
+                        console.log(`[commit] Reusing cached buffer ${asset.id} (${audioBuffer.duration}s, ${(cached.size / (1024 * 1024)).toFixed(2)}MB)`);
+                    }
+                } else {
+                    const response = await fetch(asset.src);
+                    if (!response.ok) {
+                        console.error(`Failed to fetch asset ${asset.id}: ${response.status} ${response.statusText}`);
+                        continue;
+                    }
+
+                    const arrayBuffer = await response.arrayBuffer();
+                    audioBuffer = await this.context.decodeAudioData(arrayBuffer.slice(0));
+                }
 
                 // Validate against decoded buffer size (Float32 samples = 4 bytes per sample)
                 const decodedBytes = audioBuffer.length * audioBuffer.numberOfChannels * 4;
@@ -1197,42 +1208,45 @@ class AudioSessionImpl implements AudioSession {
                     continue;
                 }
 
-                let totalCacheSize = 0;
-                for (const [_, cached] of this.bufferCache) {
-                    totalCacheSize += cached.size;
-                }
+                if (!cached) {
+                    let totalCacheSize = 0;
+                    for (const [_, cached] of this.bufferCache) {
+                        totalCacheSize += cached.size;
+                    }
 
-                if (decodedBytes > this.maxCacheSize) {
-                    console.warn(`Asset ${asset.id} (${decodedSizeMB.toFixed(1)}MB) is larger than max cache size (${(this.maxCacheSize / (1024 * 1024)).toFixed(1)}MB), skipping`);
-                    continue;
-                }
+                    if (decodedBytes > this.maxCacheSize) {
+                        console.warn(`Asset ${asset.id} (${decodedSizeMB.toFixed(1)}MB) is larger than max cache size (${(this.maxCacheSize / (1024 * 1024)).toFixed(1)}MB), skipping`);
+                        continue;
+                    }
 
-                if (totalCacheSize + decodedBytes > this.maxCacheSize) {
-                    const sortedCache = Array.from(this.bufferCache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
+                    if (totalCacheSize + decodedBytes > this.maxCacheSize) {
+                        const sortedCache = Array.from(this.bufferCache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
 
-                    while (totalCacheSize + decodedBytes > this.maxCacheSize && sortedCache.length > 0) {
-                        const [key, oldest] = sortedCache.shift()!;
-                        this.bufferCache.delete(key);
-                        totalCacheSize -= oldest.size;
+                        while (totalCacheSize + decodedBytes > this.maxCacheSize && sortedCache.length > 0) {
+                            const [key, oldest] = sortedCache.shift()!;
 
-                        if (DEBUG_AUDIO) {
-                            console.log(`[commit] Evicted old buffer ${key} to free ${(oldest.size / (1024 * 1024)).toFixed(2)}MB`);
+                            this.bufferCache.delete(key);
+                            totalCacheSize -= oldest.size;
+
+                            if (DEBUG_AUDIO) {
+                                console.log(`[commit] Evicted old buffer ${key} to free ${(oldest.size / (1024 * 1024)).toFixed(2)}MB`);
+                            }
                         }
+                    }
+
+                    this.bufferCache.set(asset.id, {
+                        buffer: audioBuffer,
+                        timestamp: Date.now(),
+                        size: decodedBytes,
+                    });
+
+                    if (DEBUG_AUDIO) {
+                        console.log(`[commit] Cached asset ${asset.id} (${audioBuffer.duration}s, ${audioBuffer.numberOfChannels}ch, ${(decodedBytes / (1024 * 1024)).toFixed(2)}MB)`);
                     }
                 }
 
                 preloadedBuffers.set(asset.id, audioBuffer);
                 assetDurations.set(asset.id, audioBuffer.duration);
-
-                this.bufferCache.set(asset.id, {
-                    buffer: audioBuffer,
-                    timestamp: Date.now(),
-                    size: decodedBytes,
-                });
-
-                if (DEBUG_AUDIO) {
-                    console.log(`Pre-loaded asset ${asset.id} (${audioBuffer.duration}s, ${audioBuffer.numberOfChannels}ch, ${(decodedBytes / (1024 * 1024)).toFixed(2)}MB)`);
-                }
             } catch (err) {
                 console.error(`Failed to pre-load asset ${asset.id}:`, err);
             }
