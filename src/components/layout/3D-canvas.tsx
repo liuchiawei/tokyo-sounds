@@ -125,8 +125,8 @@ export default function ThreeDCanvas() {
   return (
     <ErrorBoundary>
       <div
-        className="w-full h-full bg-gray-900" // Bloom とのコントラスト向上のための暗い背景 - Darker background for better contrast with Bloom
-        style={{ minHeight: "500px", height: "70vh" }}
+        className="w-full h-full bg-gray-900 flex items-center justify-center" // Bloom とのコントラスト向上のための暗い背景 - Darker background for better contrast with Bloom
+        style={{ minHeight: "500px", height: "100%" }}
       >
         <Canvas
           shadows // 影の有効化 - Enable shadows
