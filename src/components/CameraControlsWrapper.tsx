@@ -36,7 +36,7 @@ export default function CameraControlsWrapper() {
     controls.draggingSmoothTime = 0.15; // Smoothness during dragging (ドラッグ時の滑らかさ)
 
     // Rotation limits configuration - 回転制限の設定（カメラが回転できる角度の制限）
-    controls.minPolarAngle = Math.PI / 6; // Minimum vertical rotation angle (to prevent going under ground) - 垂直回転の最小角度（地面以下に潜らないように）
+    controls.minPolarAngle = 0; // Minimum vertical rotation angle (to prevent going under ground) - 垂直回転の最小角度（地面以下に潜らないように）
     controls.maxPolarAngle = Math.PI / 2; // Maximum vertical rotation angle (to horizontal) - 垂直回転の最大角度（水平方向まで）
 
     // Mouse interaction configuration - マウス操作設定（左クリック・右クリックでの操作方法）
@@ -99,7 +99,11 @@ export default function CameraControlsWrapper() {
     // --- CLICK-TO-MOVE LOGIC END ---
 
     // Make controls globally accessible for programmatic movement
+    
+
     window.cameraControls = controls;
+
+    
 
     // Cleanup function - クリーンアップ関数（コンポーネントアンマウント時のリソース解放）
     return () => {
