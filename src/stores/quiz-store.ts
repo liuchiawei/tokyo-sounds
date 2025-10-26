@@ -2,13 +2,15 @@
 // クイズゲームのZustandストア - Zustand store for the quiz game
 
 import { create } from 'zustand';
-import { QuizGameState, QuizGameActions, QuizQuestion } from '../types/quiz'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import { getQuestionsForStageAndLocation, getPointsForStage } from '../data/quiz-data';
+import { QuizGameState, QuizGameActions, QuizQuestion, QuizLocation } from '../types/quiz';
+import { quizQuestions } from '../data/quiz-data';
 import { useSceneStore } from './use-scene-store';
+
+// すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
+export const locationSequence: QuizLocation[] = [QuizLocation.TOKYO, QuizLocation.SHIBUYA, QuizLocation.SHINJUKU, QuizLocation.ASAKUSA];
 
 // 初期状態の定義 - Define initial state
 const initialQuizState: Omit<QuizGameState, keyof QuizGameActions> = {
-  currentStage: 1,                    // 現在のステージ - Current stage (default to stage 1)
   currentQuestionIndex: 0,            // 現在の質問インデックス - Current question index
   currentQuestions: [],               // 現在の質問リスト - Current questions list
   score: 0,                           // 現在のスコア - Current score
@@ -32,28 +34,16 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
 
   // ゲーム開始 - Start the game with questions appropriate to the clicked location and current stage
   // Questions are specific to the location and stage difficulty
-  startGame: (locationName?: string) => {
-    // 場所名が提供された場合、場所固有の質問を取得 - If a location name is provided, get location-specific questions
-    // それ以外の場合は、東京の質問をデフォルトとする - Otherwise, default to Tokyo questions
-    const location = locationName || 'tokyo';
-    
-    // すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
-    const locationSequence = ['tokyo', 'shibuya', 'shinjuku', 'asakusa'];
-    
-    // 順序内の開始場所のインデックスを取得 - Get the index of the starting location in the sequence
-    const startingLocationIndex = locationSequence.indexOf(location);
-    
-    // 現在のステージを取得（デフォルトはステージ1） - Get current stage (default to stage 1)
-    const currentStage = useQuizStore.getState().currentStage || 1;
-    
-    // 指定されたステージと場所に適した質問を取得 - Get questions appropriate for the specified stage and location
-    const questionsToUse = getQuestionsForStageAndLocation(currentStage, location);
-    
-    set({ 
+  startGame: (locationName?: QuizLocation) => {
+    const startingLocation = locationName || locationSequence[0];
+    const startingLocationIndex = locationSequence.indexOf(startingLocation);
+
+    const questionsForLocation = quizQuestions.filter(q => q.location === startingLocation);
+
+    set({
       gameStarted: true,
       gameCompleted: false,
-      currentStage: currentStage, // Use the current stage level
-      currentQuestions: questionsToUse,
+      currentQuestions: questionsForLocation,
       score: 0,
       currentQuestionIndex: 0,
       selectedAnswer: null,
@@ -67,21 +57,14 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
   },
 
   // 質問セットを切り替える - Switch question set based on the clicked location and current stage
-  switchQuestionSet: (locationName: string) => {
-    // 現在のステージを取得（デフォルトはステージ1） - Get current stage (default to stage 1)
-    const currentStage = useQuizStore.getState().currentStage || 1;
-    
-    // 提供された場所名と現在のステージに基づいて場所固有の質問を取得 - Get location-specific questions based on the provided location name and current stage
-    const questionsToUse = getQuestionsForStageAndLocation(currentStage, locationName);
-    
-    // すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
-    const locationSequence = ['tokyo', 'shibuya', 'shinjuku', 'asakusa'];
-    
-    // 質問を更新して最初の質問にリセットしますが、他の状態は保持します - Update the questions and reset to the first question, but keep other state
-    set({ 
-      currentQuestions: questionsToUse,
+  switchQuestionSet: (locationName: QuizLocation) => {
+    const questionsForLocation = quizQuestions.filter(q => q.location === locationName);
+    const newLocationIndex = locationSequence.indexOf(locationName);
+
+    set({
+      currentQuestions: questionsForLocation,
       currentQuestionIndex: 0,
-      currentLocationIndex: locationSequence.indexOf(locationName),
+      currentLocationIndex: newLocationIndex,
       selectedAnswer: null,
       feedback: null,
       showFeedback: false
@@ -90,7 +73,7 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
 
   // 質問に回答 - Answer a question
   answerQuestion: (optionId: string) => {
-    const { currentQuestions, currentQuestionIndex, currentStage } = get();
+    const { currentQuestions, currentQuestionIndex } = get();
     const currentQuestion = currentQuestions[currentQuestionIndex];
     
     if (!currentQuestion) return;
@@ -110,10 +93,9 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
     
     if (isCorrect) {
       // 正解の場合、スコアを更新 - Update score if correct
-      // Calculate points based on current stage (difficulty increases with stage number)
-      const pointsForStage = getPointsForStage(currentStage); // Use the new function for stage-based scoring
-      const newScore = Math.min(100, get().score + pointsForStage); // Cap score at 100
-      const newTotalScore = Math.min(100, get().totalScore + pointsForStage); // Cap total score at 100
+      const pointsPerQuestion = 10; // Fixed points per correct answer
+      const newScore = Math.min(100, get().score + pointsPerQuestion); // Cap score at 100
+      const newTotalScore = Math.min(100, get().totalScore + pointsPerQuestion); // Cap total score at 100
       set({ 
         score: newScore,
         totalScore: newTotalScore,
@@ -178,9 +160,6 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
     });
   },
 
-  // 現在のステージを設定 - Set current stage
-  setCurrentStage: (stage: number) => set({ currentStage: stage }),
-  
   // フィードバック表示の設定 - Set feedback visibility
   setShowFeedback: (show: boolean) => set({ showFeedback: show }),
 
@@ -194,63 +173,30 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
   updateScore: (points: number) => set(state => ({ score: state.score + points, totalScore: state.totalScore + points })),
 
   // 現在の場所で質問を完了した後、次の場所に進む - Proceed to the next location after completing questions at current location
-  proceedToNextLocation: () => {
-    const { currentLocationIndex, currentStage } = get();
-    
-    // すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
-    const locationSequence = ['tokyo', 'shibuya', 'shinjuku', 'asakusa'];
-    
-    // 現在のステージで訪問する場所がまだあるか確認 - Check if there are more locations to visit in the current stage
-    if (currentLocationIndex < locationSequence.length - 1) {
-      // 同じステージ内で順序の次の場所に移動 - Move to next location in sequence within the same stage
-      const nextLocationIndex = currentLocationIndex + 1;
-      const nextLocation = locationSequence[nextLocationIndex];
-      
-      // 現在のステージの次の場所の質問を取得 - Get questions for the next location in the current stage
-      const nextLocationQuestions = getQuestionsForStageAndLocation(currentStage, nextLocation);
-      
-      set({
-        currentLocationIndex: nextLocationIndex,
-        currentQuestions: nextLocationQuestions,
-        currentQuestionIndex: 0,
-        readyForNextLocation: false,  // フラグをリセット - Reset the flag
-        selectedAnswer: null
-      });
-      
-      // 次の場所にカメラを移動 - Move camera to the next location
-      get().moveCameraToLocation(nextLocation);
-    } else {
-      // 現在のステージのすべての場所が完了 - All locations in current stage completed
-      // 次のステージがあるか確認 - Check if there's a next stage
-      if (currentStage < 5) {
-        // 次のステージに移動（そしてそのステージの最初の場所に戻る） - Move to next stage (and back to first location in that stage)
-        const nextStage = currentStage + 1;
-        
-        // 次のステージの最初の場所に切り替える - Switch to first location in the next stage
-        const firstLocation = locationSequence[0];
-        const firstLocationQuestions = getQuestionsForStageAndLocation(nextStage, firstLocation);
-        
+    proceedToNextLocation: () => {
+      const { currentLocationIndex } = get();
+  
+      if (currentLocationIndex < locationSequence.length - 1) {
+        const nextLocationIndex = currentLocationIndex + 1;
+        const nextLocation = locationSequence[nextLocationIndex];
+        const nextLocationQuestions = quizQuestions.filter(q => q.location === nextLocation);
+  
         set({
-          currentStage: nextStage,
-          currentLocationIndex: 0,
-          currentQuestions: firstLocationQuestions,
+          currentLocationIndex: nextLocationIndex,
+          currentQuestions: nextLocationQuestions,
           currentQuestionIndex: 0,
           readyForNextLocation: false,
           selectedAnswer: null
         });
-        
-        // 新しいステージの最初の場所にカメラを移動 - Move camera to the first location in the new stage
-        get().moveCameraToLocation(firstLocation);
+  
+        get().moveCameraToLocation(nextLocation);
       } else {
-        // すべてのステージと場所が完了 - Game complete
-        set({ 
+        set({
           gameCompleted: true,
           readyForNextLocation: false
         });
       }
-    }
-  },
-
+    },
   // 次の質問に進む（質問詳細表示後に呼び出される） - Move to the next question (called after viewing question details)
   goToNextQuestion: () => {
     const { currentQuestions, currentQuestionIndex, currentLocationIndex } = get();
@@ -271,41 +217,32 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       // 場所間の移行時にのみカメラ移動が発生します - Camera movement only happens when transitioning between locations
     } else {
       // 現在のロケーションの質問がすべて完了 - All questions at current location completed
-      // すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
-      const locationSequence = ['tokyo', 'shibuya', 'shinjuku', 'asakusa'];
+      const currentLocName = locationSequence[currentLocationIndex];
+      const updatedCompletedLocations = [...get().completedLocations, currentLocName];
+
+      set({ completedLocations: updatedCompletedLocations });
       
       // 訪問する場所がまだあるか確認 - Check if there are more locations to visit
-      if (currentLocationIndex < locationSequence.length - 1) {
-        // 次の場所に進む準備ができていることを示すフラグを設定 - Set the flag to indicate user is ready to proceed to next location
-        set({
-          readyForNextLocation: true
-        });
-      } else {
-        // 現在のステージのすべての場所が完了 - All locations completed for current stage
-        // さらにステージがあるか確認 - Check if there are more stages
-        if (get().currentStage < 5) {
-          // ユーザーは現在のステージのすべての場所を完了しましたが、さらにステージがあります - User has completed all locations in current stage, but there are more stages
-          set({
-            readyForNextLocation: true
-          });
-        } else {
-          // すべてのステージと場所が完了 - Game complete
-          set({ 
-            gameCompleted: true
-          });
-        }
-      }
-    }
+            if (currentLocationIndex < locationSequence.length - 1) {
+              set({
+                readyForNextLocation: true
+              });
+            } else {
+              // すべてのステージと場所が完了 - Game complete
+              set({
+                gameCompleted: true
+              });
+            }    }
   },
 
   // カメラを指定の場所に移動 - Move camera to a specific location
-  moveCameraToLocation: (location: string) => {
+  moveCameraToLocation: (location: QuizLocation) => {
     // シーンストア内の実際のシーンIDへの内部場所名のマッピング - Mapping from our internal location names to actual scene IDs in the scene store
-    const locationToSceneId: Record<string, string> = {
-      'tokyo': 'tokyo-overview',      // Tokyo location maps to 'tokyo-overview' scene
-      'shibuya': 'shibuya-crossing',  // Shibuya location maps to 'shibuya-crossing' scene
-      'shinjuku': 'shinjuku',         // Shinjuku location maps to 'shinjuku' scene
-      'asakusa': 'asakusa'            // Asakusa location maps to 'asakusa' scene
+    const locationToSceneId: Record<QuizLocation, string> = {
+      [QuizLocation.TOKYO]: 'tokyo-overview',      // Tokyo location maps to 'tokyo-overview' scene
+      [QuizLocation.SHIBUYA]: 'shibuya-crossing',  // Shibuya location maps to 'shibuya-crossing' scene
+      [QuizLocation.SHINJUKU]: 'shinjuku',         // Shinjuku location maps to 'shinjuku' scene
+      [QuizLocation.ASAKUSA]: 'asakusa'            // Asakusa location maps to 'asakusa' scene
     };
     
     // 必要に応じて、内部場所名を実際のシーンIDに変換 - Convert our internal location name to the actual scene ID if needed

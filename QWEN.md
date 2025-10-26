@@ -235,13 +235,8 @@ Implement a dual-path audio system:
 - **Subtask 10.5**: Run TypeScript type checking to ensure no errors (PENDING)
 - **Subtask 10.6**: Verify 100% implementation according to requirements (PENDING)
 
-based on right and wrong answers, after answering question should show the details of the asnwer questions with images!
-
-
-
-
 stages should be based on Locatuion ( SHIBUYA, TOKYO, SHINJUKU, etc...) no on level
 
 each stage should have 4 questions
 
-popup model on next question should dissapear, and the next popup showup and its 
+popup model on next question should dissapear, and the next popup showup and its

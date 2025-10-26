@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { useQuizStore } from '@/stores/quiz-store';
+import { locationSequence } from '@/stores/quiz-store'; // Import locationSequence directly
 import { QuizQuestion } from '@/types/quiz';
 
 /**
@@ -10,7 +11,7 @@ import { QuizQuestion } from '@/types/quiz';
  * @returns {JSX.Element}
  */
 export default function QuestionDisplay(): React.JSX.Element {
-  const { currentQuestions, currentQuestionIndex } = useQuizStore();
+  const { currentQuestions, currentQuestionIndex, currentLocationIndex } = useQuizStore();
   
   // 現在の質問を取得 - Get the current question
   const currentQuestion: QuizQuestion | undefined = currentQuestions[currentQuestionIndex];
@@ -25,13 +26,13 @@ export default function QuestionDisplay(): React.JSX.Element {
   
   return (
     <div className="mb-3">
-      {/* 質問番号とステージ表示 - Question number and stage display */}
+      {/* 質問番号とロケーション表示 - Question number and location display */}
       <div className="flex justify-between items-center mb-2">
         <span className="text-xs font-medium text-slate-400">
           質問 {currentQuestionIndex + 1} / {currentQuestions.length}
         </span>
         <span className="text-xs font-medium bg-slate-700/60 text-slate-300 px-2 py-1 rounded">
-          ステージ {useQuizStore.getState().currentStage}
+          ロケーション {locationSequence[currentLocationIndex]}
         </span>
       </div>
       <div className="text-white p-3 bg-slate-800/50 rounded-lg border border-slate-700">

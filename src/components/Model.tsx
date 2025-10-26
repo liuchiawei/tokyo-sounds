@@ -14,6 +14,7 @@ import { GLTF } from "three-stdlib";
 import { useAudioControl } from "./audio/audio-control-context";
 import { AUDIO_MAP } from "../lib/audio-mapping";
 import { useQuizStore } from "@/stores/quiz-store";
+import { QuizLocation } from "../types/quiz";
 
 // GLTFAction 型の定義 - Define the GLTFAction type
 type GLTFAction = THREE.AnimationAction;
@@ -164,33 +165,33 @@ function InteractiveMesh({
     setOpen((v) => !v);
     
     // Designate which landmarks can trigger the quiz
-    const designatedLandmarks = ['House', 'Apartment', 'Building', 'Shop'];
+    const designatedLandmarks: Record<string, QuizLocation> = {
+      'House': QuizLocation.SHINJUKU, // Example mapping
+      'Apartment': QuizLocation.SHIBUYA, // Example mapping
+      'Building': QuizLocation.TOKYO, // Example mapping
+      'Shop': QuizLocation.ASAKUSA, // Example mapping
+    };
     
+    const targetLocation = designatedLandmarks[name];
+
     // Check if this is a designated landmark that should trigger the quiz with building-specific questions
-    if (designatedLandmarks.includes(name)) {
+    if (targetLocation) {
       // If a game is already in progress, switch to the new question set based on the building type
       if (gameStarted) {
-        switchQuestionSet(name);
+        switchQuestionSet(targetLocation);
       } else {
         // If no game is in progress, start a new game with building-specific questions
-        startGame(name);
+        startGame(targetLocation);
       }
     }
-    // For non-designated landmarks, use the default stage behavior
+    // For non-designated landmarks, use the default location behavior
     else {
-      // Get the current stage from the store
-      const currentStage = useQuizStore.getState().currentStage;
-      
-      // Determine which stage to use (current stage or default to stage 1)
-      const stageToUse = currentStage || 1;
-      const stageId = `stage-${stageToUse}`;
-      
-      // If a game is already in progress, continue with the current stage
+      // If a game is already in progress, switch to the default location
       if (gameStarted) {
-        switchQuestionSet(stageId);
+        switchQuestionSet(QuizLocation.TOKYO);
       } else {
-        // If no game is in progress, start the quiz with the current stage
-        startGame(stageId);
+        // If no game is in progress, start the quiz with the default location
+        startGame(QuizLocation.TOKYO);
       }
     }
   };

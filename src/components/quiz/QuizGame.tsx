@@ -3,6 +3,7 @@
 
 import React, { useEffect } from 'react';
 import { useQuizStore } from '@/stores/quiz-store';
+import { locationSequence } from '@/stores/quiz-store'; // Import locationSequence directly
 import QuestionDisplay from './QuestionDisplay';
 import AnswerOption from './AnswerOption';
 import QuestionDetails from './QuestionDetails';
@@ -13,7 +14,7 @@ import { CheckCircle, ArrowRightCircle } from 'lucide-react';
  * @returns {JSX.Element}
  */
 export default function QuizGame(): React.JSX.Element {
-  const { gameStarted, gameCompleted, currentStage, currentQuestions, currentQuestionIndex, showFeedback, score, readyForNextLocation, proceedToNextLocation, answerQuestion, currentLocationIndex, showQuestionDetails, selectedAnswer } = useQuizStore();
+  const { gameStarted, gameCompleted, currentQuestions, currentQuestionIndex, showFeedback, score, readyForNextLocation, proceedToNextLocation, answerQuestion, currentLocationIndex, showQuestionDetails, selectedAnswer } = useQuizStore();
 
   // キーボードイベントを処理 - Handle keyboard events
   useEffect(() => {
@@ -80,20 +81,14 @@ export default function QuizGame(): React.JSX.Element {
 
   // 現在のロケーションのすべての質問が完了し、まだ次のロケーションに進んでいない場合 - If user has completed all questions at current location but not yet proceeded
   if (readyForNextLocation) {
-    const locationSequence = ['東京', '渋谷', '新宿', '浅草'];
-    const isLastLocationInStage = currentLocationIndex === locationSequence.length - 1;
+    const isLastLocation = currentLocationIndex === locationSequence.length - 1;
 
     let nextStepLabel = "次のロケーション";
     let nextStepValue = "";
 
-    if (isLastLocationInStage) {
-      if (currentStage < 5) {
-        nextStepLabel = "次のステージ";
-        nextStepValue = `レベル ${currentStage + 1}`;
-      } else {
-        nextStepLabel = "ゲーム";
-        nextStepValue = "完了";
-      }
+    if (isLastLocation) {
+      nextStepLabel = "ゲーム";
+      nextStepValue = "完了";
     } else {
       nextStepValue = locationSequence[currentLocationIndex + 1];
     }
@@ -169,7 +164,7 @@ export default function QuizGame(): React.JSX.Element {
       <div className="p-2 bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg border border-gray-700">
         <div className="flex justify-between items-center">
           <div className="text-sm font-medium text-blue-300">
-            ステージ: <span className="font-mono bg-blue-900/50 px-2 py-0.5 rounded">レベル {currentStage}</span>
+            ロケーション: <span className="font-mono bg-blue-900/50 px-2 py-0.5 rounded">{locationSequence[currentLocationIndex]}</span>
           </div>
           <div className="text-sm font-medium text-blue-300">
             スコア: <span className="font-mono bg-blue-900/50 px-2 py-0.5 rounded">[{score}/100]</span>
