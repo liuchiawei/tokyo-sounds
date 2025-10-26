@@ -21,6 +21,10 @@ export function CudecityTest02Model(props: JSX.IntrinsicElements["group"]) {
   return (
     <group {...props} dispose={null}>
       <mesh geometry={nodes.Plane.geometry} material={nodes.Plane.material} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
+        <planeGeometry args={[1000, 1000]} />
+        <meshStandardMaterial color="#808080" roughness={0.8} metalness={0.1} />
+      </mesh>
     </group>
   );
 }
