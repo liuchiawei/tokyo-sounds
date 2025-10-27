@@ -59,4 +59,5 @@ export interface QuizGameActions {
   proceedToNextLocation: () => void; // 次のロケーションに進む - Proceed to the next location
   setShowQuestionDetails: (show: boolean) => void; // 質問詳細表示の設定 - Set question details visibility
   goToNextQuestion: () => void; // 次の質問に進む - Move to the next question
+  clearPendingTimeout: () => void; // 保留中のタイムアウトをクリア - Clear pending timeouts to prevent race conditions
 }

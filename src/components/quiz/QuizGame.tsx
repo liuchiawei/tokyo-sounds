@@ -81,16 +81,22 @@ export default function QuizGame(): React.JSX.Element {
 
   // 現在のロケーションのすべての質問が完了し、まだ次のロケーションに進んでいない場合 - If user has completed all questions at current location but not yet proceeded
   if (readyForNextLocation) {
-    const isLastLocation = currentLocationIndex === locationSequence.length - 1;
+    const { completedLocations } = useQuizStore.getState();
+    const allLocationsCompleted = locationSequence.length === completedLocations.length &&
+                                  locationSequence.every(location => completedLocations.includes(location));
 
     let nextStepLabel = "次のロケーション";
     let nextStepValue = "";
 
-    if (isLastLocation) {
+    if (allLocationsCompleted) {
       nextStepLabel = "ゲーム";
       nextStepValue = "完了";
     } else {
-      nextStepValue = locationSequence[currentLocationIndex + 1];
+      // Find the next uncompleted location in the sequence
+      const nextUncompletedLocation = locationSequence.find(location => 
+        !completedLocations.includes(location)
+      );
+      nextStepValue = nextUncompletedLocation || "";
     }
 
     return (

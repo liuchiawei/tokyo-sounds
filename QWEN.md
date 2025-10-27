@@ -235,8 +235,8 @@ Implement a dual-path audio system:
 - **Subtask 10.5**: Run TypeScript type checking to ensure no errors (PENDING)
 - **Subtask 10.6**: Verify 100% implementation according to requirements (PENDING)
 
-stages should be based on Locatuion ( SHIBUYA, TOKYO, SHINJUKU, etc...) no on level
+stages should be based on Locatuion ( SHIBUYA, TOKYO SHINJUKU, etc...) not on level
 
-each stage should have 4 questions
+each stage should have 5 questions
 
 popup model on next question should dissapear, and the next popup showup and its

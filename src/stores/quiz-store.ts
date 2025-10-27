@@ -6,6 +6,17 @@ import { QuizGameState, QuizGameActions, QuizQuestion, QuizLocation } from '../t
 import { quizQuestions } from '../data/quiz-data';
 import { useSceneStore } from './use-scene-store';
 
+// Global timeout ID to manage answer timeouts and prevent race conditions
+declare global {
+  interface Window {
+    answerTimeoutId: NodeJS.Timeout | number | null;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.answerTimeoutId = null;
+}
+
 // すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
 export const locationSequence: QuizLocation[] = [QuizLocation.TOKYO, QuizLocation.SHIBUYA, QuizLocation.SHINJUKU, QuizLocation.ASAKUSA];
 
@@ -53,11 +64,15 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       completedLocations: [],
       currentLocationIndex: startingLocationIndex >= 0 ? startingLocationIndex : 0,
       readyForNextLocation: false,
+      showQuestionDetails: false,
     });
   },
 
   // 質問セットを切り替える - Switch question set based on the clicked location and current stage
   switchQuestionSet: (locationName: QuizLocation) => {
+    // Clear any pending timeouts to prevent race conditions
+    get().clearPendingTimeout();
+    
     const questionsForLocation = quizQuestions.filter(q => q.location === locationName);
     const newLocationIndex = locationSequence.indexOf(locationName);
 
@@ -67,7 +82,8 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       currentLocationIndex: newLocationIndex,
       selectedAnswer: null,
       feedback: null,
-      showFeedback: false
+      showFeedback: false,
+      showQuestionDetails: false  // Ensure question details are hidden when switching
     });
   },
 
@@ -117,14 +133,22 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       answeredQuestions.push(questionId);
     }
 
+    // Clear any existing timeout to prevent race conditions
+    if (window.answerTimeoutId) {
+      clearTimeout(window.answerTimeoutId);
+    }
+
     // Show question details after the feedback delay (preserving the original 1.5s feedback)
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       set({ 
         answeredQuestions,
         showFeedback: false,  // Hide the brief feedback
         showQuestionDetails: true  // Show question details instead of continuing automatically
       });
     }, 1500); // 1.5秒後に質問詳細を表示 - Show question details after 1.5 seconds (original delay)
+    
+    // Store timeout ID globally to allow clearing when changing locations
+    window.answerTimeoutId = timeoutId;
   },
 
   // 次の質問へ進む - Move to next question
@@ -143,6 +167,9 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
 
   // ゲームをリセット - Reset the game
   resetGame: () => {
+    // Clear any pending timeouts to prevent race conditions
+    get().clearPendingTimeout();
+    
     set({ 
       currentQuestionIndex: 0,
       currentQuestions: [],
@@ -157,6 +184,7 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       completedLocations: [],
       currentLocationIndex: 0,
       readyForNextLocation: false,
+      showQuestionDetails: false,
     });
   },
 
@@ -172,25 +200,48 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
   // スコアを更新 - Update score
   updateScore: (points: number) => set(state => ({ score: state.score + points, totalScore: state.totalScore + points })),
 
-  // 現在の場所で質問を完了した後、次の場所に進む - Proceed to the next location after completing questions at current location
+  // 現在の場所で質問を完了した後、次の場所に進む（固定シーケンスに従う） - Proceed to the next location in fixed sequence after completing questions at current location
     proceedToNextLocation: () => {
-      const { currentLocationIndex } = get();
+      // Clear any pending timeouts to prevent race conditions
+      get().clearPendingTimeout();
+      
+      const { currentLocationIndex, completedLocations } = get();
   
-      if (currentLocationIndex < locationSequence.length - 1) {
-        const nextLocationIndex = currentLocationIndex + 1;
-        const nextLocation = locationSequence[nextLocationIndex];
+      // Find the next location in the fixed sequence that hasn't been completed yet
+      let nextLocation: QuizLocation | null = null;
+      
+      // Find the current location's index in the sequence
+      const currentLocation = locationSequence[currentLocationIndex];
+      
+      // Look for next uncompleted location in the sequence (circular loop)
+      for (let i = 1; i < locationSequence.length; i++) {
+        const nextIndex = (currentLocationIndex + i) % locationSequence.length;
+        const candidateLocation = locationSequence[nextIndex];
+        if (!completedLocations.includes(candidateLocation)) {
+          nextLocation = candidateLocation;
+          break;
+        }
+      }
+  
+      if (nextLocation) {
+        // If there's an uncompleted location, go to it
         const nextLocationQuestions = quizQuestions.filter(q => q.location === nextLocation);
+        const nextLocationIndex = locationSequence.indexOf(nextLocation);
   
         set({
           currentLocationIndex: nextLocationIndex,
           currentQuestions: nextLocationQuestions,
           currentQuestionIndex: 0,
           readyForNextLocation: false,
-          selectedAnswer: null
+          selectedAnswer: null,
+          feedback: null,
+          showFeedback: false,
+          showQuestionDetails: false
         });
   
         get().moveCameraToLocation(nextLocation);
       } else {
+        // If no uncompleted locations are left, the game is completed
         set({
           gameCompleted: true,
           readyForNextLocation: false
@@ -199,7 +250,10 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
     },
   // 次の質問に進む（質問詳細表示後に呼び出される） - Move to the next question (called after viewing question details)
   goToNextQuestion: () => {
-    const { currentQuestions, currentQuestionIndex, currentLocationIndex } = get();
+    // Clear any pending timeouts to prevent race conditions
+    get().clearPendingTimeout();
+    
+    const { currentQuestions, currentQuestionIndex, currentLocationIndex, completedLocations } = get();
     
     // 閉じる質問詳細をリセット - Reset the question details view
     set({ showQuestionDetails: false });
@@ -210,7 +264,8 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       set({ 
         currentQuestionIndex: nextIndex,
         selectedAnswer: null,
-        feedback: null
+        feedback: null,
+        showFeedback: false
       });
       
       // 同じ場所内の次の質問に進むときはカメラを移動しない - Do not move camera when progressing to the next question within the same location
@@ -218,21 +273,56 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
     } else {
       // 現在のロケーションの質問がすべて完了 - All questions at current location completed
       const currentLocName = locationSequence[currentLocationIndex];
-      const updatedCompletedLocations = [...get().completedLocations, currentLocName];
-
-      set({ completedLocations: updatedCompletedLocations });
       
-      // 訪問する場所がまだあるか確認 - Check if there are more locations to visit
-            if (currentLocationIndex < locationSequence.length - 1) {
-              set({
-                readyForNextLocation: true
-              });
-            } else {
-              // すべてのステージと場所が完了 - Game complete
-              set({
-                gameCompleted: true
-              });
-            }    }
+      // Only add to completedLocations if it's not already completed
+      if (!completedLocations.includes(currentLocName)) {
+        const newCompletedLocations = [...completedLocations, currentLocName];
+        
+        // Check if all locations have been completed
+        const allLocationsCompleted = locationSequence.every(location => 
+          newCompletedLocations.includes(location)
+        );
+        
+        if (allLocationsCompleted) {
+          // If all locations are completed, mark the game as complete
+          set({
+            completedLocations: newCompletedLocations,
+            gameCompleted: true,
+            readyForNextLocation: false
+          });
+        } else {
+          // If not all locations are completed, update completed locations and show ready for next location
+          set({
+            completedLocations: newCompletedLocations,
+            readyForNextLocation: true
+          });
+        }
+      } else {
+        // If this location was already completed (shouldn't happen in normal flow), just check if all are done
+        const allLocationsCompleted = locationSequence.every(location => 
+          completedLocations.includes(location)
+        );
+        
+        if (allLocationsCompleted) {
+          set({
+            gameCompleted: true,
+            readyForNextLocation: false
+          });
+        } else {
+          set({
+            readyForNextLocation: true
+          });
+        }
+      }
+    }
+  },
+
+  // Clear any pending timeouts to prevent race conditions when changing locations
+  clearPendingTimeout: () => {
+    if (window.answerTimeoutId) {
+      clearTimeout(window.answerTimeoutId);
+      window.answerTimeoutId = null;
+    }
   },
 
   // カメラを指定の場所に移動 - Move camera to a specific location
