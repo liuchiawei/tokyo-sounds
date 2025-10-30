@@ -20,6 +20,14 @@ if (typeof window !== 'undefined') {
 // すべてのステージの場所の順序を定義 - Define the sequence of locations for all stages
 export const locationSequence: QuizLocation[] = [QuizLocation.TOKYO, QuizLocation.SHIBUYA, QuizLocation.SHINJUKU, QuizLocation.ASAKUSA];
 
+// Location-specific audio mapping
+const locationAudioMap: Record<QuizLocation, string> = {
+  [QuizLocation.TOKYO]: '/audio/train-apraoching-ikebukuro.mp3',      // From Building objects
+  [QuizLocation.SHIBUYA]: '/audio/bilingual-train-annoucement.mp3',  // From Apartment objects
+  [QuizLocation.SHINJUKU]: '/audio/tokyo-street.mp3',               // From House objects
+  [QuizLocation.ASAKUSA]: '/audio/tokyo-street.mp3',                // From Shop objects
+};
+
 // 初期状態の定義 - Define initial state
 const initialQuizState: Omit<QuizGameState, keyof QuizGameActions> = {
   currentQuestionIndex: 0,            // 現在の質問インデックス - Current question index
@@ -239,7 +247,19 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
           showQuestionDetails: false
         });
   
+        // Move camera to the next location
         get().moveCameraToLocation(nextLocation);
+        
+        // Play location-specific audio after camera movement
+        const audioUrl = locationAudioMap[nextLocation];
+        if (audioUrl) {
+          // Use the existing audio control system to play the location audio
+          // We need to import and use the audio control context to play the audio
+          // Since we can't directly import useAudioControl in this store,
+          // we'll dispatch a custom event that the audio player can listen for
+          const event = new CustomEvent('playLocationAudio', { detail: { url: audioUrl } });
+          window.dispatchEvent(event);
+        }
       } else {
         // If no uncompleted locations are left, the game is completed
         set({

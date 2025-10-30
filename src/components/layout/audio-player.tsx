@@ -5,10 +5,30 @@ import { useQuizStore } from '@/stores/quiz-store';
 import QuizGame from '../quiz/QuizGame';
 import { useAudioControl } from "../audio/audio-control-context";
 import { Play, Pause, Square, Music, Volume2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 export default function AudioPlayer() {
   const { playAudio, pauseAudio, resumeAudio, stopAudio, isPlaying, currentAudioUrl } = useAudioControl();
   const { gameStarted } = useQuizStore();
+
+  // Listen for location audio events and play the appropriate sound
+  useEffect(() => {
+    const handleLocationAudio = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { url } = customEvent.detail;
+      if (url) {
+        // Stop any currently playing audio before starting the new location audio
+        stopAudio();
+        playAudio(url);
+      }
+    };
+
+    window.addEventListener('playLocationAudio', handleLocationAudio);
+    
+    return () => {
+      window.removeEventListener('playLocationAudio', handleLocationAudio);
+    };
+  }, [playAudio, stopAudio]);
 
   return (
     <div className="w-full h-full flex flex-col bg-gradient-to-b from-slate-800 to-slate-900 text-white rounded-2xl shadow-lg border border-slate-700/50 overflow-hidden">
