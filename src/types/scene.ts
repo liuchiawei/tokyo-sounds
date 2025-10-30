@@ -25,6 +25,6 @@ export interface SceneState {
   error: string | null;              // エラーメッセージ - Error message
   setCurrentScene: (scene: Scene) => void;  // 現在のシーンを設定 - Set current scene
   setCurrentLandmark: (landmark: CameraPosition) => void; // 現在のランドマークを設定 - Set current landmark
-  moveCameraToLandmark: (landmark: CameraPosition) => void; // カメラをランドマークに移動 - Move camera to landmark
+  moveCameraToLandmark: (landmark: CameraPosition, onMoveComplete?: () => void) => void; // カメラをランドマークに移動 - Move camera to landmark
   loadScenes: () => Promise<void>;   // シーンをロード - Load scenes
 }

@@ -32,8 +32,8 @@ const locationAudioMap: Record<QuizLocation, string> = {
 const initialQuizState: Omit<QuizGameState, keyof QuizGameActions> = {
   currentQuestionIndex: 0,            // 現在の質問インデックス - Current question index
   currentQuestions: [],               // 現在の質問リスト - Current questions list
-  score: 0,                           // 現在のスコア - Current score
-  totalScore: 0,                      // 総合スコア - Total score
+  score: 0,                           // 現在のスコア - Current score (5 points per correct answer)
+  totalScore: 0,                      // 総合スコア - Total score (5 points per correct answer)
   gameStarted: false,                 // ゲームが開始されたかどうか - Whether the game has started
   gameCompleted: false,               // ゲームが完了したかどうか - Whether the game is completed
   selectedAnswer: null,               // 選択された回答 - Selected answer
@@ -117,9 +117,9 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
     
     if (isCorrect) {
       // 正解の場合、スコアを更新 - Update score if correct
-      const pointsPerQuestion = 10; // Fixed points per correct answer
-      const newScore = Math.min(100, get().score + pointsPerQuestion); // Cap score at 100
-      const newTotalScore = Math.min(100, get().totalScore + pointsPerQuestion); // Cap total score at 100
+      const pointsPerQuestion = 5; // 5 points per correct answer (total possible points: 20 questions x 5 points = 100)
+      const newScore = get().score + pointsPerQuestion;
+      const newTotalScore = get().totalScore + pointsPerQuestion;
       set({ 
         score: newScore,
         totalScore: newTotalScore,
@@ -206,7 +206,10 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
   setCurrentQuestionIndex: (index: number) => set({ currentQuestionIndex: index }),
 
   // スコアを更新 - Update score
-  updateScore: (points: number) => set(state => ({ score: state.score + points, totalScore: state.totalScore + points })),
+  updateScore: (points: number) => set(state => ({ 
+    score: state.score + points, 
+    totalScore: state.totalScore + points 
+  })),
 
   // 現在の場所で質問を完了した後、次の場所に進む（固定シーケンスに従う） - Proceed to the next location in fixed sequence after completing questions at current location
     proceedToNextLocation: () => {
@@ -247,19 +250,27 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
           showQuestionDetails: false
         });
   
-        // Move camera to the next location
-        get().moveCameraToLocation(nextLocation);
+        // Close any open popups before moving camera
+        const closePopupEvent = new CustomEvent('closeAllPopups');
+        window.dispatchEvent(closePopupEvent);
         
-        // Play location-specific audio after camera movement
-        const audioUrl = locationAudioMap[nextLocation];
-        if (audioUrl) {
-          // Use the existing audio control system to play the location audio
-          // We need to import and use the audio control context to play the audio
-          // Since we can't directly import useAudioControl in this store,
-          // we'll dispatch a custom event that the audio player can listen for
-          const event = new CustomEvent('playLocationAudio', { detail: { url: audioUrl } });
-          window.dispatchEvent(event);
-        }
+        // Move camera to the next location and open the new location's popup after camera movement
+        get().moveCameraToLocation(nextLocation, () => {
+          // Open the new location's popup after camera movement completes
+          const openPopupEvent = new CustomEvent('openLocationPopup', { detail: { location: nextLocation } });
+          window.dispatchEvent(openPopupEvent);
+          
+          // Play location-specific audio after camera movement and popup opening
+          const audioUrl = locationAudioMap[nextLocation];
+          if (audioUrl) {
+            // Use the existing audio control system to play the location audio
+            // We need to import and use the audio control context to play the audio
+            // Since we can't directly import useAudioControl in this store,
+            // we'll dispatch a custom event that the audio player can listen for
+            const event = new CustomEvent('playLocationAudio', { detail: { url: audioUrl } });
+            window.dispatchEvent(event);
+          }
+        });
       } else {
         // If no uncompleted locations are left, the game is completed
         set({
@@ -346,7 +357,7 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
   },
 
   // カメラを指定の場所に移動 - Move camera to a specific location
-  moveCameraToLocation: (location: QuizLocation) => {
+  moveCameraToLocation: (location: QuizLocation, onMoveComplete?: () => void) => {
     // シーンストア内の実際のシーンIDへの内部場所名のマッピング - Mapping from our internal location names to actual scene IDs in the scene store
     const locationToSceneId: Record<QuizLocation, string> = {
       [QuizLocation.TOKYO]: 'tokyo-overview',      // Tokyo location maps to 'tokyo-overview' scene
@@ -363,8 +374,11 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
     const targetScene = sceneStore.allScenes.find(scene => scene.id === sceneId);
     
     if (targetScene && targetScene.cameraPositions.length > 0) {
-      // 最初のカメラ位置に移動 - Move to the first camera position
-      sceneStore.moveCameraToLandmark(targetScene.cameraPositions[0]);
+      // 最初のカメラ位置に移動 - Move to the first camera position with callback
+      sceneStore.moveCameraToLandmark(targetScene.cameraPositions[0], onMoveComplete);
+    } else if (onMoveComplete) {
+      // If no target scene was found, still call the callback
+      onMoveComplete();
     }
   }
 }));

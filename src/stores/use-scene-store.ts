@@ -225,7 +225,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   setCurrentLandmark: (landmark) => set({ currentLandmark: landmark }),
   
   // ランドマークにカメラを移動 - Move camera to landmark
-  moveCameraToLandmark: (landmark) => {
+  moveCameraToLandmark: (landmark, onMoveComplete?: () => void) => {
     // This function will be called to move the camera to a specific landmark
     // この関数はカメラを特定のランドマークに移動させるために呼び出されます
     set({ currentLandmark: landmark });
@@ -247,6 +247,14 @@ export const useSceneStore = create<SceneState>((set) => ({
         targetX, targetY, targetZ,  // New target - 新しいターゲット
         true  // Enable smooth transition - スムーズなトランジションを有効化
       );
+      
+      // Execute callback after a delay to account for animation completion
+      if (onMoveComplete) {
+        setTimeout(onMoveComplete, 600); // Allow time for camera animation to complete
+      }
+    } else if (onMoveComplete) {
+      // If no camera controls available, still call the callback
+      onMoveComplete();
     }
   },
   

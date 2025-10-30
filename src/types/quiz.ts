@@ -1,5 +1,6 @@
 // src/types/quiz.ts
 // クイズゲームの型定義 - Quiz game type definitions
+// スコアリング: 各質問は5ポイント - Scoring: Each question is worth 5 points
 
 // クイズの選択肢インターフェース - Quiz option interface
 export interface QuizOption {
@@ -31,8 +32,8 @@ export interface QuizQuestion {
 export interface QuizGameState {
   currentQuestionIndex: number;  // 現在の質問インデックス - Current question index
   currentQuestions: QuizQuestion[]; // 現在の質問リスト - Current questions list
-  score: number;                 // 現在のスコア - Current score
-  totalScore: number;            // 総合スコア - Total score
+  score: number;                 // 現在のスコア - Current score (5 points per correct answer)
+  totalScore: number;            // 総合スコア - Total score (5 points per correct answer)
   gameStarted: boolean;          // ゲームが開始されたかどうか - Whether the game has started
   gameCompleted: boolean;        // ゲームが完了したかどうか - Whether the game is completed
   selectedAnswer: string | null; // 選択された回答 - Selected answer
@@ -48,13 +49,13 @@ export interface QuizGameState {
 // クイズゲームのアクションインターフェース - Quiz game actions interface
 export interface QuizGameActions {
   startGame: (landmarkName?: QuizLocation) => void;         // ゲーム開始 - Start the game (with optional landmark name)
-  answerQuestion: (optionId: string) => void; // 質問に回答 - Answer a question
+  answerQuestion: (optionId: string) => void; // 質問に回答 - Answer a question (awards 5 points for correct answer)
   nextQuestion: () => void;      // 次の質問へ進む - Move to the next question
   resetGame: () => void;         // ゲームをリセット - Reset the game
   setShowFeedback: (show: boolean) => void; // フィードバック表示の設定 - Set feedback visibility
   setCurrentQuestionIndex: (index: number) => void; // 現在の質問インデックスを設定 - Set current question index
   updateScore: (points: number) => void; // スコアを更新 - Update score
-  moveCameraToLocation: (location: QuizLocation) => void; // カメラを指定の場所に移動 - Move camera to a specific location
+  moveCameraToLocation: (location: QuizLocation, onMoveComplete?: () => void) => void; // カメラを指定の場所に移動 - Move camera to a specific location
   switchQuestionSet: (landmarkName: QuizLocation) => void; // 質問セットを切り替える - Switch question set to a different landmark
   proceedToNextLocation: () => void; // 次のロケーションに進む - Proceed to the next location
   setShowQuestionDetails: (show: boolean) => void; // 質問詳細表示の設定 - Set question details visibility

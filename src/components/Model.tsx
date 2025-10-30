@@ -8,7 +8,7 @@ Title: Cartoon Lowpoly Small City Free Pack
 */
 
 import * as THREE from "three";
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useGLTF, Html } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import { useAudioControl } from "./audio/audio-control-context";
@@ -195,6 +195,47 @@ function InteractiveMesh({
       }
     }
   };
+
+  // Listen for closeAllPopups event to close this popup when transitioning between locations
+  useEffect(() => {
+    const handleClosePopups = () => {
+      setOpen(false);
+    };
+
+    window.addEventListener('closeAllPopups', handleClosePopups);
+    
+    return () => {
+      window.removeEventListener('closeAllPopups', handleClosePopups);
+    };
+  }, []);
+
+  // Listen for openLocationPopup event to open the relevant popup when transitioning between locations
+  useEffect(() => {
+    const handleOpenPopup = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const location = customEvent.detail.location as QuizLocation;
+      
+      // Define mapping between quiz locations and 3D object names
+      // This matches the mapping in the handleClick function
+      const locationToObjectName: Record<QuizLocation, string> = {
+        [QuizLocation.SHINJUKU]: 'House',    // Map Shinjuku location to House object
+        [QuizLocation.SHIBUYA]: 'Apartment', // Map Shibuya location to Apartment object
+        [QuizLocation.TOKYO]: 'Building',    // Map Tokyo location to Building object
+        [QuizLocation.ASAKUSA]: 'Shop',      // Map Asakusa location to Shop object
+      };
+      
+      // If this InteractiveMesh corresponds to the new location, open the popup
+      if (locationToObjectName[location] === name) {
+        setOpen(true);
+      }
+    };
+
+    window.addEventListener('openLocationPopup', handleOpenPopup);
+    
+    return () => {
+      window.removeEventListener('openLocationPopup', handleOpenPopup);
+    };
+  }, [name]);
 
   return (
     <group
