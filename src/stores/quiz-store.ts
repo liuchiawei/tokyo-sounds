@@ -2,7 +2,8 @@
 // クイズゲームのZustandストア - Zustand store for the quiz game
 
 import { create } from 'zustand';
-import { QuizGameState, QuizGameActions, QuizQuestion, QuizLocation } from '../types/quiz';
+import { QuizGameState, QuizGameActions, QuizLocation, Badge } from '../types/quiz';
+import type { QuizQuestion } from '../types/quiz'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { quizQuestions } from '../data/quiz-data';
 import { useSceneStore } from './use-scene-store';
 
@@ -44,6 +45,8 @@ const initialQuizState: Omit<QuizGameState, keyof QuizGameActions> = {
   currentLocationIndex: 0,            // 現在のロケーションインデックス - Current location index in the sequence
   readyForNextLocation: false,        // 次のロケーションに進む準備ができているか - Whether ready to proceed to the next location
   showQuestionDetails: false,         // 質問詳細を表示するかどうか - Whether to show question details
+  currentBadge: null,                 // 現在のバッジ - Current badge earned
+  unlockedBadges: [],                 // 解放されたバッジの配列 - Array of unlocked badges
 };
 
 // クイズストアの定義 - Define the quiz store
@@ -193,6 +196,8 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       currentLocationIndex: 0,
       readyForNextLocation: false,
       showQuestionDetails: false,
+      currentBadge: null,
+      unlockedBadges: [],
     });
   },
 
@@ -220,9 +225,6 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
   
       // Find the next location in the fixed sequence that hasn't been completed yet
       let nextLocation: QuizLocation | null = null;
-      
-      // Find the current location's index in the sequence
-      const currentLocation = locationSequence[currentLocationIndex];
       
       // Look for next uncompleted location in the sequence (circular loop)
       for (let i = 1; i < locationSequence.length; i++) {
@@ -273,9 +275,15 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
         });
       } else {
         // If no uncompleted locations are left, the game is completed
+        // Calculate and set the badge based on the final score
+        const finalScore = get().score;
+        const badge = get().calculateBadge(finalScore);
+        
         set({
           gameCompleted: true,
-          readyForNextLocation: false
+          readyForNextLocation: false,
+          currentBadge: badge,
+          unlockedBadges: [...get().unlockedBadges, badge]
         });
       }
     },
@@ -316,10 +324,16 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
         
         if (allLocationsCompleted) {
           // If all locations are completed, mark the game as complete
+          // Calculate and set the badge based on the final score
+          const finalScore = get().score;
+          const badge = get().calculateBadge(finalScore);
+          
           set({
             completedLocations: newCompletedLocations,
             gameCompleted: true,
-            readyForNextLocation: false
+            readyForNextLocation: false,
+            currentBadge: badge,
+            unlockedBadges: [...get().unlockedBadges, badge]
           });
         } else {
           // If not all locations are completed, update completed locations and show ready for next location
@@ -335,9 +349,15 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
         );
         
         if (allLocationsCompleted) {
+          // Calculate and set the badge based on the final score
+          const finalScore = get().score;
+          const badge = get().calculateBadge(finalScore);
+          
           set({
             gameCompleted: true,
-            readyForNextLocation: false
+            readyForNextLocation: false,
+            currentBadge: badge,
+            unlockedBadges: [...get().unlockedBadges, badge]
           });
         } else {
           set({
@@ -380,5 +400,15 @@ export const useQuizStore = create<QuizGameState & QuizGameActions>((set, get) =
       // If no target scene was found, still call the callback
       onMoveComplete();
     }
-  }
+  },
+  
+  // 最終スコアに基づいてバッジを計算 - Calculate badge based on final score
+  calculateBadge: (finalScore: number) => {
+    // Import the badge calculation function
+    const { getBadgeByScore } = require('../lib/badges');
+    return getBadgeByScore(finalScore);
+  },
+  
+  // 現在のバッジを設定 - Set current badge
+  setCurrentBadge: (badge: Badge) => set({ currentBadge: badge })
 }));

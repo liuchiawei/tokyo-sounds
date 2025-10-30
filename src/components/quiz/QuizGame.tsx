@@ -1,16 +1,17 @@
 // src/components/quiz/QuizGame.tsx
-// クイズゲームのメインコンポーネント - Main component for the Quiz Game
+// クイズゲームのメインコンポーネント
 
 import React, { useEffect } from 'react';
 import { useQuizStore } from '@/stores/quiz-store';
-import { locationSequence } from '@/stores/quiz-store'; // Import locationSequence directly
+import { locationSequence } from '@/stores/quiz-store';
 import QuestionDisplay from './QuestionDisplay';
 import AnswerOption from './AnswerOption';
 import QuestionDetails from './QuestionDetails';
+import BadgeDisplay from './BadgeDisplay';
 import { CheckCircle, ArrowRightCircle } from 'lucide-react';
 
 /**
- * クイズゲームのメインコンポーネント - Main container for the quiz game UI, designed to fit within the side panel
+ * クイズゲームのメインコンポーネント - サイドパネルに適したUI
  * @returns {JSX.Element}
  */
 export default function QuizGame(): React.JSX.Element {
@@ -60,21 +61,44 @@ export default function QuizGame(): React.JSX.Element {
 
   // ゲームが完了した場合、完了メッセージを表示 - If the game is completed, show the completion message
   if (gameCompleted) {
+    const { currentBadge } = useQuizStore.getState();
+    
     return (
-      <div className="w-full text-center p-4">
-        <div className="mb-8 p-6 bg-gradient-to-br from-green-900/30 to-emerald-900/30 rounded-2xl border border-green-700/50 shadow-xl">
-          <h1 className="text-3xl font-bold text-green-400 mb-4">🎉 クイズ完了！ 🎉</h1>
-          <p className="text-xl text-white mb-4">お疲れ様でした！</p>
-          <p className="text-2xl font-bold text-blue-300 mt-4">最終スコア: <span className="font-mono bg-blue-900/50 px-3 py-1 rounded-full">[{score}/100]</span></p>
+      <div className="w-full h-full flex flex-col p-4">
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col items-center justify-center p-2">
+          {/* Completion message and score */}
+          <div className="mb-6 p-5 bg-gradient-to-br from-green-900/30 to-emerald-900/30 rounded-2xl border border-green-700/50 shadow-xl w-full max-w-sm">
+            <h1 className="text-2xl font-bold text-green-400 mb-2 text-center">🎉 クイズ完了！ 🎉</h1>
+            <p className="text-base text-white mb-3 text-center">お疲れ様でした！</p>
+            <div className="text-center">
+              <p className="text-xl font-bold text-blue-300">最終スコア</p>
+              <p className="text-3xl font-bold mt-1"><span className="font-mono bg-blue-900/50 px-4 py-2 rounded-full">[{score}/100]</span></p>
+            </div>
+          </div>
+          
+          {/* バッジ表示 - Badge display */}
+          {currentBadge && (
+            <div className="w-full max-w-sm animate-fade-in">
+              <h2 className="text-base font-semibold text-slate-300 mb-3 text-center">獲得バッジ</h2>
+              <div className="flex justify-center">
+                <BadgeDisplay badge={currentBadge} />
+              </div>
+            </div>
+          )}
         </div>
-        <button
-          className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl text-white font-bold transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 text-lg"
-          onClick={() => {
-            useQuizStore.getState().resetGame();
-          }}
-        >
-          クイズをリセット
-        </button>
+        
+        {/* Reset button positioned closer to the content */}
+        <div className="py-3">
+          <button
+            className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl text-white font-bold transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 text-base w-full"
+            onClick={() => {
+              useQuizStore.getState().resetGame();
+            }}
+          >
+            クイズをリセット
+          </button>
+        </div>
       </div>
     );
   }
