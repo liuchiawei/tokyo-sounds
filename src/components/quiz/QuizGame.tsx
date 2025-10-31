@@ -4,6 +4,8 @@
 import React, { useEffect } from 'react';
 import { useQuizStore } from '@/stores/quiz-store';
 import { locationSequence } from '@/stores/quiz-store';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useConfetti } from '@/hooks/use-confetti';
 import QuestionDisplay from './QuestionDisplay';
 import AnswerOption from './AnswerOption';
 import QuestionDetails from './QuestionDetails';
@@ -16,6 +18,15 @@ import { CheckCircle, ArrowRightCircle } from 'lucide-react';
  */
 export default function QuizGame(): React.JSX.Element {
   const { gameStarted, gameCompleted, currentQuestions, currentQuestionIndex, showFeedback, score, readyForNextLocation, proceedToNextLocation, answerQuestion, currentLocationIndex, showQuestionDetails, selectedAnswer } = useQuizStore();
+  const isMobile = useIsMobile();
+  const { triggerConfetti } = useConfetti();
+
+  // Trigger confetti celebration when game is completed
+  useEffect(() => {
+    if (gameCompleted) {
+      triggerConfetti({ score });
+    }
+  }, [gameCompleted, score, triggerConfetti]);
 
   // キーボードイベントを処理 - Handle keyboard events
   useEffect(() => {
@@ -63,6 +74,100 @@ export default function QuizGame(): React.JSX.Element {
   if (gameCompleted) {
     const { currentBadge } = useQuizStore.getState();
     
+    // Function to create the quiz results image
+    const createQuizResultsImage = () => {
+      return new Promise<Blob>((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 600;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          // Draw background
+          const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+          gradient.addColorStop(0, '#0f172a'); // slate-900
+          gradient.addColorStop(1, '#1e293b'); // slate-800
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Draw content
+          ctx.fillStyle = '#f8fafc'; // slate-50
+          ctx.font = 'bold 36px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('東京サウンドズ', canvas.width/2, 80);
+          
+          ctx.font = '24px Arial';
+          ctx.fillText('クイズ完了！', canvas.width/2, 130);
+          
+          ctx.font = 'bold 48px Arial';
+          ctx.fillStyle = '#94a3b8'; // slate-400
+          ctx.fillText(`${score}/100`, canvas.width/2, 200);
+          
+          ctx.fillStyle = '#f8fafc'; // slate-50
+          ctx.font = '20px Arial';
+          ctx.fillText(`獲得バッジ: ${currentBadge?.name || ''}`, canvas.width/2, 260);
+          
+          ctx.fillStyle = '#64748b'; // slate-500
+          ctx.font = '16px Arial';
+          ctx.fillText('Tokyo Sounds Quiz', canvas.width/2, 320);
+          
+          // Convert canvas to blob
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Could not create image blob'));
+            }
+          }, 'image/png');
+        } else {
+          reject(new Error('Could not get canvas context'));
+        }
+      });
+    };
+
+    // Function to handle Instagram sharing (mobile only)
+    const handleInstagramShare = async () => {
+      if (!isMobile) {
+        // On desktop, show a message that Instagram sharing is mobile-only
+        alert('Instagramシェア機能はモバイル端末からのみ利用できます。');
+        return;
+      }
+      
+      try {
+        const imageBlob = await createQuizResultsImage();
+        
+        // Check if Web Share API is available (mobile devices)
+        if (navigator.share) {
+          const file = new File([imageBlob], 'tokyo-sounds-quiz-results.png', { type: 'image/png' });
+          
+          // Share using Web Share API
+          await navigator.share({
+            title: '東京サウンドズ',
+            text: `東京サウンドズでクイズを完了しました！スコア: ${score}/100 『${currentBadge?.name}』バッジを獲得しました！`,
+            files: [file]
+          });
+        } else {
+          // On mobile without Web Share API, show a message
+          alert('お使いのブラウザは共有機能をサポートしていません。');
+        }
+      } catch (error) {
+        console.error('Error sharing to Instagram:', error);
+        
+        // Alert the user that Instagram sharing failed
+        alert('シェアに失敗しました。');
+      }
+    };
+    
+    // Function to handle X (Twitter) sharing (text only, as web intents don't support image uploads)
+    const handleXShare = () => {
+      // Create share message
+      const shareMessage = `東京サウンドズでクイズを完了しました！スコア: ${score}/100 『${currentBadge?.name}』バッジを獲得しました！ #TokyoSoundsQuiz #東京`;
+      const shareUrl = typeof window !== 'undefined' ? window.location.href : 'https://tokyo-sounds.vercel.app';
+      
+      // Open Twitter share URL with the message
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+    };
+    
     return (
       <div className="w-full h-full flex flex-col p-4">
         {/* Main content area */}
@@ -86,6 +191,40 @@ export default function QuizGame(): React.JSX.Element {
               </div>
             </div>
           )}
+        </div>
+        
+        {/* Social sharing buttons */}
+        <div className="py-3">
+          <div className="text-center mb-3">
+            <p className="text-sm text-slate-400">結果をシェアする</p>
+          </div>
+          <div className="flex justify-center space-x-4 mb-4">
+            {/* Share to X (Twitter) */}
+            <button 
+              onClick={handleXShare}
+              className="p-3 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full hover:from-blue-500 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50"
+              title="X(Twitter)でシェア"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16" fill="currentColor" className="lucide lucide-x">
+                <path d="M12.6 0.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867 -5.07 -4.425 5.07H0.316l5.733 -6.57L0 0.75h5.063l3.495 4.633L12.601 0.75Zm-0.86 13.028h1.36L4.323 2.145H2.865z" stroke-width="1"></path>
+              </svg>
+            </button>
+            
+            {/* Share to Instagram - only show on mobile */}
+            {isMobile && (
+              <button 
+                onClick={handleInstagramShare}
+                className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50"
+                title="Instagramでシェア"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram">
+                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
         
         {/* Reset button positioned closer to the content */}
