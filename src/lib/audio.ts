@@ -1376,6 +1376,10 @@ class AudioSessionImpl implements AudioSession {
 
         object3D.add(positional);
 
+        if (mode === 'live') {
+            positional.connect();
+        }
+
         if (opts.enableLevelMeter) {
             try {
                 analyser = listener.context.createAnalyser();
