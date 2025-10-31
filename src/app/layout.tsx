@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/layout/footer";
-import { AudioControlProvider } from "@/components/audio/audio-control-context";
 
 
 const geistSans = Geist({
@@ -30,9 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AudioControlProvider>
-          {children}
-        </AudioControlProvider>
+        {children}
         <Footer />
       </body>
     </html>
