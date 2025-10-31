@@ -1,14 +1,15 @@
 "use client";
 
 // React Three Fiber と Drei コンポーネント - React Three Fiber and Drei components for 3D rendering and helpers
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Stage, Environment, useGLTF } from "@react-three/drei";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { EffectComposer, Bloom, N8AO } from "@react-three/postprocessing";
 import { Physics } from "@react-three/rapier";
 import { Model } from "../Model"; // GLBモデルコンポーネントをインポート - Import the auto-generated Model component
 import { useErrorBoundary } from "use-error-boundary";
 import { useThree } from "@react-three/fiber";
+import { useAudioSessionContext } from "@/hooks/useAudio";
 import * as THREE from "three";
 
 // Zustandストアのインポート - Import Zustand store
@@ -43,6 +44,65 @@ const WebGLFallback = () => (
     </div>
   </div>
 );
+
+function Scene({ sharedContext }: { sharedContext: AudioContext | null }) {
+  const { camera, scene } = useThree();
+  const session = useAudioSessionContext();
+  const listenerRef = useRef<THREE.AudioListener | null>(null);
+
+  useEffect(() => {
+    if (camera && sharedContext && !listenerRef.current) {
+      const listener = new THREE.AudioListener();
+      listenerRef.current = listener;
+      camera.add(listener);
+    }
+
+    return () => {
+      if (listenerRef.current && camera && listenerRef.current.parent === camera) {
+        camera.remove(listenerRef.current);
+      }
+    };
+  }, [camera, sharedContext]);
+
+  useFrame(() => {
+    if (!camera || !listenerRef.current) return;
+
+    // if the listener is orphaned, re-attach it to the camera
+    if (listenerRef.current.parent !== camera) {
+      camera.add(listenerRef.current);
+    }
+
+    // update listener matrix world
+    listenerRef.current.updateMatrixWorld(false);
+
+    // if they exist, update audio bindings
+    if (session) {
+      const bindings = (session as any).spatialBindings;
+      if (bindings instanceof Map && bindings.size > 0) {
+        bindings.forEach((binding: any) => {
+          if (binding.audio) {
+            binding.audio.updateMatrixWorld(false);
+          }
+        });
+      }
+    }
+  });
+
+  return (
+    <>
+      <Stage
+        environment={null}
+        intensity={1}
+        castShadow={false}
+        shadows={false}
+        adjustCamera={2.5}
+      >
+        <Model listenerRef={listenerRef as React.RefObject<THREE.AudioListener>} />
+        <ModelBounds />
+      </Stage>
+    </>
+  );
+}
 
 // ModelBounds: モデルの境界を計算してカメラを自動調整するコンポーネント - Component to calculate model bounds and auto-adjust camera
 function ModelBounds() {
@@ -101,7 +161,7 @@ function ModelBounds() {
 }
 
 // メインキャンVASコンポーネント - Main canvas component
-export default function ThreeDCanvas() {
+export default function ThreeDCanvas({ sharedContext }: { sharedContext: AudioContext | null }) {
   const { ErrorBoundary, didCatch, error } = useErrorBoundary();
 
   // 3Dキャンバスエラー時のフォールバック - Error fallback for 3D canvas
@@ -141,18 +201,7 @@ export default function ThreeDCanvas() {
         >
           <Suspense fallback={<Loader />}>
             <Physics debug>
-              {/* Stage コンポーネントはモデルの中央寄せ・スケーリングと照明を担当 - Stage component centers and scales the model, adds shadows and lighting */}
-              <Stage
-                environment={null}
-                intensity={1} // 照明の強度 - Light intensity
-                castShadow={false} // 影のキャスト無効化 - Disable shadow casting
-                shadows={false} // 影の無効化 - Disable shadows
-                adjustCamera={2.5} // カメラの調整 - Adjusts camera to better fit the model in view
-              >
-                <Model /> {/* GLBモデルの表示 - Display the GLB model */}
-                <ModelBounds />{" "}
-                {/* モデル全体を表示するためのカメラ調整 - Camera adjustment to view entire model */}
-              </Stage>
+              <Scene sharedContext={sharedContext} />
             </Physics>
           </Suspense>
 
