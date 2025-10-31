@@ -1,6 +1,7 @@
 "use client";
 
 import ThreeDCanvas from "@/components/layout/3D-canvas";
+// import AudioPlayer from "@/components/layout/audio-player";
 import StageSidebar from "@/components/quiz/StageSidebar";
 import { AudioSessionContext } from "@/hooks/useAudio";
 import { createTokyoSoundsSpec } from "@/lib/create-audio-spec";
