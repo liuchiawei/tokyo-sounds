@@ -5,8 +5,11 @@ interface ConfettiOptions {
   score: number;
 }
 
+// Define a type for the confetti function
+type ConfettiType = typeof confetti;
+
 export const useConfetti = () => {
-  const confettiRef = useRef<confetti.CreateTypes | null>(null);
+  const confettiRef = useRef<ConfettiType | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

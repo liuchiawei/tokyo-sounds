@@ -2,7 +2,16 @@
 import { create } from 'zustand';
 import { Scene, SceneState } from '../types/scene';
 
-// 初期シーンデータ - Initial scene data
+// Extend the Window interface to include cameraControls
+declare global {
+  var cameraControls: any; // In a real implementation, you'd define the actual type for camera controls
+}
+
+// Define the window property if it doesn't exist
+if (typeof window !== 'undefined') {
+  (window as any).cameraControls = (window as any).cameraControls || null;
+}
+
 const initialScenes: Scene[] = [
   {
     id: 'tokyo-overview',
