@@ -236,7 +236,7 @@ export function useSpatial(
     ]);
 
     useEffect(() => {
-        if (!session || !object3DRef.current) {
+        if (!session || !object3DRef.current || !nodeId) {
             return;
         }
 
