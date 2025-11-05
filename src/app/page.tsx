@@ -1,6 +1,6 @@
-import ThreeDCanvas from "@/components/layout/3D-canvas";
 import AudioPlayer from "@/components/layout/audio-player";
 import StageSidebar from "@/components/quiz/StageSidebar";
+import TwoDCanvas from "@/components/layout/2D-canvas";
 
 export default function Home() {
   return (
@@ -9,8 +9,8 @@ export default function Home() {
         <StageSidebar />
       </div>
       <div className="w-full md:w-3/4 flex flex-col md:flex-row gap-2 p-2">
-        <div className="w-full md:w-2/3 h-[90vh]">
-          <ThreeDCanvas />
+        <div className="w-full md:w-2/3 h-[90vh] overflow-hidden flex items-center justify-center">
+          <TwoDCanvas />
         </div>
         <div className="w-full md:w-1/3 h-[90vh]">
           <AudioPlayer />
