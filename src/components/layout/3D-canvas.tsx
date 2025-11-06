@@ -6,7 +6,7 @@ import { Stage, Environment, useGLTF } from "@react-three/drei";
 import { Suspense, useEffect } from "react";
 import { EffectComposer, Bloom, N8AO } from "@react-three/postprocessing";
 import { Physics } from "@react-three/rapier";
-import { Model } from "../Model"; // GLBモデルコンポーネントをインポート - Import the auto-generated Model component
+import { CubicityAssemblyModel } from "../CubicityAssemblyModel"; // 新しい3Dモデルコンポーネントをインポート - Import the new 3D model component
 import { useErrorBoundary } from "use-error-boundary";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -47,7 +47,7 @@ const WebGLFallback = () => (
 // ModelBounds: モデルの境界を計算してカメラを自動調整するコンポーネント - Component to calculate model bounds and auto-adjust camera
 function ModelBounds() {
   const { camera } = useThree();
-  const gltf = useGLTF("/3dtest.glb");
+  const gltf = useGLTF("/cubicity_assembly_v01.glb");
 
   // Calculate the bounding box of the model
   useEffect(() => {
@@ -149,7 +149,7 @@ export default function ThreeDCanvas() {
                 shadows={false} // 影の無効化 - Disable shadows
                 adjustCamera={2.5} // カメラの調整 - Adjusts camera to better fit the model in view
               >
-                <Model /> {/* GLBモデルの表示 - Display the GLB model */}
+                <CubicityAssemblyModel /> {/* 新しい3Dモデルの表示 - Display the new 3D model */}
                 <ModelBounds />{" "}
                 {/* モデル全体を表示するためのカメラ調整 - Camera adjustment to view entire model */}
               </Stage>
