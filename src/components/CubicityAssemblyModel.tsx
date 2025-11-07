@@ -1498,972 +1498,991 @@ type GLTFResult = GLTF & {
 export function CubicityAssemblyModel(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('/cubicity_assembly_v01.glb') as GLTFResult
 
+  // Create materials with vertex colors enabled
+  const vertexColoredMaterials = {
+    city_painted: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    city_glass_emis: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    city_painted_concrete: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    cubicity_concrete: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    ['cubicity_glass-emit']: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    cubicity_brick: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    cubicity_painted: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    ['cubicty_roof-tiles_A']: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    cubicity_canvas: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    cubicity_metal: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    cubicity_asphault: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    ['cubicity_asphault-backlot']: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    ['cubicity_glass-transparent']: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    cubicity_glass: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    ['cubicity_tree-leaves']: new THREE.MeshStandardMaterial({ vertexColors: true }),
+    cubicity_dirt: new THREE.MeshStandardMaterial({ vertexColors: true }),
+  };
 
 
   return (
     <group {...props} dispose={null}>
       <group position={[0.083, -0.058, -0.661]} scale={0.216}>
-        <mesh geometry={nodes.skytree_outsidewire.geometry} material={materials.city_painted} />
-        <mesh geometry={nodes.skytree_upplane.geometry} material={materials.city_painted} />
-        <mesh geometry={nodes.skytree_innerlight.geometry} material={materials.city_glass_emis} />
-        <mesh geometry={nodes.Cylinder004.geometry} material={materials.city_painted_concrete} />
-        <mesh geometry={nodes.Cylinder004_1.geometry} material={materials.city_painted} />
+        <mesh geometry={nodes.skytree_outsidewire.geometry} material={vertexColoredMaterials.city_painted} />
+        <mesh geometry={nodes.skytree_upplane.geometry} material={vertexColoredMaterials.city_painted} />
+        <mesh geometry={nodes.skytree_innerlight.geometry} material={vertexColoredMaterials.city_glass_emis} />
+        <mesh geometry={nodes.Cylinder004.geometry} material={vertexColoredMaterials.city_painted_concrete} />
+        <mesh geometry={nodes.Cylinder004_1.geometry} material={vertexColoredMaterials.city_painted} />
       </group>
       <group position={[20.013, -0.085, -11.889]}>
-        <mesh geometry={nodes.Cube020.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube020_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube020.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube020_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-1.111, -0.085, -17]}>
-        <mesh geometry={nodes.Cube037.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube037_1.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube037_2.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube037_3.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube037_4.geometry} material={materials['cubicty_roof-tiles_A']} />
-        <mesh geometry={nodes.Cube037_5.geometry} material={materials.cubicity_canvas} />
-        <mesh geometry={nodes.Cube037_6.geometry} material={materials.cubicity_metal} />
+        <mesh geometry={nodes.Cube037.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube037_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube037_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube037_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube037_4.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+        <mesh geometry={nodes.Cube037_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+        <mesh geometry={nodes.Cube037_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
       </group>
       <group position={[-3, 0, -0.5]}>
-        <mesh geometry={nodes.Plane002.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_1.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_2.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_1.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_2.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[0, 0, -4]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_1.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_2.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_1.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_2.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[-7, 0, -0.5]}>
-        <mesh geometry={nodes.Plane002_3.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_4.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_5.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_4.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_5.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-11, 0, -0.5]}>
-        <mesh geometry={nodes.Plane002_6.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_7.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_8.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_6.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_7.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_8.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[0, 0, -7]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_3.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_4.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_5.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_4.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_5.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[-18, 0, 0]}>
         <group position={[0, 0, -0.5]}>
-          <mesh geometry={nodes.Plane004_3.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane004_4.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane004_5.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane004_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane004_4.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane004_5.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[0, 0, 12.8]}>
         <group position={[0, 0, -0.5]}>
-          <mesh geometry={nodes.Plane004_6.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane004_7.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane004_8.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane004_6.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane004_7.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane004_8.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[-3, 0, 12.3]}>
-        <mesh geometry={nodes.Plane002_9.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_10.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_11.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_9.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_10.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_11.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-7, 0, 12.3]}>
-        <mesh geometry={nodes.Plane002_12.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_13.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_14.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_12.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_13.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_14.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-11, 0, 12.3]}>
-        <mesh geometry={nodes.Plane002_15.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_16.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_17.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_15.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_16.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_17.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-18, 0, 12.8]}>
         <group position={[0, 0, -0.5]}>
-          <mesh geometry={nodes.Plane004_9.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane004_10.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane004_11.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane004_9.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane004_10.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane004_11.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[0, 0, 9]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_6.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_7.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_8.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_6.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_7.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_8.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[0, 0, 6]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_9.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_10.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_11.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_9.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_10.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_11.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[-18, 0, -4]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_12.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_13.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_14.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_12.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_13.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_14.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[-18, 0, -7]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_15.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_16.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_17.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_15.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_16.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_17.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[-18, 0, 9]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_18.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_19.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_20.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_18.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_19.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_20.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[-18, 0, 6]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_21.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_22.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_23.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_21.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_22.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_23.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[0, 0, -13]}>
         <group position={[0, 0, -0.5]}>
-          <mesh geometry={nodes.Plane004_12.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane004_13.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane004_14.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane004_12.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane004_13.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane004_14.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[-3, 0, -13.5]}>
-        <mesh geometry={nodes.Plane002_18.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_19.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_20.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_18.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_19.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_20.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-7, 0, -13.5]}>
-        <mesh geometry={nodes.Plane002_21.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_22.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_23.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_21.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_22.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_23.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-11, 0, -13.5]}>
-        <mesh geometry={nodes.Plane002_24.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_25.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_26.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_24.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_25.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_26.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-18, 0, -13]}>
         <group position={[0, 0, -0.5]}>
-          <mesh geometry={nodes.Plane004_15.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane004_16.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane004_17.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane004_15.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane004_16.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane004_17.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[17.938, 0, 0]}>
         <group position={[0, 0, -0.5]}>
-          <mesh geometry={nodes.Plane004_18.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane004_19.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane004_20.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane004_18.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane004_19.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane004_20.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[14.938, 0, -0.5]}>
-        <mesh geometry={nodes.Plane002_27.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_28.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_29.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_27.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_28.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_29.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[17.938, 0, -4]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_24.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_25.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_26.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_24.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_25.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_26.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[10.938, 0, -0.5]}>
-        <mesh geometry={nodes.Plane002_30.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_31.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_32.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_30.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_31.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_32.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[6.938, 0, -0.5]}>
-        <mesh geometry={nodes.Plane002_33.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_34.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_35.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_33.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_34.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_35.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[17.938, 0, -7]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_27.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_28.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_29.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_27.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_28.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_29.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[17.938, 0, 12.8]}>
         <group position={[0, 0, -0.5]}>
-          <mesh geometry={nodes.Plane004_21.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane004_22.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane004_23.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane004_21.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane004_22.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane004_23.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[14.938, 0, 12.3]}>
-        <mesh geometry={nodes.Plane002_36.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_37.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_38.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_36.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_37.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_38.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[10.938, 0, 12.3]}>
-        <mesh geometry={nodes.Plane002_39.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_40.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_41.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_39.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_40.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_41.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[6.938, 0, 12.3]}>
-        <mesh geometry={nodes.Plane002_42.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_43.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_44.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_42.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_43.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_44.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[17.938, 0, 9]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_30.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_31.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_32.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_30.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_31.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_32.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[17.938, 0, 6]}>
         <group rotation={[0, Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Plane005_33.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane005_34.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane005_35.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane005_33.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane005_34.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane005_35.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[17.938, 0, -13]}>
         <group position={[0, 0, -0.5]}>
-          <mesh geometry={nodes.Plane004_24.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Plane004_25.geometry} material={materials.cubicity_asphault} />
-          <mesh geometry={nodes.Plane004_26.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Plane004_24.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Plane004_25.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+          <mesh geometry={nodes.Plane004_26.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[14.938, 0, -13.5]}>
-        <mesh geometry={nodes.Plane002_45.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_46.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_47.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_45.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_46.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_47.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[10.938, 0, -13.5]}>
-        <mesh geometry={nodes.Plane002_48.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_49.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_50.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_48.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_49.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_50.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[6.938, 0, -13.5]}>
-        <mesh geometry={nodes.Plane002_51.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_52.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_53.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_51.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_52.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_53.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-3, 0, -0.5]}>
-        <mesh geometry={nodes.Plane002_54.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Plane002_55.geometry} material={materials.cubicity_asphault} />
-        <mesh geometry={nodes.Plane002_56.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes.Plane002_54.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Plane002_55.geometry} material={vertexColoredMaterials.cubicity_asphault} />
+        <mesh geometry={nodes.Plane002_56.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[2, 0, -3]}>
         <group rotation={[0, -Math.PI / 4, 0]}>
-          <mesh geometry={nodes.Cube025.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube025_1.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube025_2.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube025_3.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube025_4.geometry} material={materials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube025.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube025_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube025_2.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube025_3.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube025_4.geometry} material={vertexColoredMaterials.cubicity_canvas} />
         </group>
       </group>
       <group position={[1.908, 0, -7.158]} rotation={[0, -Math.PI / 2, 0]}>
-        <mesh geometry={nodes.Cube034.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube034_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube034.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube034_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[1.978, 0, -5.141]} rotation={[0, -Math.PI / 2, 0]} scale={[0.928, 1, 1]}>
-        <mesh geometry={nodes.Cube035.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube035_1.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube035_2.geometry} material={materials.cubicity_brick} />
+        <mesh geometry={nodes.Cube035.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube035_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube035_2.geometry} material={vertexColoredMaterials.cubicity_brick} />
       </group>
       <group position={[14, 0, -2.949]}>
-        <mesh geometry={nodes.Cube037.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube037_1.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube037_2.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube037_3.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube037_4.geometry} material={materials['cubicty_roof-tiles_A']} />
-        <mesh geometry={nodes.Cube037_5.geometry} material={materials.cubicity_canvas} />
-        <mesh geometry={nodes.Cube037_6.geometry} material={materials.cubicity_metal} />
+        <mesh geometry={nodes.Cube037.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube037_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube037_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube037_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube037_4.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+        <mesh geometry={nodes.Cube037_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+        <mesh geometry={nodes.Cube037_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
       </group>
       <group position={[16, 0, -2.956]} scale={[0.928, 1, 1]}>
-        <mesh geometry={nodes.Cube035.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube035_1.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube035_2.geometry} material={materials.cubicity_brick} />
+        <mesh geometry={nodes.Cube035.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube035_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube035_2.geometry} material={vertexColoredMaterials.cubicity_brick} />
       </group>
       <group position={[10.273, 0, -3]} scale={[1.156, 1, 1]}>
         <group rotation={[0, -1.571, 0]} scale={[1.391, 0.881, 1]}>
-          <mesh geometry={nodes.Cube069.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube069_1.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube069_2.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube069_3.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube069_4.geometry} material={materials['cubicty_roof-tiles_A']} />
-          <mesh geometry={nodes.Cube069_5.geometry} material={materials.cubicity_canvas} />
-          <mesh geometry={nodes.Cube069_6.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube069_7.geometry} material={materials['cubicity_glass-transparent']} />
+          <mesh geometry={nodes.Cube069.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube069_1.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube069_2.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube069_3.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube069_4.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+          <mesh geometry={nodes.Cube069_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube069_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube069_7.geometry} material={vertexColoredMaterials['cubicity_glass-transparent']} />
         </group>
       </group>
       <group position={[16, 0, -11]} rotation={[Math.PI, 0, Math.PI]} scale={[1.493, 1, 1.493]}>
         <group rotation={[0, -Math.PI / 4, 0]}>
-          <mesh geometry={nodes.Cube025_5.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube025_6.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube025_7.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube025_8.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube025_9.geometry} material={materials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube025_5.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube025_6.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube025_7.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube025_8.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube025_9.geometry} material={vertexColoredMaterials.cubicity_canvas} />
         </group>
       </group>
       <group position={[15.988, 0, -7.906]} rotation={[0, 1.571, 0]} scale={[1.156, 1, 1]}>
         <group rotation={[0, -1.571, 0]} scale={[1.391, 0.881, 1]}>
-          <mesh geometry={nodes.Cube069_8.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube069_9.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube069_10.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube069_11.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube069_12.geometry} material={materials['cubicty_roof-tiles_A']} />
-          <mesh geometry={nodes.Cube069_13.geometry} material={materials.cubicity_canvas} />
-          <mesh geometry={nodes.Cube069_14.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube069_15.geometry} material={materials['cubicity_glass-transparent']} />
+          <mesh geometry={nodes.Cube069_8.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube069_9.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube069_10.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube069_11.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube069_12.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+          <mesh geometry={nodes.Cube069_13.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube069_14.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube069_15.geometry} material={vertexColoredMaterials['cubicity_glass-transparent']} />
         </group>
       </group>
       <group position={[-2, 0, -3]}>
         <group rotation={[0, Math.PI / 4, 0]} scale={[1.561, 0.773, 1.31]}>
-          <mesh geometry={nodes.Cube028.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube028_1.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube028_2.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube028_3.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Cube028.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube028_1.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube028_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube028_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[-9.855, 0, -3]}>
-        <mesh geometry={nodes.Cube035.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube035_1.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube035_2.geometry} material={materials.cubicity_brick} />
+        <mesh geometry={nodes.Cube035.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube035_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube035_2.geometry} material={vertexColoredMaterials.cubicity_brick} />
       </group>
       <group position={[-7.247, 0, -2.98]}>
         <group rotation={[0, -1.571, 0]} scale={[1.391, 0.881, 1]}>
-          <mesh geometry={nodes.Cube069_16.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube069_17.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube069_18.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube069_19.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube069_20.geometry} material={materials['cubicty_roof-tiles_A']} />
-          <mesh geometry={nodes.Cube069_21.geometry} material={materials.cubicity_canvas} />
-          <mesh geometry={nodes.Cube069_22.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube069_23.geometry} material={materials['cubicity_glass-transparent']} />
+          <mesh geometry={nodes.Cube069_16.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube069_17.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube069_18.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube069_19.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube069_20.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+          <mesh geometry={nodes.Cube069_21.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube069_22.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube069_23.geometry} material={vertexColoredMaterials['cubicity_glass-transparent']} />
         </group>
       </group>
       <group position={[-12, 0, -2.973]}>
-        <mesh geometry={nodes.Cube034_2.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube034_3.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube034_2.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube034_3.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-1.914, 0, -8.852]} rotation={[0, Math.PI / 2, 0]} scale={[1.156, 1, 1]}>
         <group rotation={[0, -1.571, 0]} scale={[1.391, 0.881, 1]}>
-          <mesh geometry={nodes.Cube069_24.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube069_25.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube069_26.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube069_27.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube069_28.geometry} material={materials['cubicty_roof-tiles_A']} />
-          <mesh geometry={nodes.Cube069_29.geometry} material={materials.cubicity_canvas} />
-          <mesh geometry={nodes.Cube069_30.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube069_31.geometry} material={materials['cubicity_glass-transparent']} />
+          <mesh geometry={nodes.Cube069_24.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube069_25.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube069_26.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube069_27.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube069_28.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+          <mesh geometry={nodes.Cube069_29.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube069_30.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube069_31.geometry} material={vertexColoredMaterials['cubicity_glass-transparent']} />
         </group>
       </group>
       <group position={[-16, 0, -11]} rotation={[Math.PI, 0, Math.PI]} scale={[0.909, 1, 0.821]}>
-        <mesh geometry={nodes.Cube020.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube020_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube020.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube020_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-7.157, 0, -3]} rotation={[-Math.PI, 0, 0]} scale={[-1.153, -1, -1]}>
-        <mesh geometry={nodes.Cube037.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube037_1.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube037_2.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube037_3.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube037_4.geometry} material={materials['cubicty_roof-tiles_A']} />
-        <mesh geometry={nodes.Cube037_5.geometry} material={materials.cubicity_canvas} />
-        <mesh geometry={nodes.Cube037_6.geometry} material={materials.cubicity_metal} />
+        <mesh geometry={nodes.Cube037.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube037_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube037_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube037_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube037_4.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+        <mesh geometry={nodes.Cube037_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+        <mesh geometry={nodes.Cube037_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
       </group>
       <group position={[-2, 0, -11]} rotation={[Math.PI, 0, Math.PI]}>
         <group rotation={[Math.PI, 0, Math.PI]}>
-          <mesh geometry={nodes.Cube031.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube031_1.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube031_2.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube031_3.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube031_4.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube031_5.geometry} material={materials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube031.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube031_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube031_2.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube031_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube031_4.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube031_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
         </group>
       </group>
       <group position={[-2, 0, 2]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh geometry={nodes.Cube037.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube037_1.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube037_2.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube037_3.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube037_4.geometry} material={materials['cubicty_roof-tiles_A']} />
-        <mesh geometry={nodes.Cube037_5.geometry} material={materials.cubicity_canvas} />
-        <mesh geometry={nodes.Cube037_6.geometry} material={materials.cubicity_metal} />
+        <mesh geometry={nodes.Cube037.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube037_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube037_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube037_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube037_4.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+        <mesh geometry={nodes.Cube037_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+        <mesh geometry={nodes.Cube037_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
       </group>
       <group position={[-9.287, 0, 1.941]} rotation={[Math.PI, 0, Math.PI]}>
-        <mesh geometry={nodes.Cube035.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube035_1.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube035_2.geometry} material={materials.cubicity_brick} />
+        <mesh geometry={nodes.Cube035.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube035_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube035_2.geometry} material={vertexColoredMaterials.cubicity_brick} />
       </group>
       <group position={[-4.079, 0, 10]} scale={[0.789, 1, 1]}>
-        <mesh geometry={nodes.Cube035.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube035_1.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube035_2.geometry} material={materials.cubicity_brick} />
+        <mesh geometry={nodes.Cube035.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube035_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube035_2.geometry} material={vertexColoredMaterials.cubicity_brick} />
       </group>
       <group position={[-16, 0, 6.182]} rotation={[0, -1.571, 0]}>
-        <mesh geometry={nodes.Cube035.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube035_1.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube035_2.geometry} material={materials.cubicity_brick} />
+        <mesh geometry={nodes.Cube035.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube035_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube035_2.geometry} material={vertexColoredMaterials.cubicity_brick} />
       </group>
       <group position={[-2, 0, 10]} rotation={[0, Math.PI / 2, 0]}>
         <group rotation={[0, -Math.PI / 4, 0]}>
-          <mesh geometry={nodes.Cube025_10.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube025_11.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube025_12.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube025_13.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube025_14.geometry} material={materials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube025_10.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube025_11.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube025_12.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube025_13.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube025_14.geometry} material={vertexColoredMaterials.cubicity_canvas} />
         </group>
       </group>
       <group position={[-2, 0, 5.671]} rotation={[0, Math.PI / 2, 0]} scale={[0.891, 1, 1]}>
         <group rotation={[0, -1.571, 0]} scale={[1.391, 0.881, 1]}>
-          <mesh geometry={nodes.Cube069_32.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube069_33.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube069_34.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube069_35.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube069_36.geometry} material={materials['cubicty_roof-tiles_A']} />
-          <mesh geometry={nodes.Cube069_37.geometry} material={materials.cubicity_canvas} />
-          <mesh geometry={nodes.Cube069_38.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube069_39.geometry} material={materials['cubicity_glass-transparent']} />
+          <mesh geometry={nodes.Cube069_32.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube069_33.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube069_34.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube069_35.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube069_36.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+          <mesh geometry={nodes.Cube069_37.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube069_38.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube069_39.geometry} material={vertexColoredMaterials['cubicity_glass-transparent']} />
         </group>
       </group>
       <group position={[-16, 0, 2]} rotation={[0, -Math.PI / 2, 0]} scale={[0.958, 1, 0.958]}>
         <group rotation={[0, -Math.PI / 4, 0]}>
-          <mesh geometry={nodes.Cube025_15.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube025_16.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube025_17.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube025_18.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube025_19.geometry} material={materials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube025_15.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube025_16.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube025_17.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube025_18.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube025_19.geometry} material={vertexColoredMaterials.cubicity_canvas} />
         </group>
       </group>
       <group position={[-14, 0, 1.919]} rotation={[Math.PI, 0, Math.PI]} scale={[0.769, 1, 1]}>
-        <mesh geometry={nodes.Cube026.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube026_1.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube026_2.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube026_3.geometry} material={materials.cubicity_metal} />
+        <mesh geometry={nodes.Cube026.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube026_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube026_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube026_3.geometry} material={vertexColoredMaterials.cubicity_metal} />
       </group>
       <group position={[2, 0, 10]} rotation={[0, -1.571, 0]}>
         <group rotation={[0, Math.PI / 4, 0]} scale={[1.561, 0.773, 1.31]}>
-          <mesh geometry={nodes.Cube028.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube028_1.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube028_2.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube028_3.geometry} material={materials.cubicity_painted} />
+          <mesh geometry={nodes.Cube028.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube028_1.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube028_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube028_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
         </group>
       </group>
       <group position={[4.641, 0, 1.961]} rotation={[Math.PI, 0, Math.PI]}>
-        <mesh geometry={nodes.Cube035.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube035_1.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube035_2.geometry} material={materials.cubicity_brick} />
+        <mesh geometry={nodes.Cube035.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube035_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube035_2.geometry} material={vertexColoredMaterials.cubicity_brick} />
       </group>
       <group position={[6.754, 0, 1.961]} rotation={[Math.PI, 0, Math.PI]}>
-        <mesh geometry={nodes.Cube037.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube037_1.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube037_2.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube037_3.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube037_4.geometry} material={materials['cubicty_roof-tiles_A']} />
-        <mesh geometry={nodes.Cube037_5.geometry} material={materials.cubicity_canvas} />
-        <mesh geometry={nodes.Cube037_6.geometry} material={materials.cubicity_metal} />
+        <mesh geometry={nodes.Cube037.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube037_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube037_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube037_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube037_4.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+        <mesh geometry={nodes.Cube037_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+        <mesh geometry={nodes.Cube037_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
       </group>
       <group position={[9, 0, 1.961]} rotation={[Math.PI, 0, Math.PI]}>
-        <mesh geometry={nodes.Cube036.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube036_1.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube036_2.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube036.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube036_1.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube036_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[12.404, 0, 2]} rotation={[Math.PI, 0, Math.PI]} scale={[0.901, 1, 1]}>
-        <mesh geometry={nodes.Cube020.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube020_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube020.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube020_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[13, 0, 7]} rotation={[Math.PI, 0, Math.PI]}>
-        <mesh geometry={nodes.Cube036.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube036_1.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube036_2.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube036.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube036_1.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube036_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[5.005, 0, 9.982]} rotation={[-Math.PI, 0, 0]} scale={-1}>
-        <mesh geometry={nodes.Cube037.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube037_1.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube037_2.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube037_3.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube037_4.geometry} material={materials['cubicty_roof-tiles_A']} />
-        <mesh geometry={nodes.Cube037_5.geometry} material={materials.cubicity_canvas} />
-        <mesh geometry={nodes.Cube037_6.geometry} material={materials.cubicity_metal} />
+        <mesh geometry={nodes.Cube037.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube037_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube037_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube037_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube037_4.geometry} material={vertexColoredMaterials['cubicty_roof-tiles_A']} />
+        <mesh geometry={nodes.Cube037_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
+        <mesh geometry={nodes.Cube037_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
       </group>
       <group position={[2, 0, 1.961]} rotation={[0, -Math.PI / 2, 0]}>
         <group rotation={[Math.PI, 0, Math.PI]}>
-          <mesh geometry={nodes.Cube031.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube031_1.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube031_2.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube031_3.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube031_4.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube031_5.geometry} material={materials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube031.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube031_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube031_2.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube031_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube031_4.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube031_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
         </group>
       </group>
       <group position={[12.611, 0, 9.952]} scale={[0.849, 1, 1]}>
-        <mesh geometry={nodes.Cube026.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube026_1.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube026_2.geometry} material={materials['cubicity_glass-emit']} />
-        <mesh geometry={nodes.Cube026_3.geometry} material={materials.cubicity_metal} />
+        <mesh geometry={nodes.Cube026.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube026_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube026_2.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube026_3.geometry} material={vertexColoredMaterials.cubicity_metal} />
       </group>
       <group position={[-16, 0, 10]}>
         <group rotation={[Math.PI, 0, Math.PI]}>
-          <mesh geometry={nodes.Cube031.geometry} material={materials.cubicity_brick} />
-          <mesh geometry={nodes.Cube031_1.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube031_2.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube031_3.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube031_4.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube031_5.geometry} material={materials.cubicity_canvas} />
+          <mesh geometry={nodes.Cube031.geometry} material={vertexColoredMaterials.cubicity_brick} />
+          <mesh geometry={nodes.Cube031_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube031_2.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube031_3.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube031_4.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube031_5.geometry} material={vertexColoredMaterials.cubicity_canvas} />
         </group>
       </group>
       <group position={[-10.503, 0, 10]} scale={[0.814, 1, 1]}>
-        <mesh geometry={nodes.Cube020.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube020_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube020.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube020_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-1.75, -0.008, -3.793]} rotation={[0, Math.PI / 2, 0]} scale={0.818}>
         <group scale={0.312}>
-          <mesh geometry={nodes.Cube099.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube099_1.geometry} material={materials['cubicity_tree-leaves']} />
+          <mesh geometry={nodes.Cube099.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube099_1.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
         </group>
       </group>
       <group position={[-1.75, -0.008, -4.925]} rotation={[0, Math.PI / 2, 0]} scale={0.818}>
         <group scale={0.312}>
-          <mesh geometry={nodes.Cube099_2.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube099_3.geometry} material={materials['cubicity_tree-leaves']} />
+          <mesh geometry={nodes.Cube099_2.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube099_3.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
         </group>
       </group>
       <group position={[-2.307, -0.01, -2.118]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-5.293, -0.01, -2.118]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-8.279, -0.01, -2.118]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-11.265, -0.01, -2.118]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-14.251, -0.01, -2.118]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-1.108, -0.01, -9.825]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-1.108, -0.01, -6.839]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-1.108, -0.01, -3.852]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-1.852, 0.003, -6.509]}>
         <group scale={0.312}>
-          <mesh geometry={nodes.Cube098.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube098_1.geometry} material={materials['cubicity_tree-leaves']} />
+          <mesh geometry={nodes.Cube098.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube098_1.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
         </group>
       </group>
       <group position={[-1.19, 0.005, -5.041]} rotation={[0, Math.PI / 2, 0]} scale={0.864}>
-        <mesh geometry={nodes.Cube004.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube004_1.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube004_2.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube004.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube004_1.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube004_2.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-1.19, 0.005, -6.318]} rotation={[Math.PI, 0, Math.PI]} scale={0.992}>
-        <mesh geometry={nodes.Cube004_3.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube004_4.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube004_5.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube004_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube004_4.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube004_5.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-1.19, 0.005, -9.525]} rotation={[0, -1.571, 0]} scale={0.864}>
-        <mesh geometry={nodes.Cube004_6.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube004_7.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube004_8.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube004_6.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube004_7.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube004_8.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-1.199, 0.004, -7.836]}>
-        <mesh geometry={nodes.Cube038.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube038_1.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube038_2.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube038.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube038_1.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube038_2.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-2.869, 0.005, -2.142]} rotation={[Math.PI, 0, Math.PI]} scale={0.864}>
-        <mesh geometry={nodes.Cube004_9.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube004_10.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube004_11.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube004_9.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube004_10.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube004_11.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-4.146, 0.005, -2.142]} rotation={[0, -1.571, 0]} scale={0.992}>
-        <mesh geometry={nodes.Cube004_12.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube004_13.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube004_14.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube004_12.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube004_13.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube004_14.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-7.182, 0.004, -2.186]} rotation={[0, Math.PI / 2, 0]} scale={1.067}>
-        <mesh geometry={nodes.Cube038_3.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube038_4.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube038_5.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube038_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube038_4.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube038_5.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-8.898, 0.004, -2.186]} rotation={[Math.PI, 0, Math.PI]} scale={1.067}>
-        <mesh geometry={nodes.Cube038_6.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube038_7.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube038_8.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube038_6.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube038_7.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube038_8.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-4.603, -0.058, -1.721]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube094.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube094_1.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube094_2.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube094_3.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube094_4.geometry} material={materials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube094.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube094_1.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube094_2.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube094_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube094_4.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
         </group>
       </group>
       <group position={[-2.777, -0.058, -0.841]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube104.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube104_1.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube104_2.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube104_3.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube104_4.geometry} material={materials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube104.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube104_1.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube104_2.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube104_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube104_4.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
         </group>
       </group>
       <group position={[-6.392, -0.058, -0.841]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube104_5.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube104_6.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube104_7.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube104_8.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube104_9.geometry} material={materials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube104_5.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube104_6.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube104_7.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube104_8.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube104_9.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
         </group>
       </group>
       <group position={[-7.694, -0.058, -1.572]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube015.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube015_1.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube015_2.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube015_3.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube015_4.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube015.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube015_1.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube015_2.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube015_3.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube015_4.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[-0.799, -0.058, -4.896]} rotation={[0, Math.PI / 2, 0]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube104_10.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube104_11.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube104_12.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube104_13.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube104_14.geometry} material={materials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube104_10.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube104_11.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube104_12.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube104_13.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube104_14.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
         </group>
       </group>
       <group position={[-0.291, -0.058, -3.356]} rotation={[0, Math.PI / 2, 0]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube104_15.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube104_16.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube104_17.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube104_18.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube104_19.geometry} material={materials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube104_15.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube104_16.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube104_17.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube104_18.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube104_19.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
         </group>
       </group>
       <group position={[0.31, -0.058, -3.461]} rotation={[0, Math.PI / 2, 0]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube015_5.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube015_6.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube015_7.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube015_8.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube015_9.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube015_5.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube015_6.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube015_7.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube015_8.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube015_9.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[-1.528, 0.004, -2.484]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh geometry={nodes['traffic-light-pole_cgcookie001'].geometry} material={materials.cubicity_metal} rotation={[0, -Math.PI / 2, 0]}>
+        <mesh geometry={nodes['traffic-light-pole_cgcookie001'].geometry} material={vertexColoredMaterials.cubicity_metal} rotation={[0, -Math.PI / 2, 0]}>
           <group position={[0.016, 1.209, 1.635]} rotation={[Math.PI / 2, 0, -Math.PI / 2]}>
-            <mesh geometry={nodes.Plane021_32.geometry} material={materials.cubicity_painted} />
-            <mesh geometry={nodes.Plane021_33.geometry} material={materials['cubicity_glass-emit']} />
+            <mesh geometry={nodes.Plane021_32.geometry} material={vertexColoredMaterials.cubicity_painted} />
+            <mesh geometry={nodes.Plane021_33.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
           </group>
           <group position={[0.016, 1.209, 1.02]} rotation={[Math.PI / 2, 0, -Math.PI / 2]}>
-            <mesh geometry={nodes.Plane021_34.geometry} material={materials.cubicity_painted} />
-            <mesh geometry={nodes.Plane021_35.geometry} material={materials['cubicity_glass-emit']} />
+            <mesh geometry={nodes.Plane021_34.geometry} material={vertexColoredMaterials.cubicity_painted} />
+            <mesh geometry={nodes.Plane021_35.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
           </group>
         </mesh>
       </group>
       <group position={[-0.799, -0.058, -7.232]} rotation={[0, Math.PI / 2, 0]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube104_20.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube104_21.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube104_22.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube104_23.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube104_24.geometry} material={materials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube104_20.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube104_21.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube104_22.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube104_23.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube104_24.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
         </group>
       </group>
       <group position={[-0.77, -0.058, -6.021]} rotation={[0, Math.PI / 2, 0]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube015_10.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube015_11.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube015_12.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube015_13.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube015_14.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube015_10.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube015_11.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube015_12.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube015_13.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube015_14.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[-6.915, 1.951, -4.392]} rotation={[Math.PI, 0, Math.PI]}>
         <group scale={0.312}>
-          <mesh geometry={nodes.Cube098.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube098_1.geometry} material={materials['cubicity_tree-leaves']} />
+          <mesh geometry={nodes.Cube098.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube098_1.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
         </group>
       </group>
       <group position={[-15.172, 7.58, -4.455]}>
-        <mesh geometry={nodes.Cube008.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube008_1.geometry} material={materials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube008.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube008_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
       </group>
       <group position={[-14.29, 7.58, -4.455]}>
-        <mesh geometry={nodes.Cube008_2.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube008_3.geometry} material={materials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube008_2.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube008_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
       </group>
       <group position={[-8.487, 5.011, -10.005]} scale={0.759}>
-        <mesh geometry={nodes.Cube008_4.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube008_5.geometry} material={materials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube008_4.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube008_5.geometry} material={vertexColoredMaterials.cubicity_concrete} />
       </group>
       <group position={[-2.932, 3.338, -5.102]}>
         <group scale={0.538}>
-          <mesh geometry={nodes.Cube011.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube011_1.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube011.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube011_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[-3.368, 3.338, -5.102]}>
         <group scale={0.538}>
-          <mesh geometry={nodes.Cube011_2.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube011_3.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube011_2.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube011_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[-4.842, 5.011, -9.927]}>
         <group scale={0.538}>
-          <mesh geometry={nodes.Cube011_4.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube011_5.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube011_4.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube011_5.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[-4.842, 5.011, -9.442]}>
         <group scale={0.538}>
-          <mesh geometry={nodes.Cube011_6.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube011_7.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube011_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube011_7.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[-2.309, 3.338, -5.225]}>
-        <mesh geometry={nodes.Cube033.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube033_1.geometry} material={materials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube033.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube033_1.geometry} material={vertexColoredMaterials.cubicity_concrete} />
       </group>
       <group position={[-11.273, 5.011, -10.572]}>
-        <mesh geometry={nodes.Cube033_2.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube033_3.geometry} material={materials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube033_2.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube033_3.geometry} material={vertexColoredMaterials.cubicity_concrete} />
       </group>
       <group position={[-8.56, 3.257, -3.607]} scale={0.846}>
-        <mesh geometry={nodes.Cube033_4.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube033_5.geometry} material={materials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube033_4.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube033_5.geometry} material={vertexColoredMaterials.cubicity_concrete} />
       </group>
       <group position={[-4.425, 3.338, -5.353]}>
-        <mesh geometry={nodes['roof-access_roof'].geometry} material={materials.cubicity_concrete} position={[0, -0.014, 0]} />
-        <mesh geometry={nodes.Cube002.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube002_1.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes['roof-access_roof'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, -0.014, 0]} />
+        <mesh geometry={nodes.Cube002.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube002_1.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-7.182, 5.011, -9.414]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh geometry={nodes['roof-access_roof_1'].geometry} material={materials.cubicity_concrete} position={[0, -0.014, 0]} />
-        <mesh geometry={nodes.Cube002.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube002_1.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes['roof-access_roof_1'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, -0.014, 0]} />
+        <mesh geometry={nodes.Cube002.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube002_1.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-11.489, 5.011, -9.533]} rotation={[Math.PI, 0, Math.PI]}>
-        <mesh geometry={nodes['roof-access_roof_2'].geometry} material={materials.cubicity_concrete} position={[0, -0.014, 0]} />
-        <mesh geometry={nodes.Cube002.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube002_1.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes['roof-access_roof_2'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, -0.014, 0]} />
+        <mesh geometry={nodes.Cube002.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube002_1.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-8.577, 3.257, -4.209]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh geometry={nodes['roof-access_roof_3'].geometry} material={materials.cubicity_concrete} position={[0, -0.014, 0]} />
-        <mesh geometry={nodes.Cube002.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube002_1.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes['roof-access_roof_3'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, -0.014, 0]} />
+        <mesh geometry={nodes.Cube002.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube002_1.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[-3.483, 3.338, -3.409]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-5.496, 5.011, -10.132]} rotation={[Math.PI, 0, Math.PI]}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-9.774, 5.011, -10.71]} rotation={[0, -1.571, 0]} scale={0.467}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-10.362, 3.981, -4.108]} scale={0.741}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-9.774, 5.011, -9.467]} rotation={[0, -1.571, 0]} scale={0.467}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-11.281, 3.981, -4.391]} scale={0.694}>
-        <mesh geometry={nodes['water-tower-base'].geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes['water-tower-cylinder'].geometry} material={materials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
+        <mesh geometry={nodes['water-tower-base'].geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes['water-tower-cylinder'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
       </group>
       <group position={[-13, 7.58, -5.993]}>
-        <mesh geometry={nodes['water-tower-base_1'].geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes['water-tower-cylinder_1'].geometry} material={materials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
+        <mesh geometry={nodes['water-tower-base_1'].geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes['water-tower-cylinder_1'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
       </group>
       <group position={[-3.076, 3.257, -7.975]} scale={0.694}>
-        <mesh geometry={nodes['water-tower-base_2'].geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes['water-tower-cylinder_2'].geometry} material={materials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
+        <mesh geometry={nodes['water-tower-base_2'].geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes['water-tower-cylinder_2'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
       </group>
       <group position={[-3.318, 3.257, -7.115]}>
         <group scale={0.538}>
-          <mesh geometry={nodes.Cube011_8.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube011_9.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube011_8.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube011_9.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[-5.436, 0.004, -8.089]} rotation={[0, Math.PI / 2, 0]} scale={2.121}>
-        <mesh geometry={nodes.Cube038_9.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube038_10.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube038_11.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube038_9.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube038_10.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube038_11.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-6.638, 0.004, -6.086]} rotation={[Math.PI, 0, Math.PI]} scale={2.121}>
-        <mesh geometry={nodes.Cube038_12.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube038_13.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube038_14.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube038_12.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube038_13.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube038_14.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-7.153, 0.007, -8.216]} rotation={[0, -1.571, 0]} scale={1.469}>
-        <mesh geometry={nodes.Cube004_15.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube004_16.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube004_17.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube004_15.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube004_16.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube004_17.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-7.821, 0.007, -5.892]} scale={1.469}>
-        <mesh geometry={nodes.Cube004_18.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube004_19.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube004_20.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube004_18.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube004_19.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube004_20.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-8.145, 0.007, -7.35]}>
         <group scale={0.312}>
-          <mesh geometry={nodes.Cube098.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube098_1.geometry} material={materials['cubicity_tree-leaves']} />
+          <mesh geometry={nodes.Cube098.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube098_1.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
         </group>
       </group>
       <group position={[-8.145, 0.007, -8.184]} rotation={[0, Math.PI / 2, 0]}>
         <group scale={0.312}>
-          <mesh geometry={nodes.Cube098.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube098_1.geometry} material={materials['cubicity_tree-leaves']} />
+          <mesh geometry={nodes.Cube098.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube098_1.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
         </group>
       </group>
       <group position={[-8.937, 0.007, -8.184]} rotation={[Math.PI, 0, Math.PI]}>
         <group scale={0.312}>
-          <mesh geometry={nodes.Cube098.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube098_1.geometry} material={materials['cubicity_tree-leaves']} />
+          <mesh geometry={nodes.Cube098.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube098_1.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
         </group>
       </group>
       <group position={[-8.937, 0.007, -7.35]} rotation={[0, -Math.PI / 2, 0]}>
         <group scale={0.312}>
-          <mesh geometry={nodes.Cube098.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube098_1.geometry} material={materials['cubicity_tree-leaves']} />
+          <mesh geometry={nodes.Cube098.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube098_1.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
         </group>
       </group>
       <group position={[-10.801, -0.058, -5.572]} rotation={[0, Math.PI / 2, 0]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube104_25.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube104_26.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube104_27.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube104_28.geometry} material={materials.cubicity_concrete} />
-          <mesh geometry={nodes.Cube104_29.geometry} material={materials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube104_25.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube104_26.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube104_27.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube104_28.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube104_29.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
         </group>
       </group>
       <group position={[-11.386, -0.058, -5.589]} rotation={[0, Math.PI / 2, 0]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
-          <mesh geometry={nodes.Cube015_15.geometry} material={materials.cubicity_painted} />
-          <mesh geometry={nodes.Cube015_16.geometry} material={materials.cubicity_glass} />
-          <mesh geometry={nodes.Cube015_17.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube015_18.geometry} material={materials['cubicity_glass-emit']} />
-          <mesh geometry={nodes.Cube015_19.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube015_15.geometry} material={vertexColoredMaterials.cubicity_painted} />
+          <mesh geometry={nodes.Cube015_16.geometry} material={vertexColoredMaterials.cubicity_glass} />
+          <mesh geometry={nodes.Cube015_17.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube015_18.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
+          <mesh geometry={nodes.Cube015_19.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[-11.666, 0.007, -8.398]} rotation={[0, -1.571, 0]} scale={1.469}>
-        <mesh geometry={nodes.Cube004_21.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube004_22.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube004_23.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube004_21.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube004_22.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube004_23.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[-10.684, 0.007, -8.67]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[-9.014, 0.007, -5.239]}>
-        <mesh geometry={nodes.Cube001.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube001_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube001.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube001_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[11.215, 3.811, -4.308]} scale={0.694}>
-        <mesh geometry={nodes['water-tower-base_3'].geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes['water-tower-cylinder_3'].geometry} material={materials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
+        <mesh geometry={nodes['water-tower-base_3'].geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes['water-tower-cylinder_3'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
       </group>
       <group position={[10.551, 4.411, -9.587]} scale={0.694}>
-        <mesh geometry={nodes['water-tower-base_4'].geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes['water-tower-cylinder_4'].geometry} material={materials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
+        <mesh geometry={nodes['water-tower-base_4'].geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes['water-tower-cylinder_4'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, 1.431, 0]} scale={0.408} />
       </group>
       <group position={[3.623, 3.981, -6.385]}>
-        <mesh geometry={nodes['roof-access_roof_4'].geometry} material={materials.cubicity_concrete} position={[0, -0.014, 0]} />
-        <mesh geometry={nodes.Cube002.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube002_1.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes['roof-access_roof_4'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, -0.014, 0]} />
+        <mesh geometry={nodes.Cube002.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube002_1.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[2.507, 3.981, -6.513]}>
         <group scale={0.538}>
-          <mesh geometry={nodes.Cube011_10.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube011_11.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube011_10.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube011_11.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[2.949, 3.981, -6.21]}>
         <group scale={0.538}>
-          <mesh geometry={nodes.Cube011_12.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube011_13.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube011_12.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube011_13.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[3.019, 3.981, -5.522]} rotation={[0, Math.PI / 2, 0]} scale={0.484}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[2.758, 7.58, -8.819]} rotation={[Math.PI, 0, Math.PI]}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[5.111, 7.58, -8.855]} rotation={[Math.PI, 0, Math.PI]}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[3.821, 7.58, -9.786]}>
-        <mesh geometry={nodes.Cube008_6.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube008_7.geometry} material={materials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube008_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube008_7.geometry} material={vertexColoredMaterials.cubicity_concrete} />
       </group>
       <group position={[7.5, 4.411, -9.951]} rotation={[Math.PI, 0, Math.PI]} scale={0.731}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[9.017, 4.411, -9.951]} rotation={[Math.PI, 0, Math.PI]} scale={0.731}>
-        <mesh geometry={nodes.Cube006.geometry} material={materials.cubicity_painted} />
-        <mesh geometry={nodes.Cube006_1.geometry} material={materials['cubicity_glass-emit']} />
+        <mesh geometry={nodes.Cube006.geometry} material={vertexColoredMaterials.cubicity_painted} />
+        <mesh geometry={nodes.Cube006_1.geometry} material={vertexColoredMaterials['cubicity_glass-emit']} />
       </group>
       <group position={[11.607, 4.411, -9.277]} rotation={[0, Math.PI / 2, 0]} scale={0.813}>
-        <mesh geometry={nodes.Cube033_6.geometry} material={materials.cubicity_metal} />
-        <mesh geometry={nodes.Cube033_7.geometry} material={materials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube033_6.geometry} material={vertexColoredMaterials.cubicity_metal} />
+        <mesh geometry={nodes.Cube033_7.geometry} material={vertexColoredMaterials.cubicity_concrete} />
       </group>
       <group position={[12.389, 4.411, -10.101]}>
         <group scale={0.538}>
-          <mesh geometry={nodes.Cube011_14.geometry} material={materials.cubicity_metal} />
-          <mesh geometry={nodes.Cube011_15.geometry} material={materials.cubicity_concrete} />
+          <mesh geometry={nodes.Cube011_14.geometry} material={vertexColoredMaterials.cubicity_metal} />
+          <mesh geometry={nodes.Cube011_15.geometry} material={vertexColoredMaterials.cubicity_concrete} />
         </group>
       </group>
       <group position={[12.361, 4.411, -9.359]} rotation={[0, -Math.PI / 2, 0]}>
-        <mesh geometry={nodes['roof-access_roof_5'].geometry} material={materials.cubicity_concrete} position={[0, -0.014, 0]} />
-        <mesh geometry={nodes.Cube002.geometry} material={materials.cubicity_brick} />
-        <mesh geometry={nodes.Cube002_1.geometry} material={materials.cubicity_painted} />
+        <mesh geometry={nodes['roof-access_roof_5'].geometry} material={vertexColoredMaterials.cubicity_concrete} position={[0, -0.014, 0]} />
+        <mesh geometry={nodes.Cube002.geometry} material={vertexColoredMaterials.cubicity_brick} />
+        <mesh geometry={nodes.Cube002_1.geometry} material={vertexColoredMaterials.cubicity_painted} />
       </group>
       <group position={[11.972, 0.004, -6.835]} scale={2.121}>
-        <mesh geometry={nodes.Cube038_15.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube038_16.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube038_17.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube038_15.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube038_16.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube038_17.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[9.191, 0.004, -7.483]} rotation={[0, Math.PI / 2, 0]} scale={2.121}>
-        <mesh geometry={nodes.Cube038_18.geometry} material={materials.cubicity_concrete} />
-        <mesh geometry={nodes.Cube038_19.geometry} material={materials.cubicity_dirt} />
-        <mesh geometry={nodes.Cube038_20.geometry} material={materials['cubicity_tree-leaves']} />
+        <mesh geometry={nodes.Cube038_18.geometry} material={vertexColoredMaterials.cubicity_concrete} />
+        <mesh geometry={nodes.Cube038_19.geometry} material={vertexColoredMaterials.cubicity_dirt} />
+        <mesh geometry={nodes.Cube038_20.geometry} material={vertexColoredMaterials['cubicity_tree-leaves']} />
       </group>
       <group position={[4.675, -0.058, -6.144]}>
         <group rotation={[0, -Math.PI / 2, 0]}>
