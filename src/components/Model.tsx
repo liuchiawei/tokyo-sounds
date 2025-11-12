@@ -8,12 +8,14 @@ Title: Cartoon Lowpoly Small City Free Pack
 */
 
 import * as THREE from "three";
-import React, { useMemo, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useGLTF, Html } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
-import { useAudioControl } from "./audio/audio-control-context";
+import { useAudioSessionContext, useParam, useSpatial } from "@/hooks/useAudio";
 import { AUDIO_MAP } from "../lib/audio-mapping";
+import { getNodeIdsForObject } from "../lib/create-audio-spec";
 import { useQuizStore } from "@/stores/quiz-store";
+import * as Tone from "tone";
 
 // GLTFAction 型の定義 - Define the GLTFAction type
 type GLTFAction = THREE.AnimationAction;
@@ -139,18 +141,22 @@ type GLTFResult = GLTF & {
 function InteractiveMesh({
   children,
   name,
-  htmlYOffset = 150, // デフォルト値、各インスタンスで上書き可能 - Default value, can be overridden for each instance
-  htmlXOffset = 0, // htmlXOffset の新しいデフォルト値 - New default value for htmlXOffset
-  htmlZOffset = 0, // htmlZOffset の新しいデフォルト値 - New default value for htmlZOffset
+  meshName,
+  listenerRef,
+  htmlYOffset = 150,
+  htmlXOffset = 0,
+  htmlZOffset = 0,
   rotation,
   position,
   ...restProps
 }: {
   children: React.ReactNode;
   name: string;
+  meshName: string;
+  listenerRef: React.RefObject<THREE.AudioListener>;
   htmlYOffset?: number;
-  htmlXOffset?: number; // htmlXOffset の新しい型定義 - New type definition for htmlXOffset
-  htmlZOffset?: number; // htmlZOffset の新しい型定義 - New type definition for htmlZOffset
+  htmlXOffset?: number;
+  htmlZOffset?: number;
   rotation?: [number, number, number];
   position?: [number, number, number];
   [key: string]: any;
@@ -158,6 +164,34 @@ function InteractiveMesh({
   const [open, setOpen] = useState(false);
   const ref = useRef<THREE.Group>(null!);
   const { gameStarted, startGame, switchQuestionSet } = useQuizStore();
+  const session = useAudioSessionContext();
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const audioUrl = AUDIO_MAP[meshName];
+  const hasAudio = !!audioUrl;
+  const nodeIds = hasAudio ? getNodeIdsForObject(meshName) : null;
+
+  const [gain, setGain] = useParam(hasAudio && nodeIds ? nodeIds.gain : '', 'gain');
+  const [frequency, setFrequency] = useParam(hasAudio && nodeIds ? nodeIds.filter : '', 'frequency');
+  const [reverbWet, setReverbWet] = useParam(hasAudio && nodeIds ? nodeIds.reverb : '', 'wet');
+
+  const spatialOpts = React.useMemo(() => ({
+    mode: 'live' as const,
+    refDistance: 10,
+    rolloffFactor: 1,
+    distanceModel: 'inverse' as const,
+    cullDistance: 100,
+    resumeDistance: 80,
+    enableCulling: true,
+  }), []);
+
+  useSpatial(
+    hasAudio && nodeIds ? nodeIds.gain : '',
+    ref as React.RefObject<THREE.Object3D>,
+    listenerRef,
+    spatialOpts,
+    []
+  );
 
   const handleClick = () => {
     // 親ハンドラも発火できるように伝播を停止しない - Do not stop propagation, so the parent handler can also fire
@@ -195,6 +229,32 @@ function InteractiveMesh({
     }
   };
 
+  const handlePlayPause = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!session || !nodeIds) return;
+
+    const player = session.getNode(nodeIds.player);
+    if (!player) return;
+
+    try {
+      if (isPlaying) {
+        player.raw().stop();
+        setIsPlaying(false);
+      } else {
+        await Tone.start();
+
+        if (listenerRef.current?.context && listenerRef.current.context.state === 'suspended') {
+          await listenerRef.current.context.resume();
+        }
+
+        player.raw().start("+0");
+        setIsPlaying(true);
+      }
+    } catch (err) {
+      console.error('Failed to play/pause audio:', err);
+    }
+  };
+
   return (
     <group
       ref={ref}
@@ -219,25 +279,93 @@ function InteractiveMesh({
         >
           <div className="tag">
             <h3 style={{ margin: 0 }}>{name}</h3>
-            <p style={{ margin: "6px 0 0 0", fontSize: 12 }}>
-              もう一度建物をクリックしてこのパネルを非表示にしてください。
-            </p>
+            {hasAudio && nodeIds ? (
+              <div style={{ marginTop: 12 }}>
+                <button
+                  onClick={handlePlayPause}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    backgroundColor: isPlaying ? "#ef4444" : "#3b82f6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    marginBottom: "8px",
+                    fontSize: "14px",
+                  }}
+                >
+                  {isPlaying ? "⏸ Pause" : "▶ Play"}
+                </button>
+
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ fontSize: 11, display: "block", marginBottom: 4 }}>
+                    音量 (Volume): {(gain * 100).toFixed(0)}%
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="2"
+                    step="0.01"
+                    value={gain}
+                    onChange={(e) => setGain(Number(e.target.value))}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ fontSize: 11, display: "block", marginBottom: 4 }}>
+                    フィルター (Filter): {frequency.toFixed(0)} Hz
+                  </label>
+                  <input
+                    type="range"
+                    min="20"
+                    max="20000"
+                    step="10"
+                    value={frequency}
+                    onChange={(e) => setFrequency(Number(e.target.value))}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ fontSize: 11, display: "block", marginBottom: 4 }}>
+                    リバーブ (Reverb): {(reverbWet * 100).toFixed(0)}%
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={reverbWet}
+                    onChange={(e) => setReverbWet(Number(e.target.value))}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <p style={{ margin: "6px 0 0 0", fontSize: 12 }}>
+                クリックして音声を再生 - Click to play audio
+              </p>
+            )}
+
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setOpen(false);
               }}
               style={{
-                marginTop: "8px",
+                marginTop: "12px",
                 padding: "4px 8px",
-                backgroundColor: "#ff6b6b",
+                backgroundColor: "#6b7280",
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
+                width: "100%",
               }}
             >
-              閉じる
+              Close
             </button>
           </div>
         </Html>
@@ -248,47 +376,48 @@ function InteractiveMesh({
 
 // モデルコンポーネント - Model component
 // 3Dモデルを表示し、インタラクションを処理する - Displays the 3D model and handles interactions
-export function Model(props: React.JSX.IntrinsicElements["group"]) {
+export function Model(props: React.JSX.IntrinsicElements["group"] & { listenerRef: React.RefObject<THREE.AudioListener> }) {
+  const { listenerRef, ...groupProps } = props;
   const gltf = useGLTF("/3dtest.glb");
   const nodes = gltf.nodes as GLTFResult["nodes"];
   const materials = gltf.materials as GLTFResult["materials"];
 
-  const { playAudio } = useAudioControl();
+  // const { playAudio } = useAudioControl();
 
   // ジオメトリからノード名へのマッピング - Mapping from geometry to node name
-  const geomToNodeName = useMemo(() => {
-    const map = new Map<THREE.BufferGeometry, string>();
-    const nodeNames = Object.keys(nodes) as (keyof typeof nodes)[];
-    for (const nodeName of nodeNames) {
-      const node = nodes[nodeName];
-      if (node instanceof THREE.Mesh && node.geometry) {
-        map.set(node.geometry, nodeName);
-      }
-    }
-    return map;
-  }, [nodes]);
+  // const geomToNodeName = useMemo(() => {
+  //   const map = new Map<THREE.BufferGeometry, string>();
+  //   const nodeNames = Object.keys(nodes) as (keyof typeof nodes)[];
+  //   for (const nodeName of nodeNames) {
+  //     const node = nodes[nodeName];
+  //     if (node instanceof THREE.Mesh && node.geometry) {
+  //       map.set(node.geometry, nodeName);
+  //     }
+  //   }
+  //   return map;
+  // }, [nodes]);
 
   // 名前に基づいてオーディオを選択 - Select audio based on name
-  const pickAudioForName = (name: string) => {
-    return AUDIO_MAP[name] || null;
-  };
+  // const pickAudioForName = (name: string) => {
+  //   return AUDIO_MAP[name] || null;
+  // };
 
-  // ポインターのダウンイベントを処理 - Handle pointer down event
-  const handlePointerDown = async (e: any) => {
-    e.stopPropagation();
-    const mesh = e.object;
-    const name = geomToNodeName.get(mesh.geometry) || mesh.name;
+  // // ポインターのダウンイベントを処理 - Handle pointer down event
+  // const handlePointerDown = async (e: any) => {
+  //   e.stopPropagation();
+  //   const mesh = e.object;
+  //   const name = geomToNodeName.get(mesh.geometry) || mesh.name;
 
-    const audioUrl = pickAudioForName(name);
-    if (!audioUrl) {
-      // No audio assigned for this object
-      return;
-    }
-    playAudio(audioUrl);
-  };
+  //   const audioUrl = pickAudioForName(name);
+  //   if (!audioUrl) {
+  //     // No audio assigned for this object
+  //     return;
+  //   }
+  //   // playAudio(audioUrl);
+  // };
 
   return (
-    <group {...props} dispose={null} onPointerDown={handlePointerDown}>
+    <group {...groupProps} dispose={null}>
       {/* 車のグループ - Car group */}
       <group position={[-369.069, -90.704, -920.159]}>
         <mesh
@@ -531,6 +660,8 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
         {/* 家のインタラクティブメッシュ - Interactive mesh for house */}
         <InteractiveMesh
           name="House"
+          meshName="House_World_ap_0"
+          listenerRef={listenerRef}
           htmlYOffset={400.03}
           htmlXOffset={10}
           htmlZOffset={-200}
@@ -633,6 +764,8 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
         {/* アパートメントのインタラクティブメッシュ - Interactive mesh for apartment */}
         <InteractiveMesh
           name="Apartment"
+          meshName="House_2_World_ap_0"
+          listenerRef={listenerRef}
           htmlYOffset={577.39}
           htmlXOffset={-100}
           htmlZOffset={200}
@@ -766,6 +899,8 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
         {/* 建物のインタラクティブメッシュ - Interactive mesh for building */}
         <InteractiveMesh
           name="Building"
+          meshName="House_3_World_ap_0"
+          listenerRef={listenerRef}
           htmlYOffset={488.55}
           htmlXOffset={10}
           htmlZOffset={100}
@@ -911,6 +1046,8 @@ export function Model(props: React.JSX.IntrinsicElements["group"]) {
         {/* 店のインタラクティブメッシュ - Interactive mesh for shop */}
         <InteractiveMesh
           name="Shop"
+          meshName="Shop_World_ap_0"
+          listenerRef={listenerRef}
           htmlYOffset={278.52}
           htmlXOffset={10}
           htmlZOffset={0}
