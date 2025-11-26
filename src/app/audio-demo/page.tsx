@@ -127,12 +127,14 @@ function AudioControls({ sharedContext, sourceCount }: { sharedContext: AudioCon
 
   const handleFreeze = async () => {
     try {
+      const nodeId = `gain${selectedSource}`;
       const result = await commit({
+        nodeId,  // Only render the chain for this specific source
         normalize: false,
         durationOverride: 10  // Reduced from 30s to save memory (looping ambient sounds)
       });
       freeze(result);
-      console.log('Frozen source', selectedSource);
+      console.log(`Frozen source ${selectedSource} (chain for ${nodeId})`);
     } catch (err) {
       console.error('Freeze failed:', err);
       alert(`Render failed: ${err instanceof Error ? err.message : String(err)}`);
@@ -401,8 +403,8 @@ function SoundSphere({
     refDistance: 5,
     rolloffFactor: 1,
     distanceModel: 'inverse' as const,
-    cullDistance: 15,
-    resumeDistance: 12,
+    cullDistance: 100,
+    resumeDistance: 80,
     enableCulling: true,
   }), []);
 
@@ -597,7 +599,7 @@ export default function AudioDemo() {
     setStarted(true);
 
     try {
-      const audioContext = createSharedAudioContext({ sampleRate: 44100 });
+      const audioContext = createSharedAudioContext({ sampleRate: 22050 });
       setSharedContext(audioContext);
 
       const sources = audioUrls.length > 0 
