@@ -172,7 +172,7 @@ export interface SpatialStats {
 
 export interface AudioSession {
     serialize(): GraphSpec;
-    hash(): string;
+    hash(): Promise<string>;
     getNode(id: string): NodeHandle | undefined;
     listNodes(type?: string): NodeSummary[];
     updateParam(nodeId: string, param: string, value: any, opts?: { atTime?: number; record?: boolean }): void;
@@ -844,17 +844,20 @@ class AudioSessionImpl implements AudioSession {
     }
 
     // TODO: make this hash synchronous/awaited so callers don't see empty strings or stale cache flags.
-    hash(): string {
+    async hash(): Promise<string> {
         if (!this.dirty && this.cachedHash) {
             return this.cachedHash;
         }
         const canonical = this.serialize();
         const str = JSON.stringify(canonical);
-        hashString(str).then(h => {
-            this.cachedHash = h;
-            this.dirty = false;
-        });
-        return this.cachedHash || '';
+        const h = await hashString(str);
+        // hashString(str).then(h => {
+        //     this.cachedHash = h;
+        //     this.dirty = false;
+        // });
+        this.cachedHash = h;
+        this.dirty = false;
+        return h;
     }
 
     getNode(id: string): NodeHandle | undefined {

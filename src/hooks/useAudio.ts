@@ -37,33 +37,41 @@ export function useAudioSession(initialSpec?: GraphSpec, opts?: SessionOptions) 
     const [error, setError] = useState<Error | null>(null);
     const sessionRef = useRef<AudioSession | null>(null);
     const initRef = useRef(false);
+    const isMountedRef = useRef(true);
 
-    // TODO: hook ignores initialSpec/opts changes because the effect is locked behind initRef. Figure out a way to update the session when these change.
     useEffect(() => {
         if (initRef.current) return;
         initRef.current = true;
+        isMountedRef.current = true;
 
         createAudioSession(initialSpec, opts)
             .then(s => {
-                setSession(s);
-                setReady(true);
-                sessionRef.current = s;
+                if (isMountedRef.current) {
+                    sessionRef.current = s;
+                    setSession(s);
+                    setReady(true);
+                } else {
+                    s.dispose();
+                }
             })
             .catch(err => {
-                setError(err);
-                console.error('[hooks/useAudio.ts/useAudioSession] Failed to create audio session:', err);
+                if (isMountedRef.current) {
+                    setError(err);
+                    console.error('[hooks/useAudio.ts/useAudioSession] Failed to create audio session:', err);
+                }
             });
 
         return () => {
+            isMountedRef.current = false;
+
             if (sessionRef.current) {
-                console.log('[hooks/useAudio.ts/useAudioSession] Disposing session: ', session);
+                console.log('[hooks/useAudio.ts/useAudioSession] Disposing session');
                 try {
                     sessionRef.current.dispose();
                     sessionRef.current = null;
                 } catch (err) {
                     console.error('[hooks/useAudio.ts/useAudioSession] Failed to dispose session:', err);
                 }
-                // sessionRef.current.dispose();
             }
         };
     }, []);
