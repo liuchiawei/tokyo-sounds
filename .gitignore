@@ -44,3 +44,6 @@ next-env.d.ts
 # markdown files (ignore all except README.md)
 *.md
 !README.md
+
+.vercel
+.env*.local
