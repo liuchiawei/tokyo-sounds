@@ -193,6 +193,8 @@ function InteractiveMesh({
     []
   );
 
+  const { userData: incomingUserData, ...remainingProps } = restProps;
+
   const handleClick = () => {
     // 親ハンドラも発火できるように伝播を停止しない - Do not stop propagation, so the parent handler can also fire
     setOpen((v) => !v);
@@ -258,8 +260,15 @@ function InteractiveMesh({
   return (
     <group
       ref={ref}
+      name={meshName}
+      userData={{
+        ...(incomingUserData || {}),
+        lyriaId: name.toLowerCase(),
+        lyriaName: name,
+        lyriaMesh: meshName,
+      }}
       onPointerDown={handleClick}
-      {...restProps}
+      {...remainingProps}
       position={position}
       rotation={name === "House" || name === "Shop" ? undefined : rotation}
     >

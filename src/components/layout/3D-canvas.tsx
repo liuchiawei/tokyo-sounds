@@ -3,7 +3,7 @@
 // React Three Fiber と Drei コンポーネント - React Three Fiber and Drei components for 3D rendering and helpers
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Stage, Environment, useGLTF } from "@react-three/drei";
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { EffectComposer, Bloom, N8AO } from "@react-three/postprocessing";
 import { Physics } from "@react-three/rapier";
 import { Model } from "../Model"; // GLBモデルコンポーネントをインポート - Import the auto-generated Model component
@@ -13,12 +13,18 @@ import { useAudioSessionContext } from "@/hooks/useAudio";
 import * as THREE from "three";
 
 // Zustandストアのインポート - Import Zustand store
+import { useGenerativeAudioStore } from "@/stores/use-generative-audio-store";
 
 // CameraControlsWrapperコンポーネントのインポート - Import CameraControlsWrapper component
 import CameraControlsWrapper from "../CameraControlsWrapper";
 
 // LandmarkSelectorコンポーネントのインポート - Import LandmarkSelector component
 import LandmarkSelector from "../ui/landmark-selector";
+
+// Generative audio components
+import { LyriaRealtimeGenProx } from "../LyriaRealtimeGenProx";
+import { GenerativeAudioControls } from "../ui/generative-audio-controls";
+import { LyriaDebugPanel } from "../ui/lyria-debug-panel";
 
 // モデルロード用のシンプルなプレースホルダー - Simple placeholder for model loading
 const Loader = () => (
@@ -45,10 +51,25 @@ const WebGLFallback = () => (
   </div>
 );
 
-function Scene({ sharedContext }: { sharedContext: AudioContext | null }) {
+function Scene({
+  sharedContext,
+  onShowUnlocker,
+  audioUnlocked,
+  onLyriaDebugUpdate,
+  onLyriaStatusUpdate
+}: {
+  sharedContext: AudioContext | null;
+  onShowUnlocker: (show: boolean) => void;
+  audioUnlocked: boolean;
+  onLyriaDebugUpdate: (weights: { id: string; prompt: string; weight: number; distance: number }[]) => void;
+  onLyriaStatusUpdate: (status: string) => void;
+}) {
   const { camera, scene } = useThree();
   const session = useAudioSessionContext();
   const listenerRef = useRef<THREE.AudioListener | null>(null);
+
+  // get generative audio state
+  const { enabled: generativeEnabled, apiKey, volume } = useGenerativeAudioStore();
 
   useEffect(() => {
     if (camera && sharedContext && !listenerRef.current) {
@@ -100,6 +121,18 @@ function Scene({ sharedContext }: { sharedContext: AudioContext | null }) {
         <Model listenerRef={listenerRef as React.RefObject<THREE.AudioListener>} />
         <ModelBounds />
       </Stage>
+
+      {/* Lyria Proximity Audio */}
+      {generativeEnabled && apiKey && (
+        <LyriaRealtimeGenProx
+          apiKey={apiKey}
+          enabled={generativeEnabled}
+          volume={volume}
+          updateInterval={200}
+          onDebugUpdate={onLyriaDebugUpdate}
+          onStatusUpdate={onLyriaStatusUpdate}
+        />
+      )}
     </>
   );
 }
@@ -163,6 +196,17 @@ function ModelBounds() {
 // メインキャンVASコンポーネント - Main canvas component
 export default function ThreeDCanvas({ sharedContext }: { sharedContext: AudioContext | null }) {
   const { ErrorBoundary, didCatch, error } = useErrorBoundary();
+  const [showUnlocker, setShowUnlocker] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [lyriaStatus, setLyriaStatus] = useState<string>("");
+  const [lyriaWeights, setLyriaWeights] = useState<{ id: string; prompt: string; weight: number; distance: number }[]>([]);
+
+  const { enabled: generativeEnabled, apiKey } = useGenerativeAudioStore();
+
+  const handleAudioUnlock = () => {
+    setAudioUnlocked(true);
+    setShowUnlocker(false);
+  };
 
   // 3Dキャンバスエラー時のフォールバック - Error fallback for 3D canvas
   const CanvasErrorFallback = () => (
@@ -201,7 +245,13 @@ export default function ThreeDCanvas({ sharedContext }: { sharedContext: AudioCo
         >
           <Suspense fallback={<Loader />}>
             <Physics debug>
-              <Scene sharedContext={sharedContext} />
+              <Scene
+                sharedContext={sharedContext}
+                onShowUnlocker={setShowUnlocker}
+                audioUnlocked={audioUnlocked}
+                onLyriaDebugUpdate={setLyriaWeights}
+                onLyriaStatusUpdate={setLyriaStatus}
+              />
             </Physics>
           </Suspense>
 
@@ -228,6 +278,15 @@ export default function ThreeDCanvas({ sharedContext }: { sharedContext: AudioCo
           </EffectComposer>
         </Canvas>
         <LandmarkSelector />
+        <GenerativeAudioControls />
+
+        {/* Lyria Debug Panel */}
+        {generativeEnabled && apiKey && (
+          <LyriaDebugPanel
+            status={lyriaStatus}
+            weights={lyriaWeights}
+          />
+        )}
       </div>
     </ErrorBoundary>
   );
