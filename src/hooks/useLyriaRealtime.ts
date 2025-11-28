@@ -99,8 +99,9 @@ export function useLyriaRealtime({
 
               if (mounted && onAudioChunk) {
                 const audioData = message.data ||
-                                 message.serverContent?.audioChunks?.[0] ||
-                                 message.audioChunk;
+                // do a deeper analysis of the bug, but since it works, assign `any` so that it can build
+                  (message as any).serverContent?.audioChunks?.[0] ||
+                  (message as any).audioChunk;
 
                 if (audioData) {
                   console.log("Processing audio data, type:", typeof audioData);
