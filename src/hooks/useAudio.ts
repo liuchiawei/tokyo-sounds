@@ -225,6 +225,7 @@ export function useSpatial(
         return {
             refDistance: opts.refDistance,
             rolloffFactor: opts.rolloffFactor,
+            maxDistance: opts.maxDistance,
             distanceModel: opts.distanceModel,
             mode: opts.mode,
             cullDistance: opts.cullDistance,
@@ -235,6 +236,7 @@ export function useSpatial(
     }, [
         opts?.refDistance,
         opts?.rolloffFactor,
+        opts?.maxDistance,
         opts?.distanceModel,
         opts?.mode,
         opts?.cullDistance,

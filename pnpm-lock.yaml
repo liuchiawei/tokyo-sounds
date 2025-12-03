@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      3d-tiles-renderer:
+        specifier: ^0.4.18
+        version: 0.4.18(@react-three/fiber@9.4.0(@types/react@19.2.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.180.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.180.0)
       '@google/genai':
         specifier: ^1.30.0
         version: 1.30.0
@@ -131,6 +134,21 @@ importers:
         version: 1.6.1(@types/node@20.19.25)(happy-dom@12.10.3)(lightningcss@1.30.2)
 
 packages:
+
+  3d-tiles-renderer@0.4.18:
+    resolution: {integrity: sha512-l2O5VtaQAvBZJDP2002iHKmDHsOpaQZnVlC61uRF+YOWsjB+CMk3gIiSiwK4ggfzKhafrUgSYzWM9J0itbPEWQ==}
+    peerDependencies:
+      '@react-three/fiber': ^8.17.9 || ^9.0.0
+      react: ^18.3.1 || ^19.0.0
+      react-dom: ^18.3.1 || ^19.0.0
+      three: '>=0.167.0'
+    peerDependenciesMeta:
+      '@react-three/fiber':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
 
   '@adobe/css-tools@4.4.4':
     resolution: {integrity: sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg==}
@@ -3369,6 +3387,14 @@ packages:
         optional: true
 
 snapshots:
+
+  3d-tiles-renderer@0.4.18(@react-three/fiber@9.4.0(@types/react@19.2.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.180.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.180.0):
+    dependencies:
+      three: 0.180.0
+    optionalDependencies:
+      '@react-three/fiber': 9.4.0(@types/react@19.2.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.180.0)
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   '@adobe/css-tools@4.4.4': {}
 

@@ -113,6 +113,7 @@ export type SpatialBindingMode = 'live' | 'committed';
 export interface SpatialOptions {
     refDistance?: number;
     rolloffFactor?: number;
+    maxDistance?: number;
     distanceModel?: 'linear' | 'inverse' | 'exponential';
     mode?: SpatialBindingMode; // Default: 'live'
     cullDistance?: number;
@@ -1369,12 +1370,20 @@ class AudioSessionImpl implements AudioSession {
 
         const refDistance = opts.refDistance !== undefined ? opts.refDistance : 1;
         const rolloffFactor = opts.rolloffFactor !== undefined ? opts.rolloffFactor : 1;
+        const maxDistance = opts.maxDistance !== undefined ? opts.maxDistance : 10000;
         
         positional.setRefDistance(refDistance);
         positional.setRolloffFactor(rolloffFactor);
+        positional.setMaxDistance(maxDistance);
         
         if (opts.distanceModel !== undefined) {
             positional.setDistanceModel(opts.distanceModel);
+        }
+        
+        // Use HRTF panning for realistic left/right positioning
+        const panner = positional.getOutput() as PannerNode;
+        if (panner && panner.panningModel !== undefined) {
+            panner.panningModel = 'HRTF';
         }
 
         const enableCulling = opts.enableCulling !== undefined ? opts.enableCulling : true;
@@ -2115,6 +2124,12 @@ export function createSharedAudioContext(opts: { sampleRate?: number; latencyHin
 export async function createAudioSession(spec?: GraphSpec, opts: SessionOptions = {}): Promise<AudioSession> {
     if (opts.context) {
         Tone.setContext(new Tone.Context({ context: opts.context }));
+        
+        await Tone.start();
+        
+        if (DEBUG_AUDIO) {
+            console.log(`[createAudioSession] Using provided context, state: ${opts.context.state}`);
+        }
     } else {
         await Tone.start();
     }
