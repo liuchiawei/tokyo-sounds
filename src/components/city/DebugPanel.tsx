@@ -34,7 +34,7 @@ export function DebugPanel({
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur-lg border border-slate-700/50 rounded-lg px-3 py-2 text-slate-400 hover:text-white transition-colors text-xs font-mono"
+        className="absolute bottom-4 left-4 bg-slate-900/95 border border-slate-700/50 rounded-lg px-3 py-2 text-slate-400 hover:text-white transition-colors text-xs font-mono"
       >
         🔧 DEBUG
       </button>
@@ -42,7 +42,7 @@ export function DebugPanel({
   }
 
   return (
-    <div className="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur-lg border border-slate-700/50 rounded-xl p-4 text-white max-w-[320px] font-mono text-xs">
+    <div className="absolute bottom-4 left-4 bg-slate-900/95 border border-slate-700/50 rounded-xl p-4 text-white max-w-[320px] font-mono text-xs">
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-bold text-emerald-400 tracking-wide">🔧 DEBUG</h3>
         <button
@@ -79,7 +79,7 @@ export function DebugPanel({
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-fuchsia-500 to-amber-500 transition-all duration-150"
+                      className="h-full bg-linear-to-r from-fuchsia-500 to-amber-500"
                       style={{ width: `${plate.weight * 100}%` }}
                     />
                   </div>
@@ -112,7 +112,7 @@ export function DebugPanel({
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-150 ${source.culled ? "bg-slate-700" : "bg-gradient-to-r from-cyan-500 to-emerald-500"
+                      className={`h-full ${source.culled ? "bg-slate-700" : "bg-linear-to-r from-cyan-500 to-emerald-500"
                         }`}
                       style={{ width: `${source.volume * 100}%` }}
                     />

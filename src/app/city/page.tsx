@@ -1,9 +1,7 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
-import { EffectComposer, Bloom, N8AO } from "@react-three/postprocessing";
 import * as THREE from "three";
 
 import { AudioSessionContext } from "@/hooks/useAudio";
@@ -207,52 +205,65 @@ export default function CityPage() {
   useEffect(() => {
     if (!ready || !session) return;
 
+    const position = new THREE.Vector3();
+    const audioPos = new THREE.Vector3();
+    let lastCull = 0;
+    let lastUIUpdate = 0;
+    const CULL_INTERVAL = 50; // ms
+    const UI_UPDATE_INTERVAL = 500; // ms
+
     let rafId: number;
-    const updateStats = () => {
+    const update = (time: number) => {
       if (cameraRef.current && session) {
-        const position = new THREE.Vector3();
         cameraRef.current.getWorldPosition(position);
-        session.updateSpatialCulling(position);
-        const currentStats = session.getSpatialStats();
-        setStats(currentStats);
         
-        setCameraPosition({ x: position.x, y: position.y, z: position.z });
+        if (time - lastCull >= CULL_INTERVAL) {
+          session.updateSpatialCulling(position);
+          lastCull = time;
+        }
         
-        const bindings = (session as any).spatialBindings;
-        if (bindings instanceof Map) {
-          const spatialInfo: SpatialDebugInfo[] = [];
-          bindings.forEach((binding: any, nodeId: string) => {
-            const audio = binding.audio as THREE.PositionalAudio | undefined;
-            if (audio) {
-              const audioPos = new THREE.Vector3();
-              audio.getWorldPosition(audioPos);
-              const distance = position.distanceTo(audioPos);
-              
-              const refDist = binding.options?.refDistance || 20;
-              const maxDist = binding.options?.maxDistance || 500;
-              let volume = 1;
-              if (distance > refDist) {
-                volume = Math.max(0, 1 - (distance - refDist) / (maxDist - refDist));
+        if (time - lastUIUpdate >= UI_UPDATE_INTERVAL) {
+          lastUIUpdate = time;
+          
+          const currentStats = session.getSpatialStats();
+          setStats(currentStats);
+          setCameraPosition({ x: position.x, y: position.y, z: position.z });
+          
+          const bindings = (session as any).spatialBindings;
+          if (bindings instanceof Map) {
+            const spatialInfo: SpatialDebugInfo[] = [];
+            bindings.forEach((binding: any, nodeId: string) => {
+              const audio = binding.audio as THREE.PositionalAudio | undefined;
+              if (audio) {
+                audio.getWorldPosition(audioPos);
+                const distance = position.distanceTo(audioPos);
+                
+                const refDist = binding.options?.refDistance || 20;
+                const maxDist = binding.options?.maxDistance || 500;
+                let volume = 1;
+                if (distance > refDist) {
+                  volume = Math.max(0, 1 - (distance - refDist) / (maxDist - refDist));
+                }
+                
+                const name = nodeId.replace("gain_building_", "").replace(/_/g, " ");
+                const displayName = audioFiles[parseInt(nodeId.split("_").pop() || "0")]?.name || name;
+                
+                spatialInfo.push({
+                  name: displayName,
+                  distance,
+                  volume,
+                  culled: binding.isCulled || false,
+                });
               }
-              
-              const name = nodeId.replace("gain_building_", "").replace(/_/g, " ");
-              const displayName = audioFiles[parseInt(nodeId.split("_").pop() || "0")]?.name || name;
-              
-              spatialInfo.push({
-                name: displayName,
-                distance,
-                volume,
-                culled: binding.isCulled || false,
-              });
-            }
-          });
-          setSpatialDebugInfo(spatialInfo);
+            });
+            setSpatialDebugInfo(spatialInfo);
+          }
         }
       }
-      rafId = requestAnimationFrame(updateStats);
+      rafId = requestAnimationFrame(update);
     };
 
-    rafId = requestAnimationFrame(updateStats);
+    rafId = requestAnimationFrame(update);
     return () => cancelAnimationFrame(rafId);
   }, [ready, session, audioFiles]);
 
@@ -361,14 +372,16 @@ export default function CityPage() {
     <AudioSessionContext.Provider value={session}>
       <div className="w-full h-screen bg-slate-950 relative overflow-hidden">
         <Canvas
-          shadows
           dpr={[1, 1.5]}
           camera={{ fov: 75, far: 10000, near: 0.1, position: [0, 100, 200] }}
           gl={{
-            antialias: true,
+            antialias: false,
             alpha: false,
             powerPreference: "high-performance",
+            stencil: false,
+            depth: true,
           }}
+          frameloop="always"
         >
           <color attach="background" args={["#0a0a1a"]} />
           <fog attach="fog" args={["#0a0a1a", 200, 2000]} />
@@ -402,17 +415,7 @@ export default function CityPage() {
             gyroControlsRef={gyroControlsRef}
           />
 
-          <Environment preset="night" />
-
-          <EffectComposer multisampling={0}>
-            <N8AO quality="low" aoRadius={1} intensity={1.5} color="#000020" />
-            <Bloom
-              intensity={0.8}
-              luminanceThreshold={0.4}
-              luminanceSmoothing={0.9}
-              height={300}
-            />
-          </EffectComposer>
+          {/* Environment and Bloom disabled for performance testing */}
         </Canvas>
 
         <CityUI

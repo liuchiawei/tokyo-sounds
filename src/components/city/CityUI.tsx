@@ -53,7 +53,7 @@ export function CityUI({
   return (
     <>
       {showControls && (
-        <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-lg border border-slate-700/50 rounded-xl p-4 text-white max-w-[220px]">
+        <div className="absolute top-4 left-4 bg-slate-900/95 border border-slate-700/50 rounded-xl p-4 text-white max-w-[220px]">
           <div className="flex justify-between items-center mb-3">
             <h3 className={`font-bold tracking-wide text-sm ${movementMode === "elytra" ? "text-cyan-400" : "text-emerald-400"}`}>
               {movementMode === "elytra" ? "ELYTRA FLIGHT" : "SIMPLE MOVE"}
@@ -165,7 +165,7 @@ export function CityUI({
             </div>
             <div className="mt-1 h-1 bg-slate-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-linear-to-r from-cyan-500 via-amber-500 to-red-500 transition-all duration-100"
+                className="h-full bg-linear-to-r from-cyan-500 via-amber-500 to-red-500"
                 style={{ width: `${Math.min(100, (flightSpeed / 300) * 100)}%` }}
               />
             </div>
@@ -179,14 +179,14 @@ export function CityUI({
       {!showControls && (
         <button
           onClick={() => setShowControls(true)}
-          className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-lg border border-slate-700/50 rounded-lg px-3 py-2 text-slate-400 hover:text-white transition-colors text-xs"
+          className="absolute top-4 left-4 bg-slate-900/95 border border-slate-700/50 rounded-lg px-3 py-2 text-slate-400 hover:text-white transition-colors text-xs"
         >
           ?
         </button>
       )}
 
       {showStats && ready && (
-        <div className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-lg border border-slate-700/50 rounded-xl p-4 text-white min-w-[200px]">
+        <div className="absolute top-4 right-4 bg-slate-900/95 border border-slate-700/50 rounded-xl p-4 text-white min-w-[200px]">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-bold text-fuchsia-400 tracking-wide text-sm">AUDIO</h3>
             <button
@@ -243,7 +243,7 @@ export function CityUI({
       {!showStats && ready && (
         <button
           onClick={() => setShowStats(true)}
-          className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-lg border border-slate-700/50 rounded-lg px-3 py-2 text-slate-400 hover:text-white transition-colors text-xs"
+          className="absolute top-4 right-4 bg-slate-900/95 border border-slate-700/50 rounded-lg px-3 py-2 text-slate-400 hover:text-white transition-colors text-xs"
         >
           ♪
         </button>

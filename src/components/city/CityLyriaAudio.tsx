@@ -365,23 +365,29 @@ export function CityLyriaAudio({
   }, [enabled, apiKey]);
 
   const lastDistancesRef = useRef<number[]>([0, 0, 0, 0]);
+  const cameraPosRef = useRef(new THREE.Vector3());
+  const frameCountRef = useRef(0);
+  const lastDebugInfoRef = useRef<PlateDebugInfo[]>(
+    PLATE_NAMES.map((name) => ({ name, weight: 0.25, distance: 0 }))
+  );
 
   useFrame(() => {
-    const cameraPos = new THREE.Vector3();
-    camera.getWorldPosition(cameraPos);
+    frameCountRef.current++;
+    if (frameCountRef.current % 3 !== 0) return; // skip 2 out of 3 frames
+    
+    camera.getWorldPosition(cameraPosRef.current);
 
-    const { weights: targetWeights, distances } = calculatePlateWeights(cameraPos);
+    const { weights: targetWeights, distances } = calculatePlateWeights(cameraPosRef.current);
     lastDistancesRef.current = distances;
 
-    smoothedWeightsRef.current = smoothWeights(smoothedWeightsRef.current, targetWeights, 0.15);
+    smoothedWeightsRef.current = smoothWeights(smoothedWeightsRef.current, targetWeights, 0.3);
 
-    if (onDebugUpdate) {
-      const debugInfo: PlateDebugInfo[] = PLATE_NAMES.map((name, i) => ({
-        name,
-        weight: smoothedWeightsRef.current[i],
-        distance: distances[i],
-      }));
-      onDebugUpdate(debugInfo);
+    if (onDebugUpdate && frameCountRef.current % 30 === 0) {
+      for (let i = 0; i < PLATE_NAMES.length; i++) {
+        lastDebugInfoRef.current[i].weight = smoothedWeightsRef.current[i];
+        lastDebugInfoRef.current[i].distance = distances[i];
+      }
+      onDebugUpdate(lastDebugInfoRef.current);
     }
 
     if (!sessionRef.current || !enabled) return;
