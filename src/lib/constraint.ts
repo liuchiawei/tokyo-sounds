@@ -1,9 +1,11 @@
 export const App_Info = {
-  "name": "Tokyo Sounds",
-  "description": "Tokyo Sounds is a platform for creating and sharing sounds.",
-  "image": "./images/default.png",
-  "logo": "./images/default.png",
-  "github": "https://github.com/default",
+  name: ["Tokyo", "Sounds"],
+  title: "Tokyo Sounds",
+  subtitle: "Tokyo Sounds is a platform for creating and sharing sounds.",
+  description: "Tokyo Sounds is a platform for creating and sharing sounds.",
+  image: "./images/default.png",
+  logo: "./images/default.png",
+  github: "https://github.com/default",
 };
 
 export const MEMBER_LIST = [
