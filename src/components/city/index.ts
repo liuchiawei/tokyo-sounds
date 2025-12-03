@@ -7,3 +7,7 @@ export { CityUI } from "./CityUI";
 export { DebugPanel } from "./DebugPanel";
 export type { SpatialDebugInfo } from "./DebugPanel";
 
+export { GoogleTilesScene } from "./GoogleTilesScene";
+export { DistrictLyriaAudio } from "./DistrictLyriaAudio";
+export type { DistrictDebugInfo } from "./DistrictLyriaAudio";
+

@@ -7,8 +7,7 @@
  */
 
 import { useState } from "react";
-
-type MovementMode = "elytra" | "simple";
+import { type MovementMode } from "@/lib/flight";
 
 interface AudioFileInfo {
   name: string;

@@ -21,15 +21,12 @@ interface GenerativeAudioState {
 }
 
 const getDefaultApiKey = (): string => {
-  if (typeof window !== "undefined") {
-    return "";
-  }
   return process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY || "";
 };
 
 export const useGenerativeAudioStore = create<GenerativeAudioState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       enabled: false,
       apiKey: getDefaultApiKey(),
       volume: 0.5,
@@ -46,7 +43,12 @@ export const useGenerativeAudioStore = create<GenerativeAudioState>()(
         apiKey: state.apiKey,
         volume: state.volume,
         enabled: state.enabled
-      })
+      }),
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        ...persistedState,
+        apiKey: persistedState?.apiKey || getDefaultApiKey() || currentState.apiKey,
+      }),
     }
   )
 );
