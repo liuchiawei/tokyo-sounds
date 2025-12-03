@@ -18,12 +18,25 @@ import {
   type FlyToTarget
 } from "@/lib/flight";
 
+interface GyroState {
+  isActive: boolean;
+  isAvailable: boolean;
+  isEnabled: boolean;
+  needsPermission: boolean;
+}
+
 interface FlightControlsProps {
   cameraRef: React.MutableRefObject<THREE.Camera | null>;
   speed?: number;
   config?: Partial<FlightConfig>;
   onSpeedChange?: (speed: number) => void;
   onModeChange?: (mode: MovementMode) => void;
+  onPointerLockChange?: (locked: boolean) => void;
+  onGyroStateChange?: (state: GyroState) => void;
+  gyroControlsRef?: React.MutableRefObject<{
+    requestPermission: () => Promise<boolean>;
+    recalibrate: () => void;
+  } | null>;
 }
 
 export function FlightControls({
@@ -32,10 +45,22 @@ export function FlightControls({
   config,
   onSpeedChange,
   onModeChange,
+  onPointerLockChange,
+  onGyroStateChange,
+  gyroControlsRef,
 }: FlightControlsProps) {
   const { camera } = useThree();
 
-  const { update } = useFlight({
+  const {
+    update,
+    isPointerLocked,
+    isGyroActive,
+    isGyroAvailable,
+    isGyroEnabled,
+    needsGyroPermission,
+    requestGyroPermission,
+    recalibrateGyro,
+  } = useFlight({
     camera,
     config: { baseSpeed, ...config },
     onSpeedChange,
@@ -45,6 +70,28 @@ export function FlightControls({
   useEffect(() => {
     cameraRef.current = camera;
   }, [camera, cameraRef]);
+
+  useEffect(() => {
+    if (gyroControlsRef) {
+      gyroControlsRef.current = {
+        requestPermission: requestGyroPermission,
+        recalibrate: recalibrateGyro,
+      };
+    }
+  }, [gyroControlsRef, requestGyroPermission, recalibrateGyro]);
+
+  useEffect(() => {
+    onPointerLockChange?.(isPointerLocked);
+  }, [isPointerLocked, onPointerLockChange]);
+
+  useEffect(() => {
+    onGyroStateChange?.({
+      isActive: isGyroActive,
+      isAvailable: isGyroAvailable,
+      isEnabled: isGyroEnabled,
+      needsPermission: needsGyroPermission,
+    });
+  }, [isGyroActive, isGyroAvailable, isGyroEnabled, needsGyroPermission, onGyroStateChange]);
 
   useFrame((_, delta) => {
     update(delta);

@@ -29,8 +29,6 @@ interface CityUIProps {
   movementMode?: MovementMode;
   isPointerLocked?: boolean;
   isGyroActive?: boolean;
-  isGyroAvailable?: boolean;
-  onRequestGyroPermission?: () => void;
   onRecalibrateGyro?: () => void;
 }
 
@@ -43,8 +41,6 @@ export function CityUI({
   movementMode = "elytra",
   isPointerLocked = false,
   isGyroActive = false,
-  isGyroAvailable = false,
-  onRequestGyroPermission,
   onRecalibrateGyro,
 }: CityUIProps) {
   const [showControls, setShowControls] = useState(true);
@@ -133,39 +129,26 @@ export function CityUI({
             </div>
           )}
 
-          {isGyroAvailable && (
+          {isGyroActive && (
             <div className="mt-2 pt-2 border-t border-slate-700/50">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-slate-500">GYROSCOPE</span>
-                <span className={`text-xs font-mono ${isGyroActive ? "text-emerald-400" : "text-slate-500"}`}>
-                  {isGyroActive ? "ACTIVE" : "INACTIVE"}
-                </span>
+                <span className="text-xs font-mono text-emerald-400">ACTIVE</span>
               </div>
-              {isGyroActive ? (
-                <div className="space-y-2">
-                  <div className="bg-slate-800/50 p-2 rounded flex items-center justify-between text-xs">
-                    <span className="text-orange-400 font-mono font-bold">📱 TILT</span>
-                    <span className="text-slate-400">Control camera</span>
-                  </div>
-                  {onRecalibrateGyro && (
-                    <button
-                      onClick={onRecalibrateGyro}
-                      className="w-full bg-slate-800/50 hover:bg-slate-700/50 p-2 rounded text-xs text-slate-300 transition-colors"
-                    >
-                      🔄 Recalibrate
-                    </button>
-                  )}
+              <div className="space-y-2">
+                <div className="bg-slate-800/50 p-2 rounded flex items-center justify-between text-xs">
+                  <span className="text-orange-400 font-mono font-bold">TILT</span>
+                  <span className="text-slate-400">Control camera</span>
                 </div>
-              ) : (
-                onRequestGyroPermission && (
+                {onRecalibrateGyro && (
                   <button
-                    onClick={onRequestGyroPermission}
-                    className="w-full bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 p-2 rounded text-xs text-orange-300 transition-colors"
+                    onClick={onRecalibrateGyro}
+                    className="w-full bg-slate-800/50 hover:bg-slate-700/50 p-2 rounded text-xs text-slate-300 transition-colors"
                   >
-                    Enable Gyroscope
+                    Recalibrate
                   </button>
-                )
-              )}
+                )}
+              </div>
             </div>
           )}
 
@@ -182,7 +165,7 @@ export function CityUI({
             </div>
             <div className="mt-1 h-1 bg-slate-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-cyan-500 via-amber-500 to-red-500 transition-all duration-100"
+                className="h-full bg-linear-to-r from-cyan-500 via-amber-500 to-red-500 transition-all duration-100"
                 style={{ width: `${Math.min(100, (flightSpeed / 300) * 100)}%` }}
               />
             </div>

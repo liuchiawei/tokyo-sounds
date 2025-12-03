@@ -31,6 +31,7 @@ import {
   normalizeAngle,
   createFlightConfig,
   isGyroscopeAvailable,
+  isGyroscopePermissionRequired,
   requestGyroscopePermission,
   FLY_TO_DURATION,
   type FlightKeyState,
@@ -57,6 +58,8 @@ export interface FlightState {
   isPointerLocked: boolean;
   isGyroActive: boolean;
   isGyroAvailable: boolean;
+  isGyroEnabled: boolean;
+  needsGyroPermission: boolean;
 }
 
 /**
@@ -132,7 +135,8 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
 
   const [isGyroAvailable, setIsGyroAvailable] = useState(false);
   const [isGyroActive, setIsGyroActive] = useState(false);
-  const [isGyroPermissionGranted, setIsGyroPermissionGranted] = useState(false);
+  const [isGyroEnabled, setIsGyroEnabled] = useState(false);
+  const [needsGyroPermission, setNeedsGyroPermission] = useState(false);
   const gyroRef = useRef<{
     alpha: number | null; // Z-axis rotation (compass direction)
     beta: number | null;  // X-axis rotation (front-back tilt)
@@ -146,6 +150,7 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
     initialAlpha: null,
     initialBeta: null,
   });
+  const gyroActiveRef = useRef(false);
 
   useEffect(() => {
     if (!camera) return;
@@ -300,7 +305,15 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
   }, [config.enableMouseLook, config.mouseSensitivity, config.invertMouseY]);
 
   useEffect(() => {
-    setIsGyroAvailable(isGyroscopeAvailable());
+    const available = isGyroscopeAvailable();
+    const needsPermission = isGyroscopePermissionRequired();
+    
+    setIsGyroAvailable(available);
+    setNeedsGyroPermission(available && needsPermission);
+    
+    if (available && !needsPermission) {
+      setIsGyroEnabled(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -308,6 +321,13 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
 
     const handleDeviceOrientation = (e: DeviceOrientationEvent) => {
       if (e.alpha === null || e.beta === null || e.gamma === null) return;
+
+      if (!gyroActiveRef.current) {
+        gyroActiveRef.current = true;
+        setIsGyroEnabled(true);
+        setNeedsGyroPermission(false);
+        setIsGyroActive(true);
+      }
 
       if (gyroRef.current.initialAlpha === null) {
         gyroRef.current.initialAlpha = e.alpha;
@@ -317,22 +337,23 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
       gyroRef.current.alpha = e.alpha;
       gyroRef.current.beta = e.beta;
       gyroRef.current.gamma = e.gamma;
-
-      if (!isGyroActive) {
-        setIsGyroActive(true);
-      }
     };
 
     window.addEventListener("deviceorientation", handleDeviceOrientation, true);
 
     return () => {
       window.removeEventListener("deviceorientation", handleDeviceOrientation, true);
+      gyroActiveRef.current = false;
+      setIsGyroActive(false);
     };
-  }, [config.enableGyroscope, isGyroAvailable, isGyroActive]);
+  }, [config.enableGyroscope, isGyroAvailable]);
 
   const requestGyroPermission = useCallback(async () => {
     const granted = await requestGyroscopePermission();
-    setIsGyroPermissionGranted(granted);
+    if (granted) {
+      setIsGyroEnabled(true);
+      setNeedsGyroPermission(false);
+    }
     return granted;
   }, []);
 
@@ -355,19 +376,25 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
       let rawPitchInput = (keys.pitchDown ? 1 : 0) - (keys.pitchUp ? 1 : 0);
       let rawBankInput = (keys.bankRight ? 1 : 0) - (keys.bankLeft ? 1 : 0);
 
-      if (config.enableGyroscope && isGyroActive && gyroRef.current.beta !== null && gyroRef.current.gamma !== null) {
+      if (config.enableGyroscope && gyroActiveRef.current && gyroRef.current.beta !== null && gyroRef.current.gamma !== null) {
         const gyro = gyroRef.current;
+        const deadZone = config.gyroDeadZone;
 
-        // beta
-        const normalizedBeta = ((gyro.beta ?? 45) - 45) / 45; // -1 to 1 range
-        if (Math.abs(normalizedBeta) > config.gyroDeadZone / 45) {
+        const betaNeutral = 50; // degrees typical holding angle
+        const betaRange = 35; // degrees for full input
+        const betaDelta = (gyro.beta ?? betaNeutral) - betaNeutral;
+        
+        if (Math.abs(betaDelta) > deadZone) {
+          const normalizedBeta = Math.max(-1, Math.min(1, betaDelta / betaRange));
           const pitchMultiplier = config.invertGyroPitch ? -1 : 1;
           rawPitchInput += normalizedBeta * config.gyroSensitivity * pitchMultiplier;
         }
 
-        // gamma
-        const normalizedGamma = (gyro.gamma ?? 0) / 45; // -1 to 1 range
-        if (Math.abs(normalizedGamma) > config.gyroDeadZone / 45) {
+        const gammaRange = 35; // degrees for full input
+        const gammaDelta = gyro.gamma ?? 0;
+        
+        if (Math.abs(gammaDelta) > deadZone) {
+          const normalizedGamma = Math.max(-1, Math.min(1, gammaDelta / gammaRange));
           const bankMultiplier = config.invertGyroYaw ? -1 : 1;
           rawBankInput += normalizedGamma * config.gyroSensitivity * bankMultiplier;
         }
@@ -477,7 +504,7 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
         mouseDeltaRef.current.y = 0;
       }
 
-      if (config.enableGyroscope && isGyroActive && gyroRef.current.alpha !== null) {
+      if (config.enableGyroscope && gyroActiveRef.current && gyroRef.current.alpha !== null) {
         const gyro = gyroRef.current;
 
         if (gyro.initialAlpha !== null && gyro.initialBeta !== null) {
@@ -669,8 +696,10 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
       isPointerLocked,
       isGyroActive,
       isGyroAvailable,
+      isGyroEnabled,
+      needsGyroPermission,
     };
-  }, [isPointerLocked, isGyroActive, isGyroAvailable]);
+  }, [isPointerLocked, isGyroActive, isGyroAvailable, isGyroEnabled, needsGyroPermission]);
 
   return {
     update,
@@ -686,6 +715,8 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
     isPointerLocked,
     isGyroActive,
     isGyroAvailable,
+    isGyroEnabled,
+    needsGyroPermission,
   };
 }
 

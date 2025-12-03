@@ -98,10 +98,21 @@ export default function CityPage() {
   const [stats, setStats] = useState({ totalSources: 0, activeSources: 0, culledSources: 0, estimatedMemoryMB: 0 });
   const [flightSpeed, setFlightSpeed] = useState(50);
   const [movementMode, setMovementMode] = useState<MovementMode>("elytra");
+  const [isPointerLocked, setIsPointerLocked] = useState(false);
+  const [gyroState, setGyroState] = useState({
+    isActive: false,
+    isAvailable: false,
+    isEnabled: false,
+    needsPermission: false,
+  });
   const [plateDebugInfo, setPlateDebugInfo] = useState<PlateDebugInfo[]>([]);
   const [spatialDebugInfo, setSpatialDebugInfo] = useState<SpatialDebugInfo[]>([]);
   const [cameraPosition, setCameraPosition] = useState({ x: 0, y: 100, z: 200 });
   const cameraRef = useRef<THREE.Camera | null>(null);
+  const gyroControlsRef = useRef<{
+    requestPermission: () => Promise<boolean>;
+    recalibrate: () => void;
+  } | null>(null);
   
   const { 
     enabled: generativeEnabled, 
@@ -148,7 +159,38 @@ export default function CityPage() {
     setStarted(true);
 
     try {
+      const DOE = window.DeviceOrientationEvent as any;
+      const DME = window.DeviceMotionEvent as any;
+      
+      let gyroGranted = false;
+      
+      if (typeof DOE?.requestPermission === "function") {
+        try {
+          const permission = await DOE.requestPermission();
+          gyroGranted = permission === "granted";
+        } catch (e) {
+          console.error("[CityPage] Failed to request gyroscope permission:", e);
+        }
+      }
+      
+      if (typeof DME?.requestPermission === "function") {
+        try {
+          await DME.requestPermission();
+        } catch (e) {
+          console.error("[CityPage] Failed to request motion permission:", e);
+        }
+      }
+      
+      if (gyroGranted) {
+        setGyroState(prev => ({ ...prev, isEnabled: true, needsPermission: false }));
+      }
+
       const audioContext = createSharedAudioContext({ sampleRate: 44100 });
+      
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+      
       setSharedContext(audioContext);
 
       const spec = createCityAudioSpec(audioFiles);
@@ -216,10 +258,10 @@ export default function CityPage() {
 
   if (!started) {
     return (
-      <div className="flex items-center justify-center w-full h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
+      <div className="flex items-center justify-center w-full h-screen bg-linear-to-br from-slate-950 via-indigo-950 to-slate-950">
         <div className="text-center space-y-8 max-w-2xl px-8">
           <div className="space-y-4">
-            <h1 className="text-6xl font-black tracking-tight bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-amber-400 bg-clip-text text-transparent">
+            <h1 className="text-6xl font-black tracking-tight bg-linear-to-r from-cyan-400 via-fuchsia-500 to-amber-400 bg-clip-text text-transparent">
               CITY FLIGHT EXPERIMENT
             </h1>
           </div>
@@ -300,10 +342,14 @@ export default function CityPage() {
               <button
                 onClick={initAudio}
                 disabled={loading || audioFiles.length === 0}
-                className="w-full mt-6 px-8 py-4 bg-gradient-to-r from-cyan-500 via-fuchsia-500 to-amber-500 text-white font-bold text-lg rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-fuchsia-500/20"
+                className="w-full mt-6 px-8 py-4 bg-linear-to-r from-cyan-500 via-fuchsia-500 to-amber-500 text-white font-bold text-lg rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-fuchsia-500/20"
               >
                 {loading ? "INITIALIZING..." : "ENTER CITY"}
               </button>
+              
+              <p className="text-[10px] text-slate-600 text-center mt-3">
+                iOS: Safari required for gyroscope. Enable Motion & Orientation in Settings → Safari.
+              </p>
             </div>
           </div>
         </div>
@@ -347,9 +393,13 @@ export default function CityPage() {
               enableBounds: true,
               minHeight: 10,
               maxHeight: 1000,
+              enableGyroscope: true,
             }}
             onSpeedChange={setFlightSpeed}
             onModeChange={setMovementMode}
+            onPointerLockChange={setIsPointerLocked}
+            onGyroStateChange={setGyroState}
+            gyroControlsRef={gyroControlsRef}
           />
 
           <Environment preset="night" />
@@ -372,6 +422,9 @@ export default function CityPage() {
           audioFiles={audioFiles}
           generativeEnabled={generativeEnabled}
           movementMode={movementMode}
+          isPointerLocked={isPointerLocked}
+          isGyroActive={gyroState.isActive}
+          onRecalibrateGyro={() => gyroControlsRef.current?.recalibrate()}
         />
 
         {ready && (
