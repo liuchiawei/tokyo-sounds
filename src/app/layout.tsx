@@ -3,12 +3,12 @@ import { Roboto, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 
 const robotoSans = Roboto({
-  variable: "--font-geist-sans",
+  variable: "--font-roboto-sans",
   subsets: ["latin"],
 });
 
 const robotoMono = Roboto_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-roboto-mono",
   subsets: ["latin"],
 });
 
