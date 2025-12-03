@@ -74,6 +74,20 @@ export function CityLyriaAudio({
   const isMountedRef = useRef(false);
   const instanceIdRef = useRef(0);
 
+  const reconnectAttemptsRef = useRef(0);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isReconnectingRef = useRef(false);
+  const MAX_RECONNECT_ATTEMPTS = 10;
+  const BASE_RECONNECT_DELAY = 2000; // 2 seconds
+
+  const masterGainRef = useRef<GainNode | null>(null);
+  const oldGainRef = useRef<GainNode | null>(null);
+  const newGainRef = useRef<GainNode | null>(null);
+  const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
+  const savedWeightsRef = useRef<number[] | null>(null);
+  const CROSSFADE_DURATION = 3.0;
+  const isFirstSessionRef = useRef(true);
+
   const plates = useRef<PlatePrompt[]>(
     platePositions.map((pos, i) => ({
       id: `plate_${i}`,
@@ -133,9 +147,53 @@ export function CityLyriaAudio({
     return false;
   };
 
+  const initAudioRouting = (audioContext: AudioContext) => {
+    if (!masterGainRef.current) {
+      masterGainRef.current = audioContext.createGain();
+      masterGainRef.current.gain.value = volume;
+      masterGainRef.current.connect(audioContext.destination);
+    }
+    
+    const newGain = audioContext.createGain();
+    newGain.gain.value = isFirstSessionRef.current ? 1.0 : 0.0;
+    newGain.connect(masterGainRef.current);
+    
+    if (newGainRef.current && !isFirstSessionRef.current) {
+      oldGainRef.current = newGainRef.current;
+      
+      const now = audioContext.currentTime;
+      oldGainRef.current.gain.setValueAtTime(oldGainRef.current.gain.value, now);
+      oldGainRef.current.gain.linearRampToValueAtTime(0, now + CROSSFADE_DURATION);
+      
+      newGain.gain.setValueAtTime(0, now);
+      newGain.gain.linearRampToValueAtTime(1.0, now + CROSSFADE_DURATION);
+      
+      console.log(`[CityLyria] Starting ${CROSSFADE_DURATION}s crossfade to new session`);
+      
+      setTimeout(() => {
+        if (oldGainRef.current) {
+          oldGainRef.current.disconnect();
+          oldGainRef.current = null;
+        }
+        activeSourcesRef.current = activeSourcesRef.current.filter(s => {
+          try { return s.context?.state !== 'closed'; } catch { return false; }
+        });
+      }, CROSSFADE_DURATION * 1000 + 500);
+    }
+    
+    newGainRef.current = newGain;
+    isFirstSessionRef.current = false;
+    
+    return newGain;
+  };
+
   const playNextBuffer = () => {
     const audioContext = audioContextRef.current;
     if (!audioContext || audioContext.state === 'closed') return;
+    
+    if (!newGainRef.current) {
+      initAudioRouting(audioContext);
+    }
 
     if (nextStartTimeRef.current === 0) {
       nextStartTimeRef.current = audioContext.currentTime;
@@ -157,16 +215,22 @@ export function CityLyriaAudio({
 
         const fade = CROSSFADE_MS / 1000;
         gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(volume, startTime + fade);
+        gainNode.gain.linearRampToValueAtTime(1.0, startTime + fade);
         const fadeOutStart = Math.max(startTime, startTime + buffer.duration - fade);
-        gainNode.gain.setValueAtTime(volume, fadeOutStart);
+        gainNode.gain.setValueAtTime(1.0, fadeOutStart);
         gainNode.gain.linearRampToValueAtTime(0, startTime + buffer.duration);
 
         source.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+        gainNode.connect(newGainRef.current!);
 
         source.start(startTime);
+        
+        activeSourcesRef.current.push(source);
+        
         source.onended = () => {
+          const idx = activeSourcesRef.current.indexOf(source);
+          if (idx > -1) activeSourcesRef.current.splice(idx, 1);
+          
           if (audioQueueRef.current.length > 0 && audioContextRef.current?.state !== 'closed') {
             playNextBuffer();
           } else {
@@ -191,30 +255,78 @@ export function CityLyriaAudio({
     }
   };
 
+  const scheduleReconnect = () => {
+    if (!isMountedRef.current || !enabled || isReconnectingRef.current) return;
+    if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+      console.warn("[CityLyria] Max reconnection attempts reached");
+      updateStatus("Connection failed - max retries exceeded");
+      return;
+    }
+
+    savedWeightsRef.current = [...smoothedWeightsRef.current];
+    console.log("[CityLyria] Saving weights for reconnect:", savedWeightsRef.current);
+
+    isReconnectingRef.current = true;
+    const delay = BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttemptsRef.current);
+    const cappedDelay = Math.min(delay, 30000);
+
+    console.log(`[CityLyria] Scheduling reconnect in ${cappedDelay}ms (attempt ${reconnectAttemptsRef.current + 1}/${MAX_RECONNECT_ATTEMPTS})`);
+    updateStatus(`Reconnecting in ${Math.round(cappedDelay / 1000)}s...`);
+
+    reconnectTimeoutRef.current = setTimeout(async () => {
+      if (!isMountedRef.current || !enabled) {
+        isReconnectingRef.current = false;
+        return;
+      }
+
+      reconnectAttemptsRef.current++;
+      initStartedRef.current = false;
+      isReconnectingRef.current = false;
+
+      if (sessionRef.current) {
+        try {
+          sessionRef.current.stop();
+        } catch (e) { /* ignore */ }
+        sessionRef.current = null;
+      }
+      
+      audioQueueRef.current = [];
+      nextStartTimeRef.current = 0;
+
+      await initializeLyriaSession();
+    }, cappedDelay);
+  };
+
   const initializeLyriaSession = async () => {
     if (!apiKey || initStartedRef.current || !isMountedRef.current) return;
     initStartedRef.current = true;
 
+    const isReconnect = savedWeightsRef.current !== null;
+
     try {
-      updateStatus("Connecting to Lyria...");
+      updateStatus(isReconnect ? "Reconnecting to Lyria..." : "Connecting to Lyria...");
 
       if (!isMountedRef.current) return;
 
-      const audioContext = new AudioContext({ sampleRate: 48000 });
-
-      if (!isMountedRef.current) {
-        audioContext.close();
-        return;
+      let audioContext = audioContextRef.current;
+      if (!audioContext || audioContext.state === 'closed') {
+        audioContext = new AudioContext({ sampleRate: 48000 });
+        audioContextRef.current = audioContext;
+        isFirstSessionRef.current = true;
       }
 
-      audioContextRef.current = audioContext;
+      if (!isMountedRef.current) {
+        if (isFirstSessionRef.current) audioContext.close();
+        return;
+      }
 
       if (audioContext.state === "suspended") {
         await audioContext.resume();
       }
 
+      initAudioRouting(audioContext);
+
       if (!isMountedRef.current) {
-        audioContext.close();
         return;
       }
 
@@ -285,12 +397,18 @@ export function CityLyriaAudio({
             console.error("[CityLyria] Lyria error:", err);
             updateStatus("Error: " + (err?.message || "Unknown"));
             initStartedRef.current = false;
+            scheduleReconnect();
           },
           onclose: (event: any) => {
             const reason = event?.reason || 'Unknown';
             console.warn(`[CityLyria] Connection closed: ${reason}`);
             updateStatus("Disconnected");
             initStartedRef.current = false;
+            sessionRef.current = null;
+            
+            if (isMountedRef.current && enabled) {
+              scheduleReconnect();
+            }
           },
         },
       });
@@ -311,22 +429,39 @@ export function CityLyriaAudio({
         },
       });
 
-      const initialPrompts = plates.current.map((plate) => ({
+      const weightsToUse = savedWeightsRef.current || [0.25, 0.25, 0.25, 0.25];
+      const initialPrompts = plates.current.map((plate, i) => ({
         text: plate.prompt,
-        weight: 0.25,
+        weight: weightsToUse[i],
       }));
+
+      console.log("[CityLyria] Setting prompts with weights:", weightsToUse);
 
       await session.setWeightedPrompts({
         weightedPrompts: initialPrompts,
       });
 
+      if (savedWeightsRef.current) {
+        smoothedWeightsRef.current = [...savedWeightsRef.current];
+        previousWeightsRef.current = [...savedWeightsRef.current];
+      }
+
       await session.play();
-      updateStatus("Playing");
-      console.log("[CityLyria] Started with blended prompts from 4 plates");
+      updateStatus(isReconnect ? "Reconnected" : "Playing");
+      
+      reconnectAttemptsRef.current = 0;
+      isReconnectingRef.current = false;
+      savedWeightsRef.current = null;
+      
+      console.log(`[CityLyria] ${isReconnect ? "Reconnected" : "Started"} with blended prompts from 4 plates`);
     } catch (err) {
       console.error("[CityLyria] Failed to initialize:", err);
       updateStatus("Failed to connect");
       initStartedRef.current = false;
+      
+      if (isMountedRef.current && enabled) {
+        scheduleReconnect();
+      }
     }
   };
 
@@ -344,12 +479,39 @@ export function CityLyriaAudio({
 
     return () => {
       isMountedRef.current = false;
+      
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      isReconnectingRef.current = false;
+      savedWeightsRef.current = null;
+      
       const sessionToStop = sessionRef.current;
       const contextToClose = audioContextRef.current;
 
       sessionRef.current = null;
       audioContextRef.current = null;
       initStartedRef.current = false;
+      
+      if (oldGainRef.current) {
+        try { oldGainRef.current.disconnect(); } catch {}
+        oldGainRef.current = null;
+      }
+      if (newGainRef.current) {
+        try { newGainRef.current.disconnect(); } catch {}
+        newGainRef.current = null;
+      }
+      if (masterGainRef.current) {
+        try { masterGainRef.current.disconnect(); } catch {}
+        masterGainRef.current = null;
+      }
+      
+      activeSourcesRef.current.forEach(source => {
+        try { source.stop(); } catch {}
+      });
+      activeSourcesRef.current = [];
+      isFirstSessionRef.current = true;
 
       setTimeout(() => {
         if (sessionToStop) {
@@ -373,7 +535,7 @@ export function CityLyriaAudio({
 
   useFrame(() => {
     frameCountRef.current++;
-    if (frameCountRef.current % 3 !== 0) return; // skip 2 out of 3 frames
+    if (frameCountRef.current % 3 !== 0) return;
     
     camera.getWorldPosition(cameraPosRef.current);
 
