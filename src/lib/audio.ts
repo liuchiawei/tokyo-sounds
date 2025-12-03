@@ -2124,6 +2124,12 @@ export function createSharedAudioContext(opts: { sampleRate?: number; latencyHin
 export async function createAudioSession(spec?: GraphSpec, opts: SessionOptions = {}): Promise<AudioSession> {
     if (opts.context) {
         Tone.setContext(new Tone.Context({ context: opts.context }));
+        
+        await Tone.start();
+        
+        if (DEBUG_AUDIO) {
+            console.log(`[createAudioSession] Using provided context, state: ${opts.context.state}`);
+        }
     } else {
         await Tone.start();
     }

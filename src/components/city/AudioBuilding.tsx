@@ -6,9 +6,9 @@
  */
 
 import { useRef, useEffect, useState, useContext, useMemo } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { AudioSessionContext, useSpatial, useSpatialMode } from "@/hooks/useAudio";
+import { AudioSessionContext, useSpatial } from "@/hooks/useAudio";
 
 interface AudioFileInfo {
   name: string;
@@ -28,20 +28,17 @@ export function AudioBuilding({
   index,
   position,
   color,
-  audioFile,
   listenerRef,
   sharedContext,
 }: AudioBuildingProps) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
+  const sphereRef = useRef<THREE.Mesh>(null);
   const session = useContext(AudioSessionContext);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isCulled, setIsCulled] = useState(false);
-  const [audioLevel, setAudioLevel] = useState(0);
 
   const gainNodeId = `gain_building_${index}`;
   const playerNodeId = `player_building_${index}`;
-
-  const { mode } = useSpatialMode(gainNodeId);
 
   const height = 60 + index * 30;
   const width = 25 + (index % 3) * 10;
@@ -94,23 +91,28 @@ export function AudioBuilding({
     return () => clearTimeout(timer);
   }, [session, sharedContext, playerNodeId, isPlaying, index]);
 
+  const culledRef = useRef(false);
+  const levelRef = useRef(0);
+  const frameCountRef = useRef(0);
+
   useFrame((state) => {
+    frameCountRef.current++;
+    if (frameCountRef.current % 3 !== 0) return; // skip 2 out of 3 frames
+    
     if (!meshRef.current) return;
 
     if (session) {
       const binding = session.getSpatialBinding(gainNodeId);
       if (binding) {
-        setIsCulled(binding.isCulled);
+        culledRef.current = binding.isCulled;
       }
-
-      const level = session.getAudioLevel(gainNodeId);
-      setAudioLevel(level);
+      levelRef.current = session.getAudioLevel(gainNodeId);
     }
 
     const time = state.clock.elapsedTime;
     const pulseFactor = Math.sin(time * 2 + index) * 0.5 + 0.5;
-    const baseIntensity = isCulled ? 0.2 : 0.6;
-    const levelBoost = audioLevel * 2;
+    const baseIntensity = culledRef.current ? 0.2 : 0.6;
+    const levelBoost = levelRef.current * 2;
 
     const material = meshRef.current.material as THREE.MeshStandardMaterial;
     if (material.emissiveIntensity !== undefined) {
@@ -120,12 +122,7 @@ export function AudioBuilding({
 
   return (
     <group>
-      <mesh
-        ref={meshRef}
-        position={position}
-        castShadow
-        receiveShadow
-      >
+      <mesh ref={meshRef} position={position}>
         <boxGeometry args={[width, height, depth]} />
         <meshStandardMaterial
           color={color}
@@ -133,70 +130,25 @@ export function AudioBuilding({
           emissiveIntensity={0.6}
           roughness={0.3}
           metalness={0.7}
-          transparent
-          opacity={0.95}
         />
       </mesh>
 
-      <pointLight
-        position={[position[0], position[1] + height / 2 + 10, position[2]]}
-        intensity={isCulled ? 0.5 : 2}
-        color={color}
-        distance={150}
-        decay={2}
-      />
-
       <mesh
+        ref={ringRef}
         position={[position[0], 2, position[2]]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <ringGeometry args={[width * 0.8, width * 1.2, 32]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={isCulled ? 0.2 : 0.8 + audioLevel}
-          transparent
-          opacity={0.6}
-        />
+        <ringGeometry args={[width * 0.8, width * 1.2, 16]} />
+        <meshBasicMaterial color={color} transparent opacity={0.5} />
       </mesh>
 
       <mesh
+        ref={sphereRef}
         position={[position[0], position[1] + height / 2, position[2]]}
       >
-        <sphereGeometry args={[3, 16, 16]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={isPlaying ? (isCulled ? 0.5 : 1.5) : 0.1}
-          transparent
-          opacity={0.9}
-        />
+        <sphereGeometry args={[3, 8, 8]} />
+        <meshBasicMaterial color={color} />
       </mesh>
-
-      {isPlaying && !isCulled && (
-        <>
-          {[1, 2, 3].map((ring) => (
-            <mesh
-              key={ring}
-              position={[position[0], position[1], position[2]]}
-              rotation={[-Math.PI / 2, 0, 0]}
-            >
-              <ringGeometry
-                args={[
-                  20 + ring * 15 + audioLevel * 10,
-                  22 + ring * 15 + audioLevel * 10,
-                  32
-                ]}
-              />
-              <meshBasicMaterial
-                color={color}
-                transparent
-                opacity={0.15 - ring * 0.04 + audioLevel * 0.1}
-              />
-            </mesh>
-          ))}
-        </>
-      )}
     </group>
   );
 }

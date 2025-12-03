@@ -31,6 +31,7 @@ import {
   normalizeAngle,
   createFlightConfig,
   isGyroscopeAvailable,
+  isGyroscopePermissionRequired,
   requestGyroscopePermission,
   FLY_TO_DURATION,
   type FlightKeyState,
@@ -57,6 +58,8 @@ export interface FlightState {
   isPointerLocked: boolean;
   isGyroActive: boolean;
   isGyroAvailable: boolean;
+  isGyroEnabled: boolean;
+  needsGyroPermission: boolean;
 }
 
 /**
@@ -115,6 +118,7 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
   const smoothBankVelocityRef = useRef(0);
 
   const boostCooldownRef = useRef(0);
+  const lastReportedSpeedRef = useRef(-1);
 
   // FlyTo animation state
   const flyToRef = useRef<{
@@ -127,12 +131,24 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
     duration: number;
   } | null>(null);
 
+  // reusable THREE objects to avoid GC pressure
+  const tempEuler = useRef(new THREE.Euler(0, 0, 0, "YXZ"));
+  const tempQuat = useRef(new THREE.Quaternion());
+  const tempQuat2 = useRef(new THREE.Quaternion());
+  const tempVec3 = useRef(new THREE.Vector3());
+  const forwardVec = useRef(new THREE.Vector3());
+  const rightVec = useRef(new THREE.Vector3());
+  const upVec = useRef(new THREE.Vector3(0, 1, 0));
+  const movementVec = useRef(new THREE.Vector3());
+  const rollAxis = useRef(new THREE.Vector3(0, 0, 1));
+
   const [isPointerLocked, setIsPointerLocked] = useState(false);
   const mouseDeltaRef = useRef({ x: 0, y: 0 });
 
   const [isGyroAvailable, setIsGyroAvailable] = useState(false);
   const [isGyroActive, setIsGyroActive] = useState(false);
-  const [isGyroPermissionGranted, setIsGyroPermissionGranted] = useState(false);
+  const [isGyroEnabled, setIsGyroEnabled] = useState(false);
+  const [needsGyroPermission, setNeedsGyroPermission] = useState(false);
   const gyroRef = useRef<{
     alpha: number | null; // Z-axis rotation (compass direction)
     beta: number | null;  // X-axis rotation (front-back tilt)
@@ -146,16 +162,16 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
     initialAlpha: null,
     initialBeta: null,
   });
+  const gyroActiveRef = useRef(false);
 
   useEffect(() => {
     if (!camera) return;
 
-    const euler = new THREE.Euler(0, 0, 0, "YXZ");
-    euler.setFromQuaternion(camera.quaternion);
-    targetPitchRef.current = euler.x;
-    smoothPitchRef.current = euler.x;
-    targetYawRef.current = euler.y;
-    smoothYawRef.current = euler.y;
+    tempEuler.current.setFromQuaternion(camera.quaternion, "YXZ");
+    targetPitchRef.current = tempEuler.current.x;
+    smoothPitchRef.current = tempEuler.current.x;
+    targetYawRef.current = tempEuler.current.y;
+    smoothYawRef.current = tempEuler.current.y;
   }, [camera]);
 
   const handleToggleMode = useCallback(() => {
@@ -300,7 +316,15 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
   }, [config.enableMouseLook, config.mouseSensitivity, config.invertMouseY]);
 
   useEffect(() => {
-    setIsGyroAvailable(isGyroscopeAvailable());
+    const available = isGyroscopeAvailable();
+    const needsPermission = isGyroscopePermissionRequired();
+    
+    setIsGyroAvailable(available);
+    setNeedsGyroPermission(available && needsPermission);
+    
+    if (available && !needsPermission) {
+      setIsGyroEnabled(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -308,6 +332,13 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
 
     const handleDeviceOrientation = (e: DeviceOrientationEvent) => {
       if (e.alpha === null || e.beta === null || e.gamma === null) return;
+
+      if (!gyroActiveRef.current) {
+        gyroActiveRef.current = true;
+        setIsGyroEnabled(true);
+        setNeedsGyroPermission(false);
+        setIsGyroActive(true);
+      }
 
       if (gyroRef.current.initialAlpha === null) {
         gyroRef.current.initialAlpha = e.alpha;
@@ -317,22 +348,23 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
       gyroRef.current.alpha = e.alpha;
       gyroRef.current.beta = e.beta;
       gyroRef.current.gamma = e.gamma;
-
-      if (!isGyroActive) {
-        setIsGyroActive(true);
-      }
     };
 
     window.addEventListener("deviceorientation", handleDeviceOrientation, true);
 
     return () => {
       window.removeEventListener("deviceorientation", handleDeviceOrientation, true);
+      gyroActiveRef.current = false;
+      setIsGyroActive(false);
     };
-  }, [config.enableGyroscope, isGyroAvailable, isGyroActive]);
+  }, [config.enableGyroscope, isGyroAvailable]);
 
   const requestGyroPermission = useCallback(async () => {
     const granted = await requestGyroscopePermission();
-    setIsGyroPermissionGranted(granted);
+    if (granted) {
+      setIsGyroEnabled(true);
+      setNeedsGyroPermission(false);
+    }
     return granted;
   }, []);
 
@@ -348,26 +380,35 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
       const keys = keysRef.current;
 
       if (keys.freeze) {
-        onSpeedChange?.(0);
+        if (lastReportedSpeedRef.current !== 0) {
+          lastReportedSpeedRef.current = 0;
+          onSpeedChange?.(0);
+        }
         return;
       }
 
       let rawPitchInput = (keys.pitchDown ? 1 : 0) - (keys.pitchUp ? 1 : 0);
       let rawBankInput = (keys.bankRight ? 1 : 0) - (keys.bankLeft ? 1 : 0);
 
-      if (config.enableGyroscope && isGyroActive && gyroRef.current.beta !== null && gyroRef.current.gamma !== null) {
+      if (config.enableGyroscope && gyroActiveRef.current && gyroRef.current.beta !== null && gyroRef.current.gamma !== null) {
         const gyro = gyroRef.current;
+        const deadZone = config.gyroDeadZone;
 
-        // beta
-        const normalizedBeta = ((gyro.beta ?? 45) - 45) / 45; // -1 to 1 range
-        if (Math.abs(normalizedBeta) > config.gyroDeadZone / 45) {
+        const betaNeutral = 50; // degrees typical holding angle
+        const betaRange = 35; // degrees for full input
+        const betaDelta = (gyro.beta ?? betaNeutral) - betaNeutral;
+        
+        if (Math.abs(betaDelta) > deadZone) {
+          const normalizedBeta = Math.max(-1, Math.min(1, betaDelta / betaRange));
           const pitchMultiplier = config.invertGyroPitch ? -1 : 1;
           rawPitchInput += normalizedBeta * config.gyroSensitivity * pitchMultiplier;
         }
 
-        // gamma
-        const normalizedGamma = (gyro.gamma ?? 0) / 45; // -1 to 1 range
-        if (Math.abs(normalizedGamma) > config.gyroDeadZone / 45) {
+        const gammaRange = 35; // degrees for full input
+        const gammaDelta = gyro.gamma ?? 0;
+        
+        if (Math.abs(gammaDelta) > deadZone) {
+          const normalizedGamma = Math.max(-1, Math.min(1, gammaDelta / gammaRange));
           const bankMultiplier = config.invertGyroYaw ? -1 : 1;
           rawBankInput += normalizedGamma * config.gyroSensitivity * bankMultiplier;
         }
@@ -416,21 +457,19 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
       smoothYawRef.current = damp(smoothYawRef.current, targetYawRef.current, config.rotationSmoothing, dt);
       smoothBankRef.current = damp(smoothBankRef.current, targetBankRef.current, config.rotationSmoothing, dt);
 
-      const euler = new THREE.Euler(smoothPitchRef.current, smoothYawRef.current, 0, "YXZ");
-      const targetQuat = new THREE.Quaternion();
-      targetQuat.setFromEuler(euler);
+      tempEuler.current.set(smoothPitchRef.current, smoothYawRef.current, 0, "YXZ");
+      tempQuat.current.setFromEuler(tempEuler.current);
 
-      const rollQuat = new THREE.Quaternion();
-      rollQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -smoothBankRef.current);
-      targetQuat.multiply(rollQuat);
+      tempQuat2.current.setFromAxisAngle(rollAxis.current, -smoothBankRef.current);
+      tempQuat.current.multiply(tempQuat2.current);
 
-      camera.quaternion.slerp(targetQuat, 1 - Math.exp(-config.rotationSmoothing * dt));
+      camera.quaternion.slerp(tempQuat.current, 1 - Math.exp(-config.rotationSmoothing * dt));
 
-      const forward = new THREE.Vector3(0, 0, -1);
-      forward.applyQuaternion(camera.quaternion);
-      forward.normalize();
+      forwardVec.current.set(0, 0, -1);
+      forwardVec.current.applyQuaternion(camera.quaternion);
+      forwardVec.current.normalize();
 
-      const verticalFactor = -forward.y;
+      const verticalFactor = -forwardVec.current.y;
 
       if (verticalFactor > 0.05) {
         currentSpeedRef.current += verticalFactor * config.gravityAccel * dt;
@@ -450,9 +489,13 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
       currentSpeedRef.current *= config.drag;
       currentSpeedRef.current = Math.max(config.minSpeed, Math.min(config.maxSpeed, currentSpeedRef.current));
 
-      onSpeedChange?.(Math.round(currentSpeedRef.current));
+      const roundedSpeed = Math.round(currentSpeedRef.current);
+      if (roundedSpeed !== lastReportedSpeedRef.current) {
+        lastReportedSpeedRef.current = roundedSpeed;
+        onSpeedChange?.(roundedSpeed);
+      }
 
-      camera.position.addScaledVector(forward, currentSpeedRef.current * dt);
+      camera.position.addScaledVector(forwardVec.current, currentSpeedRef.current * dt);
 
       if (config.enableBounds) {
         camera.position.y = Math.max(config.minHeight, Math.min(config.maxHeight, camera.position.y));
@@ -477,7 +520,7 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
         mouseDeltaRef.current.y = 0;
       }
 
-      if (config.enableGyroscope && isGyroActive && gyroRef.current.alpha !== null) {
+      if (config.enableGyroscope && gyroActiveRef.current && gyroRef.current.alpha !== null) {
         const gyro = gyroRef.current;
 
         if (gyro.initialAlpha !== null && gyro.initialBeta !== null) {
@@ -503,45 +546,48 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
       smoothPitchRef.current = damp(smoothPitchRef.current, targetPitchRef.current, config.rotationSmoothing, dt);
       smoothYawRef.current = damp(smoothYawRef.current, targetYawRef.current, config.rotationSmoothing, dt);
 
-      const euler = new THREE.Euler(smoothPitchRef.current, smoothYawRef.current, 0, "YXZ");
-      camera.quaternion.setFromEuler(euler);
+      tempEuler.current.set(smoothPitchRef.current, smoothYawRef.current, 0, "YXZ");
+      camera.quaternion.setFromEuler(tempEuler.current);
 
       const speed = keys.sprint
         ? config.simpleMoveSpeed * config.simpleSprintMultiplier
         : config.simpleMoveSpeed;
 
-      const forward = new THREE.Vector3(0, 0, -1);
-      forward.applyQuaternion(camera.quaternion);
-      forward.y = 0;
-      forward.normalize();
+      forwardVec.current.set(0, 0, -1);
+      forwardVec.current.applyQuaternion(camera.quaternion);
+      forwardVec.current.y = 0;
+      forwardVec.current.normalize();
 
-      const right = new THREE.Vector3(1, 0, 0);
-      right.applyQuaternion(camera.quaternion);
-      right.y = 0;
-      right.normalize();
+      rightVec.current.set(1, 0, 0);
+      rightVec.current.applyQuaternion(camera.quaternion);
+      rightVec.current.y = 0;
+      rightVec.current.normalize();
 
-      const up = new THREE.Vector3(0, 1, 0);
+      movementVec.current.set(0, 0, 0);
 
-      const movement = new THREE.Vector3();
+      if (keys.forward) movementVec.current.add(forwardVec.current);
+      if (keys.backward) movementVec.current.sub(forwardVec.current);
+      if (keys.right) movementVec.current.add(rightVec.current);
+      if (keys.left) movementVec.current.sub(rightVec.current);
+      
+      const vertScale = config.simpleVerticalSpeed / config.simpleMoveSpeed;
+      if (keys.up) movementVec.current.y += vertScale;
+      if (keys.down) movementVec.current.y -= vertScale;
 
-      if (keys.forward) movement.add(forward);
-      if (keys.backward) movement.sub(forward);
-      if (keys.right) movement.add(right);
-      if (keys.left) movement.sub(right);
-      if (keys.up) movement.add(up.clone().multiplyScalar(config.simpleVerticalSpeed / config.simpleMoveSpeed));
-      if (keys.down) movement.sub(up.clone().multiplyScalar(config.simpleVerticalSpeed / config.simpleMoveSpeed));
-
-      if (movement.lengthSq() > 0) {
-        movement.normalize();
-        camera.position.addScaledVector(movement, speed * dt);
+      if (movementVec.current.lengthSq() > 0) {
+        movementVec.current.normalize();
+        camera.position.addScaledVector(movementVec.current, speed * dt);
       }
 
       if (config.enableBounds) {
         camera.position.y = Math.max(config.minHeight, Math.min(config.maxHeight, camera.position.y));
       }
 
-      const reportedSpeed = movement.lengthSq() > 0 ? Math.round(speed) : 0;
-      onSpeedChange?.(reportedSpeed);
+      const reportedSpeed = movementVec.current.lengthSq() > 0 ? Math.round(speed) : 0;
+      if (reportedSpeed !== lastReportedSpeedRef.current) {
+        lastReportedSpeedRef.current = reportedSpeed;
+        onSpeedChange?.(reportedSpeed);
+      }
     },
     [camera, config, onSpeedChange]
   );
@@ -558,12 +604,11 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
         camera.quaternion.copy(fly.targetQuaternion);
         flyToRef.current = null;
 
-        const euler = new THREE.Euler(0, 0, 0, "YXZ");
-        euler.setFromQuaternion(camera.quaternion);
-        targetPitchRef.current = euler.x;
-        smoothPitchRef.current = euler.x;
-        targetYawRef.current = euler.y;
-        smoothYawRef.current = euler.y;
+        tempEuler.current.setFromQuaternion(camera.quaternion, "YXZ");
+        targetPitchRef.current = tempEuler.current.x;
+        smoothPitchRef.current = tempEuler.current.x;
+        targetYawRef.current = tempEuler.current.y;
+        smoothYawRef.current = tempEuler.current.y;
         targetBankRef.current = 0;
         smoothBankRef.current = 0;
 
@@ -669,8 +714,10 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
       isPointerLocked,
       isGyroActive,
       isGyroAvailable,
+      isGyroEnabled,
+      needsGyroPermission,
     };
-  }, [isPointerLocked, isGyroActive, isGyroAvailable]);
+  }, [isPointerLocked, isGyroActive, isGyroAvailable, isGyroEnabled, needsGyroPermission]);
 
   return {
     update,
@@ -686,6 +733,8 @@ export function useFlight({ camera, config: configOverrides, onSpeedChange, onMo
     isPointerLocked,
     isGyroActive,
     isGyroAvailable,
+    isGyroEnabled,
+    needsGyroPermission,
   };
 }
 

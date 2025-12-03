@@ -2,12 +2,13 @@
  * Flight Library
  * Constants and utility functions for flight mechanics
  * 
- * Supports two movement modes:
+ * Supports three movement modes:
  * 1. "elytra" - Flight sim/Minecraft Elytra mechanics with pitch, bank, gravity
  * 2. "simple" - Simple WASD XYZ movement like first-person games
+ * 3. "globe" - Globe mode for Google 3D Tiles; based on "elytra" mode with ECEF support
  */
 
-export type MovementMode = "elytra" | "simple";
+export type MovementMode = "elytra" | "simple" | "globe";
 
 export const BASE_SPEED = 60;
 export const MIN_SPEED = 20;
@@ -44,9 +45,20 @@ export const DEFAULT_MAX_PITCH_SIMPLE = Math.PI / 2;
 export const FLY_TO_DURATION = 1.5; // seconds
 export const FLY_TO_EASE = 0.05; // smoothing factor
 
-export const GYRO_SENSITIVITY_DEFAULT = 1.0;
+export const GYRO_SENSITIVITY_DEFAULT = 0.3; // lower = less aggressive
 export const GYRO_SMOOTHING = 8.0;
-export const GYRO_DEAD_ZONE = 0.5; // degrees
+export const GYRO_DEAD_ZONE = 3.0; // degrees
+
+export const GLOBE_BASE_SPEED = 100; // m/s (~360 km/h like a small plane)
+export const GLOBE_MIN_SPEED = 20; // m/s
+export const GLOBE_MAX_SPEED = 500; // m/s (~1800 km/h)
+export const GLOBE_BOOST_IMPULSE = 150; // m/s
+export const GLOBE_MIN_ALTITUDE = 50; // meters above ground
+export const GLOBE_MAX_ALTITUDE = 5000; // meters above ground
+export const GLOBE_GRAVITY_ACCEL = 30; // m/s² when diving
+export const GLOBE_GRAVITY_DECEL = 20; // m/s² when climbing
+
+export const EARTH_RADIUS = 6378137; // WGS84 equatorial radius in meters
 
 /**
  * Exponential damping function for smooth interpolation
@@ -128,6 +140,15 @@ export interface FlightConfig {
   invertGyroYaw?: boolean;
 
   toggleModeKey?: string;
+
+  globeBaseSpeed?: number;
+  globeMinSpeed?: number;
+  globeMaxSpeed?: number;
+  globeBoostImpulse?: number;
+  globeMinAltitude?: number;
+  globeMaxAltitude?: number;
+  globeGravityAccel?: number;
+  globeGravityDecel?: number;
 }
 
 /**
@@ -179,6 +200,15 @@ export function createFlightConfig(overrides: FlightConfig = {}): Required<Fligh
     invertGyroYaw: overrides.invertGyroYaw ?? false,
 
     toggleModeKey: overrides.toggleModeKey ?? "KeyM",
+
+    globeBaseSpeed: overrides.globeBaseSpeed ?? GLOBE_BASE_SPEED,
+    globeMinSpeed: overrides.globeMinSpeed ?? GLOBE_MIN_SPEED,
+    globeMaxSpeed: overrides.globeMaxSpeed ?? GLOBE_MAX_SPEED,
+    globeBoostImpulse: overrides.globeBoostImpulse ?? GLOBE_BOOST_IMPULSE,
+    globeMinAltitude: overrides.globeMinAltitude ?? GLOBE_MIN_ALTITUDE,
+    globeMaxAltitude: overrides.globeMaxAltitude ?? GLOBE_MAX_ALTITUDE,
+    globeGravityAccel: overrides.globeGravityAccel ?? GLOBE_GRAVITY_ACCEL,
+    globeGravityDecel: overrides.globeGravityDecel ?? GLOBE_GRAVITY_DECEL,
   };
 }
 
@@ -196,11 +226,42 @@ export function smoothstep(t: number): number {
 }
 
 export function isGyroscopeAvailable(): boolean {
-  return typeof window !== "undefined" && "DeviceOrientationEvent" in window;
+  if (typeof window === "undefined") return false;
+  if (!("DeviceOrientationEvent" in window)) return false;
+  
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isChrome = /CriOS/.test(ua);
+  
+  if (isIOS && isChrome) {
+    return false;
+  }
+  
+  return true;
+}
+
+export function isGyroscopePermissionRequired(): boolean {
+  if (typeof window === "undefined") return false;
+  const DeviceOrientationEvent = window.DeviceOrientationEvent as any;
+  return typeof DeviceOrientationEvent?.requestPermission === "function";
+}
+
+export function isSafariBrowser(): boolean {
+  if (typeof window === "undefined") return false;
+  const ua = navigator.userAgent;
+  return /Safari/.test(ua) && !/Chrome/.test(ua) && !/CriOS/.test(ua);
 }
 
 export async function requestGyroscopePermission(): Promise<boolean> {
   if (typeof window === "undefined") return false;
+
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isChrome = /CriOS/.test(ua);
+  
+  if (isIOS && isChrome) {
+    return false;
+  }
 
   const DeviceOrientationEvent = window.DeviceOrientationEvent as any;
   if (typeof DeviceOrientationEvent?.requestPermission === "function") {
