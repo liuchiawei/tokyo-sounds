@@ -49,3 +49,5 @@ next-env.d.ts
 .cursor/
 certificates
 .env*.local
+
+/src/generated/prisma
