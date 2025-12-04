@@ -48,3 +48,6 @@ next-env.d.ts
 .playwright-mcp/
 .cursor/
 certificates
+.env*.local
+
+/src/generated/prisma
