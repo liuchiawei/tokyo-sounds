@@ -28,6 +28,7 @@
     "@react-three/postprocessing": "^3.0.4",
     "@react-three/rapier": "^2.2.0",
     "@stackframe/stack": "^2.8.54",
+    "@vercel/analytics": "^1.6.1",
     "camera-controls": "^3.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
