@@ -11,11 +11,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // Connection URLs are now configured in prisma.config.ts for Prisma 7
 }
 
 // --- Better Auth Core Tables ---
-
 model User {
   id            String    @id @default(cuid())
   name          String
