@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { SocialLoginButtons } from "./social-login-buttons";
+import { SocialLoginButtons } from "./SocialLoginButtons";
 import {
   message,
   labels,
