@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthForm } from "@/components/common/auth-form";
 import { signUp } from "@/lib/auth-client";
 import { message } from "@/lib/constraint";
+import { AuthForm } from "@/components/widget/AuthForm";
+import CommonPageContainer from "@/components/layout/CommonPageContainer";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -38,13 +39,13 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <CommonPageContainer>
       <AuthForm
         mode="register"
         onSubmit={handleSubmit}
         error={error}
         isLoading={isLoading}
       />
-    </div>
+    </CommonPageContainer>
   );
 }
